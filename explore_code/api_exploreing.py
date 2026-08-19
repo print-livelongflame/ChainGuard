@@ -10,6 +10,9 @@ both need to take different addresses as input and return the json file for the 
 meaning the user will input the address and the script will call both api's and return the json file for both api's
 
 
+NOTE: This code is for finding information on tokens not the wallet address. 
+
+
 '''
 import json
 import os
