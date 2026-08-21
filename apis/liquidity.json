@@ -1,0 +1,272 @@
+[
+    {
+        "pool_address": "0xC636bfE0bAe34824380B4E26Bc34e4614e55e483",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "ATROPA"
+        ],
+        "liquidity_usd": 8266694.23
+    },
+    {
+        "pool_address": "0x6444456960C3f95b5b408f4d9E00220643f06F94",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "WPLS"
+        ],
+        "liquidity_usd": 77736.06
+    },
+    {
+        "pool_address": "0x99ac8cA7087fA4A2A1FB6357269965A2014ABc35",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "WBTC"
+        ],
+        "liquidity_usd": 119145.13
+    },
+    {
+        "pool_address": "0x5777d92f208679DB4b9778590Fa3CAB3aC9e2168",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "DAI"
+        ],
+        "liquidity_usd": 121921.85
+    },
+    {
+        "pool_address": "0x69D91B94f0AaF8e8A2586909fA77A5c2c89818d5",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "HEX"
+        ],
+        "liquidity_usd": 77464.74
+    },
+    {
+        "pool_address": "0x3416cF6C708Da44DB2624D63ea0AAef7113527C6",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "USDT"
+        ],
+        "liquidity_usd": 69863.18
+    },
+    {
+        "pool_address": "0x3861254332677C8c00CF6C6aaD71cE880B283cEb",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "USDT"
+        ],
+        "liquidity_usd": 65708.77
+    },
+    {
+        "pool_address": "0x2dB5EF4E8A7Dbe195defAe2d9b79948096a03274",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "DAI"
+        ],
+        "liquidity_usd": 53694.39
+    },
+    {
+        "pool_address": "0xAE461cA67B15dc8dc81CE7615e0320dA1A9aB8D5",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "DAI"
+        ],
+        "liquidity_usd": 45327.63
+    },
+    {
+        "pool_address": "0x3041CbD36888bECc7bbCBc0045E3B1f144466f5f",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "USDT"
+        ],
+        "liquidity_usd": 30952.47
+    },
+    {
+        "pool_address": "0x0fb0e40cec3bb23e13abc585958a93c796fbea56955e19a23727a716a0423239",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "USDT"
+        ],
+        "liquidity_usd": 884164.68
+    },
+    {
+        "pool_address": "0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "USDT"
+        ],
+        "liquidity_usd": 9006.72
+    },
+    {
+        "pool_address": "0xF6DCdce0ac3001B2f67F750bc64ea5beB37B5824",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "HEX"
+        ],
+        "liquidity_usd": 4157.06
+    },
+    {
+        "pool_address": "0x3150e4162DfDD5c89A8653bDf1CbB9E09C11F42a",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "PZEN"
+        ],
+        "liquidity_usd": 5357.59
+    },
+    {
+        "pool_address": "0xF3f82bC165a83425e81b8f2858D786E41ab21671",
+        "dex": "0xee3E9E46E34a27dC755a63e2849C9913Ee1A06E2",
+        "token_pair": [
+            "USDC",
+            "WBTC"
+        ],
+        "liquidity_usd": 3669.09
+    },
+    {
+        "pool_address": "0xC36372218976B1473993e5D7b38442105E900102",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "USDC"
+        ],
+        "liquidity_usd": 2016.26
+    },
+    {
+        "pool_address": "0x8F6DfB2Fa2f7Ccf9d7106E96207d8B947a89998a",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "WPLS"
+        ],
+        "liquidity_usd": 1066.59
+    },
+    {
+        "pool_address": "0xdA50362042e86F78e9CC414C22fa08bfAB3e8ED4",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "ATROPA"
+        ],
+        "liquidity_usd": 3273.08
+    },
+    {
+        "pool_address": "0x2DFD32F9BC0D9E9B19C68a83C924e71b209dCd67",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "WBTC"
+        ],
+        "liquidity_usd": 2165.97
+    },
+    {
+        "pool_address": "0xf60AfeD42D276507B6bcAe93157C66bee2Cf332b",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "GENI"
+        ],
+        "liquidity_usd": 2097.4
+    },
+    {
+        "pool_address": "0x0b7a23844a8aDb98636ED5879E77F70C70E4956A",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "WBTC"
+        ],
+        "liquidity_usd": 908.05
+    },
+    {
+        "pool_address": "0x6d4b345fFeD67826804F27450FB6eC5F5cE34546",
+        "dex": "liberty-swap",
+        "token_pair": [
+            "USDC",
+            "DAI"
+        ],
+        "liquidity_usd": 1470.08
+    },
+    {
+        "pool_address": "0x9379F5e035CF6148c6bbEE1D6415795cc773b0A4",
+        "dex": "0x115934131916C8b277DD010Ee02de363c09d037c",
+        "token_pair": [
+            "USDC",
+            "SHIB"
+        ],
+        "liquidity_usd": 657.02
+    },
+    {
+        "pool_address": "0xD901f1D4eB400fdd897ecf26BE3cca7659041698",
+        "dex": "9mm",
+        "token_pair": [
+            "USDC",
+            "DAI"
+        ],
+        "liquidity_usd": 1290.46
+    },
+    {
+        "pool_address": "0x004375Dff511095CC5A197A54140a24eFEF3A416",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "WBTC"
+        ],
+        "liquidity_usd": 717.97
+    },
+    {
+        "pool_address": "0x0C0Ea569200c6212dcD8Be27091F81d17950A577",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "USDC"
+        ],
+        "liquidity_usd": 364.84
+    },
+    {
+        "pool_address": "0xe05e653453F733786F2DABae0ffa1e96cFcc4b25",
+        "dex": "uniswap",
+        "token_pair": [
+            "USDC",
+            "HEX"
+        ],
+        "liquidity_usd": 746.82
+    },
+    {
+        "pool_address": "0x8fF77def1FF9a5c7230f0C224A716a6399DA8336",
+        "dex": "0xee3E9E46E34a27dC755a63e2849C9913Ee1A06E2",
+        "token_pair": [
+            "USDC",
+            "DAI"
+        ],
+        "liquidity_usd": 560.69
+    },
+    {
+        "pool_address": "0x406289C7e577Db707415D6950C6cd21c0E42D223",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "TREASURY BILL \u327e"
+        ],
+        "liquidity_usd": 358.42
+    },
+    {
+        "pool_address": "0x36f526861e4DbaF640129D48f727815DcC4aA532",
+        "dex": "pulsex",
+        "token_pair": [
+            "USDC",
+            "INC"
+        ],
+        "liquidity_usd": 180.82
+    }
+]

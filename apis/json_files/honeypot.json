@@ -4,14 +4,14 @@
     "symbol": "USDC",
     "decimals": 6,
     "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    "totalHolders": 8410198
+    "totalHolders": 8442899
   },
   "withToken": {
     "name": "Wrapped Ether",
     "symbol": "WETH",
     "decimals": 18,
     "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    "totalHolders": 3317008
+    "totalHolders": 3317515
   },
   "summary": {
     "risk": "low",
@@ -26,15 +26,15 @@
     "buyTax": 0,
     "sellTax": 0,
     "transferTax": 0,
-    "buyGas": "180659",
-    "sellGas": "138984"
+    "buyGas": "181641",
+    "sellGas": "139718"
   },
   "flags": [],
   "contractCode": {
     "openSource": true,
     "rootOpenSource": true,
-    "isProxy": false,
-    "hasProxyCalls": false
+    "isProxy": true,
+    "hasProxyCalls": true
   },
   "chain": {
     "id": "1",
@@ -52,9 +52,9 @@
       "type": "UniswapV3"
     },
     "chainId": "1",
-    "reserves0": "42844566255632",
-    "reserves1": "29752994643130230318786",
-    "liquidity": 100306598.52546275,
+    "reserves0": "77941192534283",
+    "reserves1": "10740994862164300107300",
+    "liquidity": 103510833.89020997,
     "router": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
     "createdAtTimestamp": "1620250931",
     "creationTxHash": "0x125e0b641d4a4b08806bf52c0c6757648c9963bcda8681e4f996f09e00d4c2cc"
