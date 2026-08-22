@@ -11,3 +11,9 @@ Enter your keys here
 '''
 ETHERSCAN_API_KEY= "xxxxxxxxx"
 ```
+
+**PLease note in order to run a fetcher use the command syntax down below**
+```bash
+# example: python3 -m fetchers.transaction_history_fetcher.py
+python3 -m fetchers.filename
+```
