@@ -1,0 +1,122 @@
+{
+    "address": "0x807534b396919783b7e30383fe57d857bc084338",
+    "results": {
+        "contract": {
+            "status": "pass",
+            "data": {
+                "contract_address": "0x807534b396919783b7e30383fe57d857bc084338",
+                "chain_id": 1,
+                "bytecode": "Missing/Invalid API Key",
+                "abi": null,
+                "creator": null,
+                "creation_tx": null
+            },
+            "error": null
+        },
+        "transactions": {
+            "status": "pass",
+            "data": [],
+            "error": null
+        },
+        "honeypot": {
+            "status": "pass",
+            "data": {
+                "token": {
+                    "name": "Test",
+                    "symbol": "TEST",
+                    "decimals": 18,
+                    "address": "0x807534B396919783B7e30383Fe57D857BC084338",
+                    "totalHolders": 2053
+                },
+                "withToken": {
+                    "name": "Wrapped Ether",
+                    "symbol": "WETH",
+                    "decimals": 18,
+                    "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                    "totalHolders": 3318393
+                },
+                "summary": {
+                    "risk": "low",
+                    "riskLevel": 1,
+                    "flags": []
+                },
+                "simulationSuccess": true,
+                "honeypotResult": {
+                    "isHoneypot": false
+                },
+                "simulationResult": {
+                    "buyTax": 0,
+                    "sellTax": 0,
+                    "transferTax": 0,
+                    "buyGas": "143859",
+                    "sellGas": "103355"
+                },
+                "holderAnalysis": {
+                    "holders": "74",
+                    "successful": "74",
+                    "failed": "0",
+                    "siphoned": "0",
+                    "averageTax": 0,
+                    "averageGas": 103215.58108108108,
+                    "highestTax": 0,
+                    "highTaxWallets": "0",
+                    "taxDistribution": [
+                        {
+                            "tax": 0,
+                            "count": 74
+                        }
+                    ],
+                    "snipersFailed": 0,
+                    "snipersSuccess": 0
+                },
+                "flags": [],
+                "contractCode": {
+                    "openSource": true,
+                    "rootOpenSource": true,
+                    "isProxy": false,
+                    "hasProxyCalls": false
+                },
+                "chain": {
+                    "id": "1",
+                    "name": "Ethereum",
+                    "shortName": "eth",
+                    "currency": "ETH"
+                },
+                "router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+                "pair": {
+                    "pair": {
+                        "name": "Uniswap V2: TEST-WETH",
+                        "address": "0x176bB366B31a5292E27c6B6fCf7b7E54d137Ec3d",
+                        "token0": "0x807534B396919783B7e30383Fe57D857BC084338",
+                        "token1": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                        "type": "UniswapV2"
+                    },
+                    "chainId": "1",
+                    "reserves0": "705097288489920276975564165",
+                    "reserves1": "15893298408756288765",
+                    "liquidity": 60261.6659785767,
+                    "router": "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D",
+                    "createdAtTimestamp": "1690905107",
+                    "creationTxHash": "0xb16ac7acb7d14fd5c2199d6e9ebd2d7dcdad562a1714e24b0ceceebcabd73fcb"
+                },
+                "pairAddress": "0x176bB366B31a5292E27c6B6fCf7b7E54d137Ec3d"
+            },
+            "error": null
+        },
+        "liquidity": {
+            "status": "fail",
+            "data": null,
+            "error": "'NoneType' object is not iterable"
+        },
+        "rugcheck": {
+            "status": "skip",
+            "data": null,
+            "error": "RugCheck supports Solana token addresses only."
+        }
+    },
+    "summary": {
+        "passed": 3,
+        "failed": 1,
+        "skipped": 1
+    }
+}

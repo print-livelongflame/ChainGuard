@@ -1,11 +1,13 @@
 import json
 import os
+import sys
 
 import requests
 
 DEXSCREENER_URL = "https://api.dexscreener.com/latest/dex/tokens/{token_address}"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_FOLDER = os.path.join(BASE_DIR, "json_files")
+TEST_JSON_FOLDER = os.path.join(BASE_DIR, "json_files_test")
 
 
 def get_liquidity(token_address: str) -> list[dict]:
@@ -32,9 +34,9 @@ def get_liquidity(token_address: str) -> list[dict]:
     return liquidity
 
 
-def save_json(filename: str, data):
-    os.makedirs(JSON_FOLDER, exist_ok=True)
-    filepath = os.path.join(JSON_FOLDER, filename)
+def save_json(filename: str, data, folder=JSON_FOLDER):
+    os.makedirs(folder, exist_ok=True)
+    filepath = os.path.join(folder, filename)
 
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
@@ -42,11 +44,28 @@ def save_json(filename: str, data):
     print(f"Saved {filename} to {filepath}")
 
 
-# Testing the function
-address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+def run_test():
+    address = input("Token address: ").strip()
+    if not address:
+        raise SystemExit("A token address is required.")
 
-data = get_liquidity(address)
+    try:
+        data = get_liquidity(address)
+        save_json("liquidity.json", data, TEST_JSON_FOLDER)
+        print("TEST: PASS - JSON returned")
+    except Exception as error:
+        save_json("liquidity.json", {"error": str(error)}, TEST_JSON_FOLDER)
+        print(f"TEST: FAIL - {error}")
 
-save_json("liquidity.json", data)
 
-print(f"Saved {len(data)} liquidity pools to {os.path.join(JSON_FOLDER, 'liquidity.json')}")
+if __name__ == "__main__":
+    if "-test" in sys.argv:
+        run_test()
+    else:
+        address = input("Token address: ").strip()
+        if not address:
+            raise SystemExit("A token address is required.")
+
+        data = get_liquidity(address)
+        save_json("liquidity.json", data)
+        print(f"Saved {len(data)} liquidity pools to {os.path.join(JSON_FOLDER, 'liquidity.json')}")

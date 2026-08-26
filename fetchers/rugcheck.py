@@ -11,12 +11,14 @@ This API is for token investigation, not wallet investigation.
 import json
 import os
 import glob
+import sys
 import requests
 
 RUGCHECK_URL = "https://api.rugcheck.xyz/v1/tokens/{}/report"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_FOLDER = os.path.join(BASE_DIR, "json_files")
+TEST_JSON_FOLDER = os.path.join(BASE_DIR, "json_files_test")
 
 
 def clear_json_folder():
@@ -26,13 +28,27 @@ def clear_json_folder():
         os.remove(file)
 
 
-def save_json(filename, data):
-    filepath = os.path.join(JSON_FOLDER, filename)
+def save_json(filename, data, folder=JSON_FOLDER):
+    os.makedirs(folder, exist_ok=True)
+    filepath = os.path.join(folder, filename)
 
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
     print(f"Saved: {filepath}")
+
+
+def run_test():
+    token_address = input("Solana token address: ").strip()
+    if not token_address:
+        raise SystemExit("A Solana token address is required.")
+
+    data = get_rugcheck(token_address)
+    save_json("rugcheck.json", data, TEST_JSON_FOLDER)
+    if "error" in data:
+        print(f"TEST: FAIL - {data['error']}")
+    else:
+        print("TEST: PASS - JSON returned")
 
 
 def get_rugcheck(token_address):
@@ -63,4 +79,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if "-test" in sys.argv:
+        run_test()
+    else:
+        main()

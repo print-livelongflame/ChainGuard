@@ -15,12 +15,11 @@ Information retrieved:
 - Gas information
 - Transaction status
 
-Test address:
-0x0d4890ecEc59cd55D640d36f7acc6F7F512Fdb6e
 '''
 import os
 import sys
 import json
+import importlib
 import requests
 
 
@@ -31,13 +30,19 @@ sys.path.append(
     )
 )
 
-from api_keys.api_keys import ETHERSCAN_API_KEY
+try:
+    ETHERSCAN_API_KEY = importlib.import_module(
+        "api_keys.api_keys"
+    ).ETHERSCAN_API_KEY
+except (ImportError, AttributeError):
+    ETHERSCAN_API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 
 
 ETHERSCAN_URL = "https://api.etherscan.io/v2/api"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_FOLDER = os.path.join(BASE_DIR, "json_files")
+TEST_JSON_FOLDER = os.path.join(BASE_DIR, "json_files_test")
 
 
 def get_transactions(
@@ -128,10 +133,10 @@ def get_transactions(
     return transactions
 
 
-def save_json(filename: str, data):
-    os.makedirs(JSON_FOLDER, exist_ok=True)
+def save_json(filename: str, data, folder=JSON_FOLDER):
+    os.makedirs(folder, exist_ok=True)
 
-    filepath = os.path.join(JSON_FOLDER, filename)
+    filepath = os.path.join(folder, filename)
 
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
@@ -139,24 +144,31 @@ def save_json(filename: str, data):
     print(f"Saved {filename} to {filepath}")
 
 
-# ---------------------------------------------------------
-# Testing
-# ---------------------------------------------------------
+def run_test():
+    address = input("Wallet address: ").strip()
+    if not address:
+        raise SystemExit("A wallet address is required.")
 
-address = "0x0d4890ecEc59cd55D640d36f7acc6F7F512Fdb6e"
+    try:
+        data = get_transactions(address=address, chain_id=1, offset=100)
+        save_json("transactions.json", data, TEST_JSON_FOLDER)
+        print("TEST: PASS - JSON returned")
+    except Exception as error:
+        save_json("transactions.json", {"error": str(error)}, TEST_JSON_FOLDER)
+        print(f"TEST: FAIL - {error}")
 
-transactions = get_transactions(
-    address=address,
-    chain_id=1,
-    offset=100
-)
 
-save_json(
-    "transactions.json",
-    transactions
-)
+if __name__ == "__main__":
+    if "-test" in sys.argv:
+        run_test()
+    else:
+        address = input("Wallet address: ").strip()
+        if not address:
+            raise SystemExit("A wallet address is required.")
 
-print(
-    f"Saved {len(transactions)} transactions "
-    f"to {os.path.join(JSON_FOLDER, 'transactions.json')}"
-)
+        transactions = get_transactions(address=address, chain_id=1, offset=100)
+        save_json("transactions.json", transactions)
+        print(
+            f"Saved {len(transactions)} transactions "
+            f"to {os.path.join(JSON_FOLDER, 'transactions.json')}"
+        )

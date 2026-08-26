@@ -12,11 +12,19 @@ test address: need hash
 import os
 import sys
 import json
+import importlib
 import requests
-from api_keys.api_keys import ETHERSCAN_API_KEY
+
+try:
+    ETHERSCAN_API_KEY = importlib.import_module(
+        "api_keys.api_keys"
+    ).ETHERSCAN_API_KEY
+except (ImportError, AttributeError):
+    ETHERSCAN_API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 ETHERSCAN_URL = "https://api.etherscan.io/v2/api"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 JSON_FOLDER = os.path.join(BASE_DIR, "json_files")
+TEST_JSON_FOLDER = os.path.join(BASE_DIR, "json_files_test")
 #allow imports from project root
 sys.path.append(
     os.path.dirname(
@@ -42,16 +50,36 @@ def get_transaction_by_hash(
     data = response.json()
     return data.get("result", {})
 
-def save_json(filename: str, data):
-    os.makedirs(JSON_FOLDER, exist_ok=True)
-    filepath = os.path.join(JSON_FOLDER, filename)
+def save_json(filename: str, data, folder=JSON_FOLDER):
+    os.makedirs(folder, exist_ok=True)
+    filepath = os.path.join(folder, filename)
 
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
 
     print(f"Saved {filename} to {filepath}")
 
-# Testing the function
-tx_hash = "0x0d4890ecEc59cd55D640d36f7acc6"
-data = get_transaction_by_hash(tx_hash)
-save_json("transaction_data.json", data)
+
+def run_test():
+    tx_hash = input("Transaction hash: ").strip()
+    if not tx_hash:
+        raise SystemExit("A transaction hash is required.")
+
+    try:
+        data = get_transaction_by_hash(tx_hash)
+        save_json("transaction_data.json", data, TEST_JSON_FOLDER)
+        print("TEST: PASS - JSON returned")
+    except Exception as error:
+        save_json("transaction_data.json", {"error": str(error)}, TEST_JSON_FOLDER)
+        print(f"TEST: FAIL - {error}")
+
+if __name__ == "__main__":
+    if "-test" in sys.argv:
+        run_test()
+    else:
+        tx_hash = input("Transaction hash: ").strip()
+        if not tx_hash:
+            raise SystemExit("A transaction hash is required.")
+
+        data = get_transaction_by_hash(tx_hash)
+        save_json("transaction_data.json", data)
