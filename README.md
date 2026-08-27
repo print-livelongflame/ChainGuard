@@ -6,7 +6,7 @@ AI LLM which wil help users to investigate blockchain wallet address
 
 # Setup the Project
 
-So far setting up the project will be very simple. Just add a `touch api_keys\api_keys.py`. Inside the file add you api keys.
+So far setting up the project will be very simple. Just add a file at `api_keys\api_keys.py`. Inside the file add your api keys.
 
 ```python
 '''
