@@ -49,10 +49,32 @@ JSON_FOLDER = os.path.join(BASE_DIR, "json_files")
 TEST_JSON_FOLDER = os.path.join(BASE_DIR, "json_files_test")
 
 
+def get_etherscan_api_key_error(data: dict) -> str | None:
+    """Return an API-key error message if Etherscan reports one."""
+    message = str(data.get("message", ""))
+    result = str(data.get("result", ""))
+
+    if "Missing/Invalid API Key" in message or "Missing/Invalid API Key" in result:
+        return (
+            "Etherscan API key is missing or invalid. Add ETHERSCAN_API_KEY "
+            "to api_keys/api_keys.py or set it as an environment variable."
+        )
+
+    return None
+
+
 def get_contract_info(
     contract_address: str,
     chain_id: int = 1
 ) -> dict:
+
+    if not ETHERSCAN_API_KEY.strip():
+        return {
+            "error": (
+                "Etherscan API key is missing. Add ETHERSCAN_API_KEY "
+                "to api_keys/api_keys.py or set it as an environment variable."
+            )
+        }
 
     # Common parameters used by Etherscan V2
     base_params = {
@@ -81,6 +103,9 @@ def get_contract_info(
     response.raise_for_status()
 
     bytecode_data = response.json()
+    api_key_error = get_etherscan_api_key_error(bytecode_data)
+    if api_key_error:
+        return {"error": api_key_error}
 
     bytecode = bytecode_data.get("result")
 
@@ -105,6 +130,9 @@ def get_contract_info(
     response.raise_for_status()
 
     abi_data = response.json()
+    api_key_error = get_etherscan_api_key_error(abi_data)
+    if api_key_error:
+        return {"error": api_key_error}
 
     abi = None
 
@@ -136,6 +164,9 @@ def get_contract_info(
     response.raise_for_status()
 
     creation_data = response.json()
+    api_key_error = get_etherscan_api_key_error(creation_data)
+    if api_key_error:
+        return {"error": api_key_error}
 
     creator = None
     creation_tx = None
