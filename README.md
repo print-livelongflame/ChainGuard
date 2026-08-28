@@ -48,7 +48,7 @@ python -m fetchers.tx_hash_resolver_fetcher -test
 | ----------------- | ----------------- | ----------------- |
 | Contract Fetcher | Bytecode, ABI (if verified), creator, creation tx | `fetchers\contract_fetcher.py` |
 | Transaction History Fetcher | Recent transactions in/out | `fetchers\transaction_history_fetcher.py` |
-| Token Info Fetcher | Token balances and metadata held by the address | `PENDING` |
+| Token Info Fetcher | Token balances and metadata held by the address | `fetchers\token_info_fetcher.py` |
 | Liquidity / paired-pool Fetcher | DEX pool pairing, liquidity depth, recent add/remove events | `fetchers\liquidty_pairedPool_fetcher.py` |
 | Tx-hash Resolver Fetcher | Given a tx hash, look up the transaction and extract the address(es) involved | `fetchers\tx_hash_resolver_fetcher.py` |
 | Token-name Resolver Fetcher | Given a token name/symbol, resolve to a contract address (best-effort — flag ambiguous matches rather than guessing) | `PENDING` |
