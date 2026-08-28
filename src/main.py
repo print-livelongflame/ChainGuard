@@ -27,6 +27,11 @@ def is_evm_address(address):
     return bool(re.fullmatch(r"0x[a-fA-F0-9]{40}", address))
 
 
+def is_transaction_hash(value):
+    """Recognize the 0x-prefixed 32-byte transaction hash format."""
+    return bool(re.fullmatch(r"0x[a-fA-F0-9]{64}", value))
+
+
 def is_solana_address(address):
     """Recognize the Base58 address format used by Solana tokens."""
     base58_characters = set(
@@ -163,7 +168,7 @@ def run_fetcher(name, module_name, function_name, address):
         module = __import__(module_name, fromlist=[function_name])
         fetcher = getattr(module, function_name)
 
-        if name in ("contract", "transactions", "token_info"):
+        if name in ("contract", "transactions", "token_info", "tx_hash"):
             data = fetcher(address, chain_id=1)
         else:
             data = fetcher(address)
@@ -188,6 +193,9 @@ def should_skip_fetcher(name, address_analysis):
 
     if name in ("contract", "transactions", "token_info") and chain_family != "evm":
         return "This fetcher supports EVM addresses only."
+
+    if name == "tx_hash" and not address_analysis["is_transaction_hash"]:
+        return "Transaction hash fetcher skipped because the input is not a transaction hash."
 
     if name == "token_info" and address_type not in ("wallet", "delegated_wallet"):
         return "Token info fetcher skipped because it expects an EVM wallet address."
@@ -220,7 +228,9 @@ def should_skip_fetcher(name, address_analysis):
 def fetch_results(address):
     """Run each address-based fetcher and keep failures isolated."""
     address_analysis = analyze_address_format(address)
+    address_analysis["is_transaction_hash"] = is_transaction_hash(address)
     fetchers = [
+        ("tx_hash", "fetchers.tx_hash_fetcher", "get_transaction_by_hash"),
         ("contract", "fetchers.contract_fetcher", "get_contract_info"),
         ("transactions", "fetchers.transaction_history_fetcher", "get_transactions"),
         ("honeypot", "scam_detectors.honeypot", "get_honeypot"),
