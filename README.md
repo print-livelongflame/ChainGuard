@@ -55,5 +55,96 @@ python -m fetchers.tx_hash_resolver_fetcher -test
 
 ---
 
+# API and detector architecture
+
+The API has two key stages:
+
+1. Fetcher stage
+   - Existing fetchers are run against the address.
+   - The CLI already contains this logic in `src/main.py` via `fetch_results()`.
+
+2. Context-building stage
+   - `src/context_builder.py` takes the raw fetcher output and converts it into a single `AddressContext` object.
+   - This normalises the data into a structure that the detector can use without needing to know the internal details of every fetcher.
+
+The builder is important because the detector should receive consistent data, not a pile of raw fetcher results with different formats and skip/fail states.
+
+## Why the context builder exists
+
+The fetchers do not all return the same thing:
+- some return a list of transactions
+- some return a single contract object
+- some return token transfer data
+- some return a list of liquidity pools
+- some are skipped or fail
+
+The context builder does this:
+
+```python
+results, address_analysis = fetch_results(address)
+```
+
+Then it turns that into:
+
+```python
+AddressContext(
+    address=address,
+    address_analysis=address_analysis,
+    contract=...,
+    transactions=...,
+    token=...,
+    liquidity=...,
+    honeypot=...,
+    rugcheck=...,
+    tx_hash=...,
+    raw_results=results,
+)
+```
+
+This keeps the detector logic simple and future-proof.
+
+---
+
 # Running API wrapper and adding personal detection logic 
 In order to add your own detection logic you can go ahead and go to `detector_template\detector.py` and add your own logic there. From there you can run `python -m uvicorn app:app --reload --port 9000` in termainl to start the wrapper. 
+
+## Basic API flow
+
+The intended architecture is:
+
+```text
+address
+   ↓
+existing fetchers
+   ↓
+AddressContext
+   ↓
+detect(context)
+```
+
+There are two main API routes:
+
+- `POST /detect`  -> accepts an already-created `AddressContext`
+- `POST /analyse` -> takes an address, runs the fetchers, builds the `AddressContext`, then passes it to the detector
+
+The `/analyse` route is the main end-to-end flow for your current project. The `/detect` route is useful when you want to send a context object directly, such as future LLM-based or more advanced detector flows.
+
+---
+
+# Current detector template
+
+The detector template is intentionally simple for now. It is designed to verify that:
+
+```text
+fetcher data -> AddressContext -> detect() -> DetectionResult
+```
+
+works correctly before moving to a more advanced scam detection model.
+
+For a basic example, the template can simply inspect whether contract data, honeypot data, or risk indicators are present and return a label like `low_risk` or `medium_risk`.
+
+---
+
+# Next step
+
+Once the API flow is working, the next extension is to add richer rules or a future LLM layer. But for now the goal is just to keep the architecture clean and easy to extend.
