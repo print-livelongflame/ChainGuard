@@ -3,9 +3,8 @@ from schema import AddressContext, DetectionResult
 
 def detect(context: AddressContext) -> DetectionResult:
 
-    # --------------------------------------------------
-    # YOUR DETECTION LOGIC GOES HERE
-    # --------------------------------------------------
+    # DETECTION LOGIC GOES HERE
+    # This is where users can implement their own detection logic based on the provided AddressContext.
 
     return DetectionResult(
         label="unknown",

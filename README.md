@@ -52,3 +52,8 @@ python -m fetchers.tx_hash_resolver_fetcher -test
 | Liquidity / paired-pool Fetcher | DEX pool pairing, liquidity depth, recent add/remove events | `fetchers\liquidty_pairedPool_fetcher.py` |
 | Tx-hash Resolver Fetcher | Given a tx hash, look up the transaction and extract the address(es) involved | `fetchers\tx_hash_resolver_fetcher.py` |
 | Token-name Resolver Fetcher | Given a token name/symbol, resolve to a contract address (best-effort — flag ambiguous matches rather than guessing) | `PENDING` |
+
+---
+
+# Running API wrapper and adding personal detection logic 
+In order to add your own detection logic you can go ahead and go to `detector_template\detector.py` and add your own logic there. From there you can run `python -m uvicorn app:app --reload --port 9000` in termainl to start the wrapper. 
