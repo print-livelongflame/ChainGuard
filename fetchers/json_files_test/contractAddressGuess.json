@@ -1,16 +1,519 @@
 {
-    "token_list_length": 19474,
-    "result": "Resolved successfully",
+    "token_list_length": 19527,
+    "status": "ambiguous",
     "matches": [
         {
-            "name": "USDC",
-            "symbol": "usdc",
-            "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+            "name": "Dogecoin20",
+            "symbol": "doge20",
+            "contract_address": "0x2541a36be4cd39286ed61a3e6afc2307602489d6",
+            "match_score": 0.783,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.86,
+                    "quality": "partial"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.72,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "verified"
+        },
+        {
+            "name": "Doggacoin",
+            "symbol": "dogga",
+            "contract_address": "0x1a8a39f2986cf9688f6dc9e5ee0cc0bc8d5edd67",
+            "match_score": 0.783,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.824,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.75,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "verified"
+        },
+        {
+            "name": "DOGGY COIN",
+            "symbol": "doggy",
+            "contract_address": "0x09d92c109b475dd513292c76544b4e250da13faa",
+            "match_score": 0.783,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.824,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.75,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "verified"
+        },
+        {
+            "name": "Dogei",
+            "symbol": "dogei",
+            "contract_address": "0xe6705367880b4d5d1aeae948fd620f55ef7413e4",
+            "match_score": 0.759,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.769,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.75,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "verified"
+        },
+        {
+            "name": "Baby Doge Coin",
+            "symbol": "babydoge",
+            "contract_address": "0xac57de9c1a09fec648e93eb98875b212db0d460b",
+            "match_score": 0.756,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.8,
+                    "quality": "partial"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.72,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "verified"
+        },
+        {
+            "name": "DogeClub",
+            "symbol": "dogc",
+            "contract_address": "0xda8263d8ce3f726233f8b5585bcb86a3120a58b6",
+            "match_score": 0.753,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.625,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Doggo Inu",
+            "symbol": "doggo",
+            "contract_address": "0x3739426e21d912b604c106f852d136ba58f61517",
+            "match_score": 0.75,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.75,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.75,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "DogeAi",
+            "symbol": "dogeai",
+            "contract_address": "0xd31e53966bf212e860d48a3a8651a23d09a7fdc3",
+            "match_score": 0.717,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.714,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.72,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "DogLibre",
+            "symbol": "dogl",
+            "contract_address": "0xd5eb7e91ae88ea2550f9bfd04208399c95df4dc7",
+            "match_score": 0.696,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.5,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "LEDOG (DOG)",
+            "symbol": "dog",
+            "contract_address": "0x864cb5194722d5a1596f4be8b899916d30dad8d8",
+            "match_score": 0.55,
+            "match_quality": "symbol_only",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 1.0,
+                    "quality": "exact"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Own The Doge",
+            "symbol": "dog",
+            "contract_address": "0xbaac2b4491727d78d2b78815144570b9f2fe8899",
+            "match_score": 0.55,
+            "match_quality": "symbol_only",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 1.0,
+                    "quality": "exact"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Department Of Government Efficiency",
+            "symbol": "doge",
+            "contract_address": "0x1121acc14c63f3c872bfca497d10926a6098aac5",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Department Of Government Efficiency",
+            "symbol": "doge",
+            "contract_address": "0xa4fb6e1781fbcc921df51352af4cc83ff6c1308f",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Department Of Government Efficiency",
+            "symbol": "d.o.g.e",
+            "contract_address": "0x46fdcddfad7c72a621e8298d231033cc00e067c6",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Department Of Government Efficiency",
+            "symbol": "doge",
+            "contract_address": "0x81fcc294d91bd8ffc8a822d7df0e2fd2f8526c39",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "DOGC",
+            "symbol": "dogc",
+            "contract_address": "0xeeacc51af745846ddf46012b46c6910ea9b12898",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Doggensnout Skeptic",
+            "symbol": "dogs",
+            "contract_address": "0x21e5c85a5b1f38bddde68307af77e38f747cd530",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Dogz",
+            "symbol": "dogz",
+            "contract_address": "0x82a77710495a35549d2add797412b4a4497d33ef",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "We Love Dogs",
+            "symbol": "dogs",
+            "contract_address": "0xf9962329a1e9fa84836d2f37640d7012fb588e9d",
+            "match_score": 0.471,
+            "match_quality": "partial_symbol",
+            "match_reason": {
+                "name": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                },
+                "symbol": {
+                    "matches": true,
+                    "score": 0.857,
+                    "quality": "partial"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Dogcoin",
+            "symbol": "dcoin",
+            "contract_address": "0xf1bb41f9ed87e6c7e1f70e921b7b4bee1df7ae9c",
+            "match_score": 0.42,
+            "match_quality": "name_only",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.933,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Dawg Coin",
+            "symbol": "dawg",
+            "contract_address": "0xd5fa38027462691769b8a8ba6c444890103b5b94",
+            "match_score": 0.338,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.75,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "DEAPCOIN",
+            "symbol": "dep",
+            "contract_address": "0x1a3496c18d558bd9c6c8f609e1b129f67ab08163",
+            "match_score": 0.338,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.75,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "DogeBonk",
+            "symbol": "dobo",
+            "contract_address": "0x73c6a7491d0db90bdb0060308cde0f49dfd1d0b0",
+            "match_score": 0.338,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.75,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "Dogey-Inu",
+            "symbol": "dinu",
+            "contract_address": "0xbb1ee07d6c7baeb702949904080eb61f5d5e7732",
+            "match_score": 0.338,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.75,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
+        },
+        {
+            "name": "DENCHCOIN",
+            "symbol": "dench",
+            "contract_address": "0x4b7265d153886a7dc717e815862acde6ff7b5bc8",
+            "match_score": 0.318,
+            "match_quality": "partial_name",
+            "match_reason": {
+                "name": {
+                    "matches": true,
+                    "score": 0.706,
+                    "quality": "fuzzy"
+                },
+                "symbol": {
+                    "matches": false,
+                    "score": 0.0,
+                    "quality": "different"
+                }
+            },
+            "etherscan_verification": "skipped_candidate_limit"
         }
     ],
     "query": {
-        "token_name": "USDC",
-        "token_symbol": "USDC",
-        "chain_id": 1
+        "token_name": "dogecoin",
+        "token_symbol": "dog",
+        "chain_id": 1,
+        "platform": "ethereum"
+    },
+    "cache": {
+        "source": "network",
+        "path": "C:\\Users\\natha\\OneDrive\\Documents\\1..2026_Sem_2\\PP1\\Sprint 1\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
+        "age_seconds": 0,
+        "ttl_seconds": 21600,
+        "is_fresh": true
     }
 }

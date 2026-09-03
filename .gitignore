@@ -1,3 +1,4 @@
 .vscode/
 api_keys.py
 __pycache__/
+fetchers/cache/
