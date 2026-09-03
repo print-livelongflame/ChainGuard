@@ -1,33 +1,390 @@
 {
     "lookup_type": "contract_address",
     "query": {
-        "token_name": "USDC",
-        "token_symbol": "USDC",
+        "token_name": "Tether USD",
+        "token_symbol": "USDT",
         "chain_id": 1
     },
     "results": {
         "contract_address": {
             "status": "pass",
             "data": {
-                "token_list_length": 19523,
-                "status": "resolved",
+                "token_list_length": 19527,
+                "status": "ambiguous",
                 "matches": [
                     {
-                        "name": "USDC",
-                        "symbol": "usdc",
-                        "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "name": "Tether",
+                        "symbol": "usdt",
+                        "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                        "match_score": 0.888,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
-                            "name": true,
-                            "symbol": true
+                            "name": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.96,
+                                "quality": "case_insensitive_exact"
+                            }
                         },
                         "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Unagii Tether USD",
+                        "symbol": "uusdt",
+                        "contract_address": "0x178bf8fd04b47d2de3ef3f6b3d112106375ad584",
+                        "match_score": 0.81,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.75,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Morpho-Aave Tether USD",
+                        "symbol": "mausdt",
+                        "contract_address": "0xafe7131a57e44f832cb2de78ade38cad644aac2f",
+                        "match_score": 0.764,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Aave USDT",
+                        "symbol": "ausdt",
+                        "contract_address": "0x3ed3b47dd13ec9a98b44e6204a523e766b225811",
+                        "match_score": 0.473,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Aave USDT v1",
+                        "symbol": "ausdt",
+                        "contract_address": "0x71fc860f7d3a592a4a98740e39db31d25db65ae8",
+                        "match_score": 0.473,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Aave v3 USDT",
+                        "symbol": "ausdt",
+                        "contract_address": "0x23878914efe38d27c4d67ab83ed1b93a74d4086a",
+                        "match_score": 0.473,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Alloy Tether",
+                        "symbol": "ausdt",
+                        "contract_address": "0x9eead9ce15383caeed975427340b3a369410cfbf",
+                        "match_score": 0.473,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "TetheCat Bridged USDT",
+                        "symbol": "usdt.c",
+                        "contract_address": "0x0f6b862e05a9b528b0002261f9eb616e6c4452e9",
+                        "match_score": 0.473,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "USDtb",
+                        "symbol": "usdtb",
+                        "contract_address": "0xc139190f447e929f090edeb554d95abb8b18ac1c",
+                        "match_score": 0.473,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Stake DAO",
+                        "symbol": "sdt",
+                        "contract_address": "0x73968b9a57c6e53d41345fd57a6e6ae27d6cdb2f",
+                        "match_score": 0.471,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.857,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Spark Savings USDT",
+                        "symbol": "spusdt",
+                        "contract_address": "0xe2e7a17dff93280dec073c995595155283e3c372",
+                        "match_score": 0.44,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "stUSDT Staked USDT",
+                        "symbol": "stusdt",
+                        "contract_address": "0x25ec98773d7b4ced4cafab96a2a1c0945f145e10",
+                        "match_score": 0.44,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Bridged Tether (Wormhole)",
+                        "symbol": "usdtso",
+                        "contract_address": "0x1cdd2eab61112697626f7b4bb0e23da4febf7b7c",
+                        "match_score": 0.44,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "USDT yVault",
+                        "symbol": "yvusdt",
+                        "contract_address": "0x3b27f92c0e212c671ea351827edf93db27cc0c65",
+                        "match_score": 0.44,
+                        "match_quality": "partial_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Theo USD",
+                        "symbol": "thusd",
+                        "contract_address": "0xa3fe5c7596024e6811e14f029937d5bd8ae485b3",
+                        "match_score": 0.35,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.778,
+                                "quality": "fuzzy"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Tether Gold",
+                        "symbol": "xaut",
+                        "contract_address": "0x68749665ff8d2d112fa859aa293f07a622782f38",
+                        "match_score": 0.343,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.762,
+                                "quality": "fuzzy"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Tharwa USD",
+                        "symbol": "thusd",
+                        "contract_address": "0x76972f054ab43829064d31ff5f3acc5fabe57fe8",
+                        "match_score": 0.315,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.7,
+                                "quality": "fuzzy"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Tori trUSD",
+                        "symbol": "trusd",
+                        "contract_address": "0xd0580192e98ea6ceb9c7b6191ed2e27560911697",
+                        "match_score": 0.3,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.667,
+                                "quality": "fuzzy"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
                     }
                 ],
                 "query": {
-                    "token_name": "USDC",
-                    "token_symbol": "USDC",
+                    "token_name": "Tether USD",
+                    "token_symbol": "USDT",
                     "chain_id": 1,
                     "platform": "ethereum"
+                },
+                "cache": {
+                    "source": "cache",
+                    "path": "C:\\Users\\natha\\OneDrive\\Documents\\1..2026_Sem_2\\PP1\\Sprint 1\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
+                    "age_seconds": 632,
+                    "ttl_seconds": 21600,
+                    "is_fresh": true
                 }
             },
             "error": null

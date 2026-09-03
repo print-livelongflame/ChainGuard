@@ -7,6 +7,7 @@ As according to sprint 1 w2; The cli lets users input address and from calls all
 import json
 import os
 import re
+from datetime import datetime, timezone
 
 
 JSON_FILE = os.path.join(
@@ -172,6 +173,14 @@ def format_fetcher_result(data):
     }
 
 
+def utc_now_iso():
+    """Return a spec-friendly UTC timestamp."""
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
+        "+00:00",
+        "Z",
+    )
+
+
 def run_fetcher(name, module_name, function_name, *args, **kwargs):
     try:
         module = __import__(module_name, fromlist=[function_name])
@@ -262,6 +271,145 @@ def fetch_results(address):
     return results, address_analysis
 
 
+def _passed_data(results, name, default):
+    result = results.get(name, {})
+    if result.get("status") != "pass":
+        return default
+    data = result.get("data")
+    return default if data is None else data
+
+
+def normalize_contract_context(results):
+    data = _passed_data(results, "contract", {})
+    bytecode = data.get("bytecode")
+    abi = data.get("abi")
+
+    return {
+        "is_contract": not is_empty_evm_bytecode(bytecode),
+        "bytecode": bytecode,
+        "abi": abi if isinstance(abi, list) else [],
+        "verified_source": bool(abi),
+        "creation_tx": data.get("creation_tx"),
+        "creator": data.get("creator"),
+    }
+
+
+def normalize_tx_history_context(results):
+    transactions = _passed_data(results, "transactions", [])
+    if not isinstance(transactions, list):
+        return []
+
+    return [
+        {
+            "hash": tx.get("hash"),
+            "from": tx.get("from"),
+            "to": tx.get("to"),
+            "value": str(tx.get("value_native", tx.get("value_wei", ""))),
+            "timestamp": tx.get("timestamp"),
+            "method": tx.get("function_name") or tx.get("method_id"),
+        }
+        for tx in transactions
+        if isinstance(tx, dict)
+    ]
+
+
+def normalize_tokens_context(results):
+    token_info = _passed_data(results, "token_info", {})
+    token_transfers = token_info.get("token_transfers", [])
+    if not isinstance(token_transfers, list):
+        return []
+
+    tokens_by_address = {}
+
+    for transfer in token_transfers:
+        if not isinstance(transfer, dict):
+            continue
+
+        contract_address = transfer.get("contractAddress")
+        if not contract_address:
+            continue
+
+        token = tokens_by_address.setdefault(
+            contract_address.lower(),
+            {
+                "symbol": transfer.get("tokenSymbol"),
+                "contract_address": contract_address,
+                "balance": None,
+                "decimals": None,
+            },
+        )
+
+        if token["symbol"] is None:
+            token["symbol"] = transfer.get("tokenSymbol")
+
+        if token["decimals"] is None:
+            try:
+                token["decimals"] = int(transfer.get("tokenDecimal"))
+            except (TypeError, ValueError):
+                token["decimals"] = None
+
+    return list(tokens_by_address.values())
+
+
+def normalize_liquidity_context(results):
+    liquidity = _passed_data(results, "liquidity", [])
+    if not isinstance(liquidity, list):
+        return []
+
+    return [
+        {
+            "pool_address": pool.get("pool_address"),
+            "dex": pool.get("dex"),
+            "token_pair": pool.get("token_pair") or [],
+            "liquidity_usd": pool.get("liquidity_usd"),
+            "liquidity_events": pool.get("liquidity_events") or [],
+        }
+        for pool in liquidity
+        if isinstance(pool, dict)
+    ]
+
+
+def build_fetcher_provenance(results, fetched_at):
+    fetcher_map = {
+        "contract_fetcher": ("contract", ["contract"]),
+        "tx_history_fetcher": ("transactions", ["tx_history"]),
+        "token_fetcher": ("token_info", ["tokens"]),
+        "liquidity_fetcher": ("liquidity", ["liquidity"]),
+    }
+    provenance = {}
+
+    for fetcher_name, (result_key, fields) in fetcher_map.items():
+        result = results.get(result_key, {})
+        entry = {
+            "fields": fields,
+            "fetched_at": fetched_at,
+            "status": result.get("status", "skip"),
+        }
+
+        if result.get("error"):
+            entry["error"] = result["error"]
+
+        provenance[fetcher_name] = entry
+
+    return provenance
+
+
+def build_address_context_json(address, results, address_analysis):
+    """Build the SPEC.md AddressContext JSON structure from fetcher output."""
+    queried_at = utc_now_iso()
+
+    return {
+        "chain": "ethereum" if address_analysis.get("chain_family") == "evm" else "unknown",
+        "address": address,
+        "queried_at": queried_at,
+        "contract": normalize_contract_context(results),
+        "tx_history": normalize_tx_history_context(results),
+        "tokens": normalize_tokens_context(results),
+        "liquidity": normalize_liquidity_context(results),
+        "fetcher_provenance": build_fetcher_provenance(results, queried_at),
+    }
+
+
 def fetch_contract_address_results(token_name, token_symbol, chain_id=1):
     """Run the token-name/symbol contract-address resolver."""
     token_name = (token_name or "").strip()
@@ -299,16 +447,7 @@ def fetch_contract_address_results(token_name, token_symbol, chain_id=1):
 def save_info(address, results, address_analysis):
     """Save all fetcher results to the required combined JSON file."""
     os.makedirs(os.path.dirname(JSON_FILE), exist_ok=True)
-    info = {
-        "address": address,
-        "address_analysis": address_analysis,
-        "results": results,
-        "summary": {
-            "passed": sum(result["status"] == "pass" for result in results.values()),
-            "failed": sum(result["status"] == "fail" for result in results.values()),
-            "skipped": sum(result["status"] == "skip" for result in results.values()),
-        },
-    }
+    info = build_address_context_json(address, results, address_analysis)
 
     with open(JSON_FILE, "w", encoding="utf-8") as file:
         json.dump(info, file, indent=4)
