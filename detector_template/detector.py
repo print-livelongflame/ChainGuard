@@ -1,4 +1,7 @@
-from schema import AddressContext, DetectionResult
+try:
+    from .schema import AddressContext, DetectionResult
+except ImportError:
+    from schema import AddressContext, DetectionResult
 
 
 def detect(context: AddressContext) -> DetectionResult:

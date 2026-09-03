@@ -26,9 +26,7 @@ def _safe_result_data(result):
 def build_address_context(address: str) -> AddressContext:
     """Build a detector-friendly AddressContext from the existing fetchers.
 
-    This is the important bridge between the raw blockchain fetchers and the
-    future detector logic. Instead of having the detector understand each fetcher
-    result individually, we normalise everything into one AddressContext object
+    This normalises everything into one AddressContext object
     that contains the address analysis, contract data, transaction history, token
     information, liquidity data, and any detector-specific outputs.
     """
@@ -37,9 +35,7 @@ def build_address_context(address: str) -> AddressContext:
     if not address:
         raise ValueError("Address is required.")
 
-    # Reuse the exact existing CLI fetch pipeline instead of re-implementing it.
-    # This keeps the API and CLI consistent while still allowing the API to work
-    # in memory without needing to save info.json.
+    # Reuses the existing CLI fetch pipeline instead of re-implementing it.
     results, address_analysis = fetch_results(address)
 
     return AddressContext(

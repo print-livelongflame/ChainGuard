@@ -8,9 +8,14 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from schema import AddressContext, DetectionResult
-from detector import detect
+try:
+    from .schema import AddressContext, DetectionResult
+    from .detector import detect
+except ImportError:
+    from schema import AddressContext, DetectionResult
+    from detector import detect
 from src.context_builder import build_address_context
+from src.main import fetch_contract_address_results
 
 
 app = FastAPI(
@@ -22,6 +27,12 @@ app = FastAPI(
 
 class AnalyseRequest(BaseModel):
     address: str = Field(..., min_length=1)
+
+
+class ContractAddressRequest(BaseModel):
+    token_name: str = Field(..., min_length=1)
+    token_symbol: str = Field(..., min_length=1)
+    chain_id: int = 1
 
 
 class AnalyseResponse(BaseModel):
@@ -52,3 +63,12 @@ def run_analysis(request: AnalyseRequest):
         "context": context,
         "detection_result": detection_result
     }
+
+
+@app.post("/resolve-contract-address")
+def resolve_contract_address(request: ContractAddressRequest):
+    return fetch_contract_address_results(
+        request.token_name,
+        request.token_symbol,
+        chain_id=request.chain_id,
+    )

@@ -48,8 +48,8 @@ TEST_JSON_FOLDER = os.path.join(BASE_DIR, "json_files_test")
 def get_transactions(
     address: str,
     chain_id: int = 1,
-    start_block: int = 0,
-    end_block: int = 99999999,
+    start_block: int = 24,
+    end_block: int = "latest",
     page: int = 1,
     offset: int = 100,
     sort: str = "desc"

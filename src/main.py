@@ -163,22 +163,21 @@ def make_skip(error):
     }
 
 
-def run_fetcher(name, module_name, function_name, address):
+def format_fetcher_result(data):
+    passed = not (isinstance(data, dict) and "error" in data)
+    return {
+        "status": "pass" if passed else "fail",
+        "data": data if passed else None,
+        "error": None if passed else data.get("error"),
+    }
+
+
+def run_fetcher(name, module_name, function_name, *args, **kwargs):
     try:
         module = __import__(module_name, fromlist=[function_name])
         fetcher = getattr(module, function_name)
-
-        if name in ("contract", "transactions", "token_info", "tx_hash"):
-            data = fetcher(address, chain_id=1)
-        else:
-            data = fetcher(address)
-
-        passed = not (isinstance(data, dict) and "error" in data)
-        return {
-            "status": "pass" if passed else "fail",
-            "data": data if passed else None,
-            "error": None if passed else data.get("error"),
-        }
+        data = fetcher(*args, **kwargs)
+        return format_fetcher_result(data)
     except Exception as error:
         return {
             "status": "fail",
@@ -246,12 +245,55 @@ def fetch_results(address):
             results[name] = make_skip(skip_reason)
             continue
 
-        results[name] = run_fetcher(name, module_name, function_name, address)
+        if name in ("contract", "transactions", "token_info", "tx_hash"):
+            results[name] = run_fetcher(
+                name,
+                module_name,
+                function_name,
+                address,
+                chain_id=1,
+            )
+        else:
+            results[name] = run_fetcher(name, module_name, function_name, address)
 
         if name == "contract":
             update_analysis_from_contract(address_analysis, results[name])
 
     return results, address_analysis
+
+
+def fetch_contract_address_results(token_name, token_symbol, chain_id=1):
+    """Run the token-name/symbol contract-address resolver."""
+    token_name = (token_name or "").strip()
+    token_symbol = (token_symbol or "").strip()
+
+    if not token_name or not token_symbol:
+        raise ValueError("Token name and symbol are required.")
+
+    result = run_fetcher(
+        "contract_address",
+        "fetchers.contract_address_fetcher",
+        "resolve_contract_address",
+        token_name,
+        token_symbol,
+        chain_id=chain_id,
+    )
+
+    return {
+        "query": {
+            "token_name": token_name,
+            "token_symbol": token_symbol,
+            "chain_id": chain_id,
+        },
+        "results": {
+            "contract_address": result,
+        },
+        "summary": {
+            "passed": 1 if result["status"] == "pass" else 0,
+            "failed": 1 if result["status"] == "fail" else 0,
+            "skipped": 1 if result["status"] == "skip" else 0,
+        },
+    }
 
 
 def save_info(address, results, address_analysis):
@@ -266,6 +308,18 @@ def save_info(address, results, address_analysis):
             "failed": sum(result["status"] == "fail" for result in results.values()),
             "skipped": sum(result["status"] == "skip" for result in results.values()),
         },
+    }
+
+    with open(JSON_FILE, "w", encoding="utf-8") as file:
+        json.dump(info, file, indent=4)
+
+
+def save_contract_address_info(resolver_results):
+    """Save contract-address resolver results to the combined JSON file."""
+    os.makedirs(os.path.dirname(JSON_FILE), exist_ok=True)
+    info = {
+        "lookup_type": "contract_address",
+        **resolver_results,
     }
 
     with open(JSON_FILE, "w", encoding="utf-8") as file:
@@ -287,13 +341,24 @@ def print_results(results):
 
 if __name__ == "__main__":
     print_banner()
-    address = input("Wallet or token address: ").strip()
+    lookup_type = input("Lookup address or token name? [address/name]: ").strip().lower()
 
-    if not address:
-        raise SystemExit("An address is required.")
+    if lookup_type in ("name", "token", "token name"):
+        token_name = input("Token name: ").strip()
+        token_symbol = input("Token symbol: ").strip()
+        resolver_results = fetch_contract_address_results(token_name, token_symbol)
+        print_results(resolver_results["results"])
+        print(json.dumps(resolver_results["results"]["contract_address"]["data"], indent=4))
+        save_contract_address_info(resolver_results)
+        print(f"Combined results saved to {JSON_FILE}")
+    else:
+        address = input("Wallet or token address: ").strip()
 
-    fetcher_results, address_analysis = fetch_results(address)
-    print(f"Address type: {address_analysis['chain_family']} / {address_analysis['address_type']}")
-    print_results(fetcher_results)
-    save_info(address, fetcher_results, address_analysis)
-    print(f"Combined results saved to {JSON_FILE}")
+        if not address:
+            raise SystemExit("An address is required.")
+
+        fetcher_results, address_analysis = fetch_results(address)
+        print(f"Address type: {address_analysis['chain_family']} / {address_analysis['address_type']}")
+        print_results(fetcher_results)
+        save_info(address, fetcher_results, address_analysis)
+        print(f"Combined results saved to {JSON_FILE}")

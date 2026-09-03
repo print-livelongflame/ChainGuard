@@ -1,0 +1,16 @@
+{
+    "token_list_length": 19474,
+    "result": "Resolved successfully",
+    "matches": [
+        {
+            "name": "USDC",
+            "symbol": "usdc",
+            "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        }
+    ],
+    "query": {
+        "token_name": "USDC",
+        "token_symbol": "USDC",
+        "chain_id": 1
+    }
+}

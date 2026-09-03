@@ -20,7 +20,7 @@ ETHERSCAN_API_KEY= "xxxxxxxxx"
 Start the interactive CLI from the project root:
 
 ```bash
-python3 -m src.main
+python -m src.main
 ```
 
 ## Test Individual Fetchers
@@ -42,6 +42,13 @@ The transaction resolver uses a transaction hash instead:
 ```bash
 python -m fetchers.tx_hash_resolver_fetcher -test
 ```
+
+The contract-address resolver uses a token name and symbol instead:
+
+```bash
+python -m fetchers.contract_address_fetcher -test
+```
+
 ## Explaining Data Fetcher Components
 
 | Data Fetcher      | Purpose           | Project File(s)   |
@@ -51,7 +58,7 @@ python -m fetchers.tx_hash_resolver_fetcher -test
 | Token Info Fetcher | Token balances and metadata held by the address | `fetchers\token_info_fetcher.py` |
 | Liquidity / paired-pool Fetcher | DEX pool pairing, liquidity depth, recent add/remove events | `fetchers\liquidty_pairedPool_fetcher.py` |
 | Tx-hash Resolver Fetcher | Given a tx hash, look up the transaction and extract the address(es) involved | `fetchers\tx_hash_resolver_fetcher.py` |
-| Token-name Resolver Fetcher | Given a token name/symbol, resolve to a contract address (best-effort — flag ambiguous matches rather than guessing) | `PENDING` |
+| Contract Address Resolver Fetcher | Given a token name/symbol, resolve possible contract addresses (best-effort, flag ambiguous matches rather than guessing) | `fetchers\contract_address_fetcher.py` |
 
 ---
 
@@ -126,8 +133,7 @@ There are two main API routes:
 
 - `POST /detect`  -> accepts an already-created `AddressContext`
 - `POST /analyse` -> takes an address, runs the fetchers, builds the `AddressContext`, then passes it to the detector
-
-The `/analyse` route is the main end-to-end flow for your current project. The `/detect` route is useful when you want to send a context object directly, such as future LLM-based or more advanced detector flows.
+- `POST /resolve-contract-address` -> takes a token name/symbol and returns possible contract address matches
 
 ---
 
@@ -147,4 +153,4 @@ For a basic example, the template can simply inspect whether contract data, hone
 
 # Next step
 
-Once the API flow is working, the next extension is to add richer rules or a future LLM layer. But for now the goal is just to keep the architecture clean and easy to extend.
+Once the API flow is working, the next extension will be the LLM layer. But for now our goal is just to keep the architecture clean and easy to extend.
