@@ -4,6 +4,11 @@ except ImportError:
     from schema import AddressContext, DetectionResult
 
 
+'''
+Detector function for analyzing address risk.
+
+For users who want to override the default detection logic, they can implement their own `detect` function with the same signature and return type. The function should accept an `AddressContext` object and return a `DetectionResult` object.
+'''
 def detect(context: AddressContext) -> DetectionResult:
     evidence = []
 

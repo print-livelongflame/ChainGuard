@@ -1,27 +1,27 @@
 {
     "lookup_type": "contract_address",
     "query": {
-        "token_name": "Tether USD",
-        "token_symbol": "USDT",
+        "token_name": "ETH",
+        "token_symbol": "WETH",
         "chain_id": 1
     },
     "results": {
         "contract_address": {
             "status": "pass",
             "data": {
-                "token_list_length": 19527,
+                "token_list_length": 19537,
                 "status": "ambiguous",
                 "matches": [
                     {
-                        "name": "Tether",
-                        "symbol": "usdt",
-                        "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                        "match_score": 0.888,
+                        "name": "WETH",
+                        "symbol": "weth",
+                        "contract_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                        "match_score": 0.914,
                         "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.8,
+                                "score": 0.857,
                                 "quality": "partial"
                             },
                             "symbol": {
@@ -33,15 +33,15 @@
                         "etherscan_verification": "verified"
                     },
                     {
-                        "name": "Unagii Tether USD",
-                        "symbol": "uusdt",
-                        "contract_address": "0x178bf8fd04b47d2de3ef3f6b3d112106375ad584",
-                        "match_score": 0.81,
+                        "name": "Aave v3 WETH",
+                        "symbol": "aweth",
+                        "contract_address": "0x4d5f47fa6a74757f35c14fd3a6ef8e3c9bc514e8",
+                        "match_score": 0.797,
                         "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.75,
+                                "score": 0.72,
                                 "quality": "partial"
                             },
                             "symbol": {
@@ -53,9 +53,109 @@
                         "etherscan_verification": "verified"
                     },
                     {
-                        "name": "Morpho-Aave Tether USD",
-                        "symbol": "mausdt",
-                        "contract_address": "0xafe7131a57e44f832cb2de78ade38cad644aac2f",
+                        "name": "Aave WETH",
+                        "symbol": "aweth",
+                        "contract_address": "0x030ba81f1c18d280636f32af80b9aad02cf0854e",
+                        "match_score": 0.797,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Alpha WETH Vault",
+                        "symbol": "aweth",
+                        "contract_address": "0x47fe8ab9ee47dd65c24df52324181790b9f47efc",
+                        "match_score": 0.797,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Fluid Wrapped Ether",
+                        "symbol": "fweth",
+                        "contract_address": "0x90551c1795392094fe6d29b758eccd233cfaa260",
+                        "match_score": 0.797,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Swell Ethereum",
+                        "symbol": "sweth",
+                        "contract_address": "0xf951e335afb289353dc249e82926178eac7ded78",
+                        "match_score": 0.797,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "ETHPlus",
+                        "symbol": "eth+",
+                        "contract_address": "0xe72b141df173b999ae7c1adcbf60cc9833ce56a8",
+                        "match_score": 0.795,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.857,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "MEV Capital wETH",
+                        "symbol": "mcweth",
+                        "contract_address": "0x9a8bc3b04b7f3d87cfc09ba407dced575f2d61d8",
                         "match_score": 0.764,
                         "match_quality": "partial_name_and_symbol",
                         "match_reason": {
@@ -70,159 +170,19 @@
                                 "quality": "partial"
                             }
                         },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Aave USDT",
-                        "symbol": "ausdt",
-                        "contract_address": "0x3ed3b47dd13ec9a98b44e6204a523e766b225811",
-                        "match_score": 0.473,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Aave USDT v1",
-                        "symbol": "ausdt",
-                        "contract_address": "0x71fc860f7d3a592a4a98740e39db31d25db65ae8",
-                        "match_score": 0.473,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Aave v3 USDT",
-                        "symbol": "ausdt",
-                        "contract_address": "0x23878914efe38d27c4d67ab83ed1b93a74d4086a",
-                        "match_score": 0.473,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Alloy Tether",
-                        "symbol": "ausdt",
-                        "contract_address": "0x9eead9ce15383caeed975427340b3a369410cfbf",
-                        "match_score": 0.473,
-                        "match_quality": "partial_symbol",
+                        "name": "Restaked Swell ETH",
+                        "symbol": "rsweth",
+                        "contract_address": "0xfae103dc9cf190ed75350761e95403b7b8afa6c0",
+                        "match_score": 0.764,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
                                 "matches": true,
-                                "score": 0.86,
+                                "score": 0.72,
                                 "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "TetheCat Bridged USDT",
-                        "symbol": "usdt.c",
-                        "contract_address": "0x0f6b862e05a9b528b0002261f9eb616e6c4452e9",
-                        "match_score": 0.473,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "USDtb",
-                        "symbol": "usdtb",
-                        "contract_address": "0xc139190f447e929f090edeb554d95abb8b18ac1c",
-                        "match_score": 0.473,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Stake DAO",
-                        "symbol": "sdt",
-                        "contract_address": "0x73968b9a57c6e53d41345fd57a6e6ae27d6cdb2f",
-                        "match_score": 0.471,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.857,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Spark Savings USDT",
-                        "symbol": "spusdt",
-                        "contract_address": "0xe2e7a17dff93280dec073c995595155283e3c372",
-                        "match_score": 0.44,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
                             },
                             "symbol": {
                                 "matches": true,
@@ -233,16 +193,16 @@
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "stUSDT Staked USDT",
-                        "symbol": "stusdt",
-                        "contract_address": "0x25ec98773d7b4ced4cafab96a2a1c0945f145e10",
-                        "match_score": 0.44,
-                        "match_quality": "partial_symbol",
+                        "name": "WETH yVault",
+                        "symbol": "yvweth",
+                        "contract_address": "0xa258c4606ca8206d8aa700ce2143d7db854d168c",
+                        "match_score": 0.764,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": true,
@@ -253,136 +213,316 @@
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Bridged Tether (Wormhole)",
-                        "symbol": "usdtso",
-                        "contract_address": "0x1cdd2eab61112697626f7b4bb0e23da4febf7b7c",
-                        "match_score": 0.44,
-                        "match_quality": "partial_symbol",
+                        "name": "Gauntlet WETH Balanced",
+                        "symbol": "gtwethb",
+                        "contract_address": "0x5f342382d5f77f0f99e8f26161e689df6c7cded3",
+                        "match_score": 0.724,
+                        "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
-                                "matches": true,
-                                "score": 0.8,
+                                "matches": false,
+                                "score": 0.727,
                                 "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "USDT yVault",
-                        "symbol": "yvusdt",
-                        "contract_address": "0x3b27f92c0e212c671ea351827edf93db27cc0c65",
-                        "match_score": 0.44,
-                        "match_quality": "partial_symbol",
+                        "name": "Gauntlet WETH PRIME V2",
+                        "symbol": "gtwethp",
+                        "contract_address": "0x43fcd85e8d9d003d515f886891b7c742ac9f92da",
+                        "match_score": 0.724,
+                        "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
-                                "matches": true,
-                                "score": 0.8,
+                                "matches": false,
+                                "score": 0.727,
                                 "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Theo USD",
-                        "symbol": "thusd",
-                        "contract_address": "0xa3fe5c7596024e6811e14f029937d5bd8ae485b3",
-                        "match_score": 0.35,
+                        "name": "Re7 WETH Morpho Vault",
+                        "symbol": "re7weth",
+                        "contract_address": "0x78fc2c2ed1a4cdb5402365934ae5648adad094d0",
+                        "match_score": 0.724,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.778,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.727,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Tether Gold",
-                        "symbol": "xaut",
-                        "contract_address": "0x68749665ff8d2d112fa859aa293f07a622782f38",
-                        "match_score": 0.343,
+                        "name": "WETH ARM LP Token",
+                        "symbol": "arm-weth",
+                        "contract_address": "0x68025a4615407993a680102b08a23a61d11c657c",
+                        "match_score": 0.724,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.762,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.727,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Tharwa USD",
-                        "symbol": "thusd",
-                        "contract_address": "0x76972f054ab43829064d31ff5f3acc5fabe57fe8",
-                        "match_score": 0.315,
+                        "name": "Aave AMM BptBALWETH",
+                        "symbol": "aammbptbalweth",
+                        "contract_address": "0xd109b2a304587569c84308c55465cd9ff0317bfb",
+                        "match_score": 0.72,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.7,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.72,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Tori trUSD",
-                        "symbol": "trusd",
-                        "contract_address": "0xd0580192e98ea6ceb9c7b6191ed2e27560911697",
-                        "match_score": 0.3,
+                        "name": "Aave AMM BptWBTCWETH",
+                        "symbol": "aammbptwbtcweth",
+                        "contract_address": "0x358bd0d980e031e23eba9aa793926857703783bd",
+                        "match_score": 0.72,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.667,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniAAVEWETH",
+                        "symbol": "aammuniaaveweth",
+                        "contract_address": "0xe59d2ff6995a926a574390824a657eed36801e55",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniBATWETH",
+                        "symbol": "aammunibatweth",
+                        "contract_address": "0xa1b0edf4460cc4d8bfaa18ed871bff15e5b57eb4",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniCRVWETH",
+                        "symbol": "aammunicrvweth",
+                        "contract_address": "0x0ea20e7ffb006d4cfe84df2f72d8c7bd89247db0",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniDAIWETH",
+                        "symbol": "aammunidaiweth",
+                        "contract_address": "0x9303eabc860a743aabcc3a1629014cabcc3f8d36",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniLINKWETH",
+                        "symbol": "aammunilinkweth",
+                        "contract_address": "0xb8db81b84d30e2387de0ff330420a4aaa6688134",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniMKRWETH",
+                        "symbol": "aammunimkrweth",
+                        "contract_address": "0x370adc71f67f581158dc56f539df5f399128ddf9",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniRENWETH",
+                        "symbol": "aammunirenweth",
+                        "contract_address": "0xa9e201a4e269d6cd5e9f0fcbcb78520cf815878b",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniSNXWETH",
+                        "symbol": "aammunisnxweth",
+                        "contract_address": "0x38e491a71291cd43e8de63b7253e482622184894",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Aave AMM UniUNIWETH",
+                        "symbol": "aammuniuniweth",
+                        "contract_address": "0x3d26dcd840fcc8e4b2193ace8a092e4a65832f9f",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     }
                 ],
                 "query": {
-                    "token_name": "Tether USD",
-                    "token_symbol": "USDT",
+                    "token_name": "ETH",
+                    "token_symbol": "WETH",
                     "chain_id": 1,
                     "platform": "ethereum"
                 },
                 "cache": {
-                    "source": "cache",
-                    "path": "C:\\Users\\natha\\OneDrive\\Documents\\1..2026_Sem_2\\PP1\\Sprint 1\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
-                    "age_seconds": 632,
+                    "source": "network",
+                    "path": "D:\\uni\\coding\\capstoneProject\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
+                    "age_seconds": 0,
                     "ttl_seconds": 21600,
                     "is_fresh": true
                 }
