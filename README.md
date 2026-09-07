@@ -12,7 +12,8 @@ So far setting up the project will be very simple. Just add a file at `api_keys\
 '''
 Enter your keys here
 '''
-ETHERSCAN_API_KEY= "xxxxxxxxx"
+ETHERSCAN_API_KEY = "xxxxxxxxx"
+OPENAI_API_KEY = "xxxxxxxxx"
 ```
 
 ## Run ChainGuard
