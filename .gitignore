@@ -1,4 +1,4 @@
 .vscode/
-api_keys.py
+api_keys/
 __pycache__/
 fetchers/cache/
