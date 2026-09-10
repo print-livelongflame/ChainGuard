@@ -399,5 +399,92 @@ def ask_llm(prompt: str) -> str:
     return response.output_text
 
 
-userin = input("Enter your prompt: ")
-print(ask_llm(userin))
+ACTION_SYSTEM_PROMPT = """
+You are ChainGuard's response assistant.
+
+The Business Analyser has already classified the user's request. Follow its
+classification exactly and answer the original user in a concise, helpful
+way.
+
+If the request is an in-scope general blockchain question, explain the topic
+in simple terms. Do not claim to have investigated an address, token, or
+transaction, and do not invent blockchain data.
+
+If the request is out of scope, clearly say that ChainGuard focuses on
+blockchain and cryptocurrency security, then invite the user to ask a related
+question. Do not answer the unrelated question.
+
+Return only the response intended for the user. Do not include Scope,
+Request Type, Next Action, or other classification labels.
+"""
+
+
+def perform_next_action(prompt: str, analysis: str) -> str | None:
+    """Execute the conversational actions currently supported by ChainGuard."""
+    analysis_lower = analysis.lower()
+
+    if "scope: out_of_scope" in analysis_lower:
+        action = "out_of_scope"
+    elif (
+        "scope: in_scope" in analysis_lower
+        and "request type: general_question" in analysis_lower
+    ):
+        action = "general_question"
+    else:
+        return None
+
+    response = client.responses.create(
+        model="gpt-4.1-mini",
+        input=[
+            {
+                "role": "system",
+                "content": ACTION_SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Business Analyser classification:\n{analysis}\n\n"
+                    f"Action to perform: {action}\n"
+                    f"Original user message:\n{prompt}"
+                )
+            }
+        ]
+    )
+
+    return response.output_text.strip()
+
+
+def is_exit_command(prompt: str) -> bool:
+    return prompt.strip().lower() in {
+        "bye",
+        "goodbye",
+        "good bye",
+        "exit",
+        "quit",
+        "stop",
+    }
+
+
+if __name__ == "__main__":
+    print("ChainGuard is ready. Type 'goodbye' to exit.")
+
+    while True:
+        try:
+            userin = input("\nYou: ")
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye!")
+            break
+
+        if is_exit_command(userin):
+            print("Goodbye!")
+            break
+
+        if not userin.strip():
+            continue
+
+        analysis = ask_llm(userin)
+        print(f"\n{analysis}")
+
+        action_response = perform_next_action(userin, analysis)
+        if action_response:
+            print(f"\nResponse:\n{action_response}")
