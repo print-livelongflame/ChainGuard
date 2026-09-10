@@ -9,6 +9,8 @@ import os
 import re
 from datetime import datetime, timezone
 
+from agents.ba import ask_llm, is_exit_command, perform_next_action
+
 
 JSON_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -478,26 +480,89 @@ def print_results(results):
             print(f"  {result['error']}")
 
 
+def classification_value(analysis, field):
+    """Read a value from the BA's human-readable classification."""
+    match = re.search(
+        rf"^{re.escape(field)}:\s*(.+)$",
+        analysis,
+        flags=re.IGNORECASE | re.MULTILINE,
+    )
+    return match.group(1).strip() if match else ""
+
+
+def handle_ba_request(prompt):
+    """Classify one user request and run fetchers when a target is available."""
+    analysis = ask_llm(prompt)
+    print(f"\n{analysis}")
+
+    scope = classification_value(analysis, "Scope").lower()
+    request_type = classification_value(analysis, "Request Type").lower()
+    raw_input_type = classification_value(analysis, "Raw Input Type").lower()
+    raw_input = classification_value(analysis, "Raw Input")
+
+    if scope != "in_scope":
+        action_response = perform_next_action(prompt, analysis)
+        if action_response:
+            print(f"\nResponse:\n{action_response}")
+        return
+
+    if request_type == "general_question":
+        action_response = perform_next_action(prompt, analysis)
+        if action_response:
+            print(f"\nResponse:\n{action_response}")
+        return
+
+    if raw_input_type == "token_name":
+        if not raw_input or raw_input.lower() == "none":
+            print("\nNo token name was found in the request.")
+            return
+
+        token_symbol = input("Enter the token symbol: ").strip()
+        if not token_symbol:
+            print("\nA token symbol is required for contract lookup.")
+            return
+
+        resolver_results = fetch_contract_address_results(raw_input, token_symbol)
+        print_results(resolver_results["results"])
+        save_contract_address_info(resolver_results)
+        print(f"Contract lookup results saved to {JSON_FILE}")
+        return
+
+    if raw_input_type not in {"address", "contract", "tx_hash"}:
+        print(
+            "\nChainGuard needs a concrete blockchain address or transaction "
+            "hash before it can run the data fetchers."
+        )
+        return
+
+    if not raw_input or raw_input.lower() == "none":
+        print("\nNo blockchain target was found in the request.")
+        return
+
+    fetcher_results, address_analysis = fetch_results(raw_input)
+    print(
+        f"\nAddress type: {address_analysis['chain_family']} / "
+        f"{address_analysis['address_type']}"
+    )
+    print_results(fetcher_results)
+    save_info(raw_input, fetcher_results, address_analysis)
+    print(f"Combined results saved to {JSON_FILE}")
+
+
 if __name__ == "__main__":
     print_banner()
-    lookup_type = input("Lookup address or token name? [address/name]: ").strip().lower()
+    print("ChainGuard is ready. Type 'goodbye' to exit.")
 
-    if lookup_type in ("name", "token", "token name"):
-        token_name = input("Token name: ").strip()
-        token_symbol = input("Token symbol: ").strip()
-        resolver_results = fetch_contract_address_results(token_name, token_symbol)
-        print_results(resolver_results["results"])
-        print(json.dumps(resolver_results["results"]["contract_address"]["data"], indent=4))
-        save_contract_address_info(resolver_results)
-        print(f"Combined results saved to {JSON_FILE}")
-    else:
-        address = input("Wallet or token address: ").strip()
+    while True:
+        try:
+            user_input = input("\nYou: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye!")
+            break
 
-        if not address:
-            raise SystemExit("An address is required.")
+        if is_exit_command(user_input):
+            print("Goodbye!")
+            break
 
-        fetcher_results, address_analysis = fetch_results(address)
-        print(f"Address type: {address_analysis['chain_family']} / {address_analysis['address_type']}")
-        print_results(fetcher_results)
-        save_info(address, fetcher_results, address_analysis)
-        print(f"Combined results saved to {JSON_FILE}")
+        if user_input:
+            handle_ba_request(user_input)
