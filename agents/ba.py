@@ -1,5 +1,5 @@
 from openai import OpenAI
-from api_keys.api_keys import OPENAI_API_KEY, ANTHROPIC_API_KEY, GOOGLE_API_KEY
+from api_keys.api_keys import OPENAI_API_KEY
 from pydantic import BaseModel, Field
 import json
 

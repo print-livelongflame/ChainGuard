@@ -1,15 +1,15 @@
 {
     "lookup_type": "contract_address",
     "query": {
-        "token_name": "PePe coin",
-        "token_symbol": "PePe",
+        "token_name": "pepe coin",
+        "token_symbol": "PEPE",
         "chain_id": 1
     },
     "results": {
         "contract_address": {
             "status": "pass",
             "data": {
-                "token_list_length": 19746,
+                "token_list_length": 19828,
                 "status": "ambiguous",
                 "matches": [
                     {
@@ -374,8 +374,8 @@
                     }
                 ],
                 "query": {
-                    "token_name": "PePe coin",
-                    "token_symbol": "PePe",
+                    "token_name": "pepe coin",
+                    "token_symbol": "PEPE",
                     "chain_id": 1,
                     "platform": "ethereum"
                 },
