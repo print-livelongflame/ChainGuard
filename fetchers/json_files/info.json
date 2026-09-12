@@ -1,538 +1,347 @@
 {
-    "lookup_type": "contract_address",
-    "query": {
-        "token_name": "USDC",
-        "token_symbol": "",
-        "chain_id": 1
+    "chain": "ethereum",
+    "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "queried_at": "2026-09-12T08:43:03Z",
+    "contract": {
+        "is_contract": true,
+        "bytecode": "Invalid API Key (#err2)",
+        "abi": [],
+        "verified_source": false,
+        "creation_tx": null,
+        "creator": null
     },
-    "results": {
-        "contract_address": {
-            "status": "pass",
-            "data": {
-                "token_list_length": 21085,
-                "status": "resolved",
-                "matches": [
-                    {
-                        "name": "USDC",
-                        "symbol": "usdc",
-                        "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                        "match_score": 1.0,
-                        "match_quality": "case_insensitive_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 1.0,
-                                "quality": "exact"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.96,
-                                "quality": "case_insensitive_exact"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Aave v2 USDC",
-                        "symbol": "ausdc",
-                        "contract_address": "0xbcca60bb61934080951369a648fb03df4f96263c",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Aave v1 USDC",
-                        "symbol": "ausdc",
-                        "contract_address": "0x9ba00d6856a4edf4665bca2c2309936572473b7e",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Aave v3 USDC",
-                        "symbol": "ausdc",
-                        "contract_address": "0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Alpha USDC Vault",
-                        "symbol": "ausdc",
-                        "contract_address": "0xd50b9bbf136d1bd5cd5ac6ed9b3f26c458a6d4a6",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Compound USDC",
-                        "symbol": "cusdc",
-                        "contract_address": "0x39aa39c021dfbae8fac545936693ac917d5e7563",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Fluid USDC",
-                        "symbol": "fusdc",
-                        "contract_address": "0x9d1089802ee608ba84c5c98211afe5f37f96b36c",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Instadapp USDC",
-                        "symbol": "iusdc",
-                        "contract_address": "0xc8871267e07408b89aa5aecc58adca5e574557f8",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Spark USDC",
-                        "symbol": "susdc",
-                        "contract_address": "0xbc65ad17c5c0a2a4d159fa5a503f4992c7b545fe",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Unagii USD Coin",
-                        "symbol": "uusdc",
-                        "contract_address": "0xbc5991ccd8caceba01edc44c2bb9832712c29cab",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "USD CoinVertible",
-                        "symbol": "usdcv",
-                        "contract_address": "0x5422374b27757da72d5265cc745ea906e0446634",
-                        "match_score": 0.86,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.86,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Coinshift USDC",
-                        "symbol": "csusdc",
-                        "contract_address": "0x7204b7dbf9412567835633b6f00c3edc3a8d6330",
-                        "match_score": 0.8,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.8,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "f(x) Protocol Morpho USDC",
-                        "symbol": "fxusdc",
-                        "contract_address": "0x4f460bb11cf958606c69a963b4a17f9daeeea8b6",
-                        "match_score": 0.8,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.8,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Gauntlet USDC Prime Morpho Vault",
-                        "symbol": "gtusdc",
-                        "contract_address": "0xdd0f28e19c1780eb6396170735d45153d261490d",
-                        "match_score": 0.8,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.8,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Morpho-Aave USD Coin",
-                        "symbol": "mausdc",
-                        "contract_address": "0xa5269a8e31b93ff27b887b56720a25f844db0529",
-                        "match_score": 0.8,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.8,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Relend USDC",
-                        "symbol": "reusdc",
-                        "contract_address": "0x0f359fd18bda75e9c49bc027e7da59a4b01bf32a",
-                        "match_score": 0.8,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.8,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Spark Savings USDC",
-                        "symbol": "spusdc",
-                        "contract_address": "0x28b3a8fb53b741a8fd78c0fb9a6b2393d896a43d",
-                        "match_score": 0.8,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.8,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "USDC yVault",
-                        "symbol": "yvusdc",
-                        "contract_address": "0xa354f35829ae975e850e23e9615b11da1b3dc4de",
-                        "match_score": 0.8,
-                        "match_quality": "partial_name_and_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.8,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "aarna atv USDC (Ethereum)",
-                        "symbol": "atvusdc",
-                        "contract_address": "0xf30f62963cce132f32306d7f18a8587958b30ea9",
-                        "match_score": 0.727,
-                        "match_quality": "partial_name",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.727,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "evaUSDC",
-                        "symbol": "evausdc",
-                        "contract_address": "0x741bd193b6b40f8703d2e116fd1965421f290f58",
-                        "match_score": 0.727,
-                        "match_quality": "partial_name",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.727,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.727,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Gauntlet USDC PRIME V2",
-                        "symbol": "gtusdcp",
-                        "contract_address": "0x8c106eedad96553e64287a5a6839c3cc78afa3d0",
-                        "match_score": 0.727,
-                        "match_quality": "partial_name",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.727,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "MEV Capital Elixir USDC",
-                        "symbol": "mc.eusdc",
-                        "contract_address": "0x1265a81d42d513df40d0031f8f2e1346954d665a",
-                        "match_score": 0.727,
-                        "match_quality": "partial_name",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.727,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Re7 USDC",
-                        "symbol": "re7usdc",
-                        "contract_address": "0x60d715515d4411f7f43e4206dc5d4a3677f0ec78",
-                        "match_score": 0.727,
-                        "match_quality": "partial_name",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.727,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.727,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "USDC ARM LP Token [OLD]",
-                        "symbol": "arm-usdc",
-                        "contract_address": "0x5c68a604d39a639c0b8cc115f0823c50272cf13a",
-                        "match_score": 0.727,
-                        "match_quality": "partial_name",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.727,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "USDC ARM LP Token",
-                        "symbol": "arm-usdc",
-                        "contract_address": "0x9e3a7026e5767f2d7ff5e83b0ed011005f45a170",
-                        "match_score": 0.727,
-                        "match_quality": "partial_name",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.727,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    }
-                ],
-                "query": {
-                    "token_name": "USDC",
-                    "token_symbol": "",
-                    "chain_id": 1,
-                    "platform": "ethereum"
-                },
-                "cache": {
-                    "source": "network",
-                    "path": "C:\\Users\\natha\\OneDrive\\Documents\\1..2026_Sem_2\\PP1\\Sprint 1\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
-                    "age_seconds": 0,
-                    "ttl_seconds": 21600,
-                    "is_fresh": true
-                }
-            },
-            "error": null
+    "tx_history": [],
+    "tokens": [],
+    "liquidity": [
+        {
+            "pool_address": "0x7994d526A127979BcB9Ec7C98509BB5C7ebD78FD",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "WPLS"
+            ],
+            "liquidity_usd": 152831.24,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x8f61d8Fd20aEF7f15019986BA277aeaf75B5062e",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "ATROPA"
+            ],
+            "liquidity_usd": 36757.98,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xC2e9F25Be6257c210d7Adf0D4Cd6E3E881ba25f8",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "DAI"
+            ],
+            "liquidity_usd": 28299.46,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x4e68Ccd3E89f51C3074ca5072bbAC773960dFa36",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 18929.91,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x7FCbA88269633042e603Ae9a139c06561Cfe7672",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "\ud83c\udf28\ufe0f"
+            ],
+            "liquidity_usd": 13547.16,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "WBTC"
+            ],
+            "liquidity_usd": 11328.19,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x412DF8F24BDa983c3A8E0fBdf70D376eCb2b3938",
+            "dex": "9mm",
+            "token_pair": [
+                "WETH",
+                "WPLS"
+            ],
+            "liquidity_usd": 10896.28,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xE0554a476A092703abdB3Ef35c80e0D76d32939F",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 3507508.55,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 106555397.14,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xc7bBeC68d12a0d1830360F8Ec58fA599bA1b0e9b",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 3712690.58,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x1445F32D1A74872bA41f3D8cF4022E9996120b31",
+            "dex": "pancakeswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 630043.79,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x11b815efB8f581194ae79006d24E0d814B7697F6",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 8308080.33,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xe500210c7ea6bfd9f69dce044b09ef384ec2b34832f132baec3b418208e3a657",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 3363046.06,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x90078845bceb849b171873cfbc92db8540e9c803ff57d9d21b1215ec158e79b3",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 2407879.18,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xaCDb27b266142223e1e676841C1E809255Fc6d07",
+            "dex": "pancakeswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 202434.73,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x4e68Ccd3E89f51C3074ca5072bbAC773960dFa36",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 111922114.24,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 20340291.49,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x2a0BF9c4c85ef6462777425945714e1234Cd232B",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "WETH"
+            ],
+            "liquidity_usd": 8920.86,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x0d63D099867919Bd523b48f5B8d4415245d270cc",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "PCOCK"
+            ],
+            "liquidity_usd": 294.93,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x6B7a5b3754c15b8948f8c100b626b844aB6b44b5",
+            "dex": "9mm",
+            "token_pair": [
+                "WETH",
+                "WPLS"
+            ],
+            "liquidity_usd": 1862.96,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 31883450.36,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x6CA298D2983aB03Aa1dA7679389D955A4eFEE15C",
+            "dex": "pancakeswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 1273279.65,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x60594a405d53811d3BC4766596EFD80fd545A270",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "DAI"
+            ],
+            "liquidity_usd": 1065497.87,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 4457.92,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x402EDA7f4bB1d9c27F46A35b93c485458331Eca2",
+            "dex": "9mm",
+            "token_pair": [
+                "WETH",
+                "WPLS"
+            ],
+            "liquidity_usd": 3789.86,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x06da0fd433C1A5d7a4faa01111c044910A184553",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 1947.01,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xC3D03e4F041Fd4cD388c549Ee2A29a9E5075882f",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "DAI"
+            ],
+            "liquidity_usd": 1332.37,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "WBTC"
+            ],
+            "liquidity_usd": 1118.19,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xD116a786F81409C11F145b173f8c80F0CC87486a",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "COM"
+            ],
+            "liquidity_usd": 1077.64,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x7835A696e2d95389b059Bc91e68DFd306733651E",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "WBTC"
+            ],
+            "liquidity_usd": 505.85,
+            "liquidity_events": []
         }
-    },
-    "summary": {
-        "passed": 1,
-        "failed": 0,
-        "skipped": 0
+    ],
+    "fetcher_provenance": {
+        "contract_fetcher": {
+            "fields": [
+                "contract"
+            ],
+            "fetched_at": "2026-09-12T08:43:03Z",
+            "status": "pass"
+        },
+        "tx_history_fetcher": {
+            "fields": [
+                "tx_history"
+            ],
+            "fetched_at": "2026-09-12T08:43:03Z",
+            "status": "pass"
+        },
+        "token_fetcher": {
+            "fields": [
+                "tokens"
+            ],
+            "fetched_at": "2026-09-12T08:43:03Z",
+            "status": "pass"
+        },
+        "liquidity_fetcher": {
+            "fields": [
+                "liquidity"
+            ],
+            "fetched_at": "2026-09-12T08:43:03Z",
+            "status": "pass"
+        }
     }
 }
