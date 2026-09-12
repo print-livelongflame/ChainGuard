@@ -1,28 +1,28 @@
 {
     "lookup_type": "contract_address",
     "query": {
-        "token_name": "pepe coin",
-        "token_symbol": "PEPE",
+        "token_name": "USDC",
+        "token_symbol": "",
         "chain_id": 1
     },
     "results": {
         "contract_address": {
             "status": "pass",
             "data": {
-                "token_list_length": 19828,
-                "status": "ambiguous",
+                "token_list_length": 21085,
+                "status": "resolved",
                 "matches": [
                     {
-                        "name": "Pepe",
-                        "symbol": "pepe",
-                        "contract_address": "0x6982508145454ce325ddbe47a25d4ec3d2311933",
-                        "match_score": 0.852,
-                        "match_quality": "partial_name_and_symbol",
+                        "name": "USDC",
+                        "symbol": "usdc",
+                        "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                        "match_score": 1.0,
+                        "match_quality": "case_insensitive_name_and_symbol",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.72,
-                                "quality": "partial"
+                                "score": 1.0,
+                                "quality": "exact"
                             },
                             "symbol": {
                                 "matches": true,
@@ -33,36 +33,16 @@
                         "etherscan_verification": "verified"
                     },
                     {
-                        "name": "PepeCoin",
-                        "symbol": "pepecoin",
-                        "contract_address": "0xa9e8acf069c58aec8825542845fd754e41a9489a",
-                        "match_score": 0.801,
-                        "match_quality": "name_only",
-                        "match_reason": {
-                            "name": {
-                                "matches": true,
-                                "score": 0.9,
-                                "quality": "normalized_exact"
-                            },
-                            "symbol": {
-                                "matches": false,
-                                "score": 0.72,
-                                "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Pepe Girl",
-                        "symbol": "pepeg",
-                        "contract_address": "0x8bcbef61acd66537362f38167f11875134ffcd63",
-                        "match_score": 0.773,
+                        "name": "Aave v2 USDC",
+                        "symbol": "ausdc",
+                        "contract_address": "0xbcca60bb61934080951369a648fb03df4f96263c",
+                        "match_score": 0.86,
                         "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.667,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": true,
@@ -73,11 +53,11 @@
                         "etherscan_verification": "verified"
                     },
                     {
-                        "name": "PE",
-                        "symbol": "pe",
-                        "contract_address": "0xbd32bec7c76d28aa054fc0c907d601b9263e22c7",
-                        "match_score": 0.72,
-                        "match_quality": "partial_name",
+                        "name": "Aave v1 USDC",
+                        "symbol": "ausdc",
+                        "contract_address": "0x9ba00d6856a4edf4665bca2c2309936572473b7e",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
                                 "matches": true,
@@ -85,144 +65,64 @@
                                 "quality": "partial"
                             },
                             "symbol": {
-                                "matches": false,
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Aave v3 USDC",
+                        "symbol": "ausdc",
+                        "contract_address": "0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
                                 "score": 0.72,
                                 "quality": "partial"
-                            }
-                        },
-                        "etherscan_verification": "verified"
-                    },
-                    {
-                        "name": "Pepe 2.0",
-                        "symbol": "pepe2.0",
-                        "contract_address": "0x0305f515fa978cf87226cf8a9776d25bcfb2cc0b",
-                        "match_score": 0.705,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.588,
-                                "quality": "different"
                             },
                             "symbol": {
                                 "matches": true,
-                                "score": 0.8,
+                                "score": 0.86,
                                 "quality": "partial"
                             }
                         },
                         "etherscan_verification": "verified"
                     },
                     {
-                        "name": "Pepega",
-                        "symbol": "pepega",
-                        "contract_address": "0x9634bdb20bbab07bb52d279fa6e0c53ccc89c879",
-                        "match_score": 0.697,
-                        "match_quality": "partial_symbol",
+                        "name": "Alpha USDC Vault",
+                        "symbol": "ausdc",
+                        "contract_address": "0xd50b9bbf136d1bd5cd5ac6ed9b3f26c458a6d4a6",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
-                                "matches": false,
-                                "score": 0.571,
-                                "quality": "different"
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": true,
-                                "score": 0.8,
+                                "score": 0.86,
                                 "quality": "partial"
                             }
                         },
-                        "etherscan_verification": "skipped_candidate_limit"
+                        "etherscan_verification": "verified"
                     },
                     {
-                        "name": "El Sapo Pepe",
-                        "symbol": "pepe",
-                        "contract_address": "0x69e15ab0fd240de689d09e4851181a6667968008",
-                        "match_score": 0.528,
-                        "match_quality": "symbol_only",
+                        "name": "Compound USDC",
+                        "symbol": "cusdc",
+                        "contract_address": "0x39aa39c021dfbae8fac545936693ac917d5e7563",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
                                 "matches": true,
-                                "score": 0.96,
-                                "quality": "case_insensitive_exact"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "The Original Pepe",
-                        "symbol": "pepe",
-                        "contract_address": "0x4dfae3690b93c47470b03036a17b23c1be05127c",
-                        "match_score": 0.528,
-                        "match_quality": "symbol_only",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.96,
-                                "quality": "case_insensitive_exact"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Pepe King Prawn",
-                        "symbol": "pepe",
-                        "contract_address": "0x51a59a02ba906194285e81eb1f98ffa28e7cf4c9",
-                        "match_score": 0.528,
-                        "match_quality": "symbol_only",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.96,
-                                "quality": "case_insensitive_exact"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "Pepe Community",
-                        "symbol": "pepe",
-                        "contract_address": "0xbe042e9d09cb588331ff911c2b46fd833a3e5bd6",
-                        "match_score": 0.528,
-                        "match_quality": "symbol_only",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
-                            },
-                            "symbol": {
-                                "matches": true,
-                                "score": 0.96,
-                                "quality": "case_insensitive_exact"
-                            }
-                        },
-                        "etherscan_verification": "skipped_candidate_limit"
-                    },
-                    {
-                        "name": "McPepe's",
-                        "symbol": "pepes",
-                        "contract_address": "0x6bf765c43030387a983f429c1438e9d2025b7e12",
-                        "match_score": 0.473,
-                        "match_quality": "partial_symbol",
-                        "match_reason": {
-                            "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": true,
@@ -233,16 +133,116 @@
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "American Pepe",
-                        "symbol": "uspepe",
-                        "contract_address": "0x07040971246a73ebda9cf29ea1306bb47c7c4e76",
-                        "match_score": 0.44,
-                        "match_quality": "partial_symbol",
+                        "name": "Fluid USDC",
+                        "symbol": "fusdc",
+                        "contract_address": "0x9d1089802ee608ba84c5c98211afe5f37f96b36c",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Instadapp USDC",
+                        "symbol": "iusdc",
+                        "contract_address": "0xc8871267e07408b89aa5aecc58adca5e574557f8",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Spark USDC",
+                        "symbol": "susdc",
+                        "contract_address": "0xbc65ad17c5c0a2a4d159fa5a503f4992c7b545fe",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Unagii USD Coin",
+                        "symbol": "uusdc",
+                        "contract_address": "0xbc5991ccd8caceba01edc44c2bb9832712c29cab",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "USD CoinVertible",
+                        "symbol": "usdcv",
+                        "contract_address": "0x5422374b27757da72d5265cc745ea906e0446634",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Coinshift USDC",
+                        "symbol": "csusdc",
+                        "contract_address": "0x7204b7dbf9412567835633b6f00c3edc3a8d6330",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": true,
@@ -253,135 +253,275 @@
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Peercoin",
-                        "symbol": "ppc",
-                        "contract_address": "0x044d078f1c86508e13328842cc75ac021b272958",
-                        "match_score": 0.394,
-                        "match_quality": "partial_name",
+                        "name": "f(x) Protocol Morpho USDC",
+                        "symbol": "fxusdc",
+                        "contract_address": "0x4f460bb11cf958606c69a963b4a17f9daeeea8b6",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.875,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
-                                "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Pleasure Coin",
-                        "symbol": "nsfw",
-                        "contract_address": "0x8f006d1e1d9dc6c98996f50a4c810f17a47fbf19",
-                        "match_score": 0.327,
+                        "name": "Gauntlet USDC Prime Morpho Vault",
+                        "symbol": "gtusdc",
+                        "contract_address": "0xdd0f28e19c1780eb6396170735d45153d261490d",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Morpho-Aave USD Coin",
+                        "symbol": "mausdc",
+                        "contract_address": "0xa5269a8e31b93ff27b887b56720a25f844db0529",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Relend USDC",
+                        "symbol": "reusdc",
+                        "contract_address": "0x0f359fd18bda75e9c49bc027e7da59a4b01bf32a",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Spark Savings USDC",
+                        "symbol": "spusdc",
+                        "contract_address": "0x28b3a8fb53b741a8fd78c0fb9a6b2393d896a43d",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "USDC yVault",
+                        "symbol": "yvusdc",
+                        "contract_address": "0xa354f35829ae975e850e23e9615b11da1b3dc4de",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "aarna atv USDC (Ethereum)",
+                        "symbol": "atvusdc",
+                        "contract_address": "0xf30f62963cce132f32306d7f18a8587958b30ea9",
+                        "match_score": 0.727,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.727,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "evaUSDC",
+                        "symbol": "evausdc",
+                        "contract_address": "0x741bd193b6b40f8703d2e116fd1965421f290f58",
+                        "match_score": 0.727,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
                                 "score": 0.727,
-                                "quality": "fuzzy"
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.727,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "PeiPei",
-                        "symbol": "peipei",
-                        "contract_address": "0x3ffeea07a27fab7ad1df5297fa75e77a43cb5790",
-                        "match_score": 0.321,
+                        "name": "Gauntlet USDC PRIME V2",
+                        "symbol": "gtusdcp",
+                        "contract_address": "0x8c106eedad96553e64287a5a6839c3cc78afa3d0",
+                        "match_score": 0.727,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.714,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.727,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "PDX Coin",
-                        "symbol": "pdx",
-                        "contract_address": "0x6a8fee0e33cb65a7e8d21badca62e87639ef74b3",
-                        "match_score": 0.318,
+                        "name": "MEV Capital Elixir USDC",
+                        "symbol": "mc.eusdc",
+                        "contract_address": "0x1265a81d42d513df40d0031f8f2e1346954d665a",
+                        "match_score": 0.727,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.706,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.727,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "Pepes Dog",
-                        "symbol": "zeus",
-                        "contract_address": "0x0f7dc5d02cc1e1f5ee47854d534d332a1081ccc8",
-                        "match_score": 0.3,
+                        "name": "Re7 USDC",
+                        "symbol": "re7usdc",
+                        "contract_address": "0x60d715515d4411f7f43e4206dc5d4a3677f0ec78",
+                        "match_score": 0.727,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.667,
-                                "quality": "fuzzy"
+                                "score": 0.727,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.727,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     },
                     {
-                        "name": "PERL.eco",
-                        "symbol": "perl",
-                        "contract_address": "0xeca82185adce47f39c684352b0439f030f860318",
-                        "match_score": 0.3,
+                        "name": "USDC ARM LP Token [OLD]",
+                        "symbol": "arm-usdc",
+                        "contract_address": "0x5c68a604d39a639c0b8cc115f0823c50272cf13a",
+                        "match_score": 0.727,
                         "match_quality": "partial_name",
                         "match_reason": {
                             "name": {
                                 "matches": true,
-                                "score": 0.667,
-                                "quality": "fuzzy"
+                                "score": 0.72,
+                                "quality": "partial"
                             },
                             "symbol": {
                                 "matches": false,
-                                "score": 0.0,
-                                "quality": "different"
+                                "score": 0.727,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "USDC ARM LP Token",
+                        "symbol": "arm-usdc",
+                        "contract_address": "0x9e3a7026e5767f2d7ff5e83b0ed011005f45a170",
+                        "match_score": 0.727,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.727,
+                                "quality": "partial"
                             }
                         },
                         "etherscan_verification": "skipped_candidate_limit"
                     }
                 ],
                 "query": {
-                    "token_name": "pepe coin",
-                    "token_symbol": "PEPE",
+                    "token_name": "USDC",
+                    "token_symbol": "",
                     "chain_id": 1,
                     "platform": "ethereum"
                 },
                 "cache": {
                     "source": "network",
-                    "path": "D:\\uni\\coding\\capstoneProject\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
+                    "path": "C:\\Users\\natha\\OneDrive\\Documents\\1..2026_Sem_2\\PP1\\Sprint 1\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
                     "age_seconds": 0,
                     "ttl_seconds": 21600,
                     "is_fresh": true

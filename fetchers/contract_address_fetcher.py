@@ -181,20 +181,25 @@ def classify_match(name_match: dict, symbol_match: dict) -> str:
 
 def build_ranked_match(token: dict, contract_address: str, token_name: str, token_symbol: str) -> dict | None:
     """Build a scored resolver candidate, or None if it is too weak."""
-    name_match = score_field(token.get("name", ""), token_name)
+    # A single query may be either a display name or ticker; compare both
+    # without guessing the missing name/symbol from LLM memory.
+    single_query = not token_name or not token_symbol
+    name_query = token_name or token_symbol
+    symbol_query = token_symbol or token_name
+    name_match = score_field(token.get("name", ""), name_query)
     symbol_match = score_field(
         token.get("symbol", ""),
-        token_symbol,
+        symbol_query,
         minimum_score=MIN_SYMBOL_MATCH_SCORE,
     )
 
     if not name_match["matches"] and not symbol_match["matches"]:
         return None
 
-    # Symbols usually carry stronger identity than display names.
+    # Preserve combined-query ranking; a single query uses its best field.
     weighted_score = (
-        (symbol_match["score"] * 0.55)
-        + (name_match["score"] * 0.45)
+        max(name_match["score"], symbol_match["score"]) if single_query else
+        (symbol_match["score"] * 0.55) + (name_match["score"] * 0.45)
     )
 
     return {
@@ -364,7 +369,7 @@ def get_etherscan_api_key_error(data: dict) -> str | None:
 
 def resolve_contract_address(
     token_name: str,
-    token_symbol: str,
+    token_symbol: str = "",
     chain_id: int = 1,
     force_refresh: bool = False,
 ) -> dict:
@@ -372,8 +377,8 @@ def resolve_contract_address(
     token_name = (token_name or "").strip()
     token_symbol = (token_symbol or "").strip()
 
-    if not token_name or not token_symbol:
-        return {"error": "Token name and symbol are required."}
+    if not token_name and not token_symbol:
+        return {"error": "A token name or symbol is required."}
 
     platform_key = CHAIN_PLATFORM_KEYS.get(chain_id)
 

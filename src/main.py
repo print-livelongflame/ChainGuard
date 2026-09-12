@@ -9,7 +9,8 @@ import os
 import re
 from datetime import datetime, timezone
 
-from agents.ba import ask_llm, is_exit_command, perform_next_action
+from agents.ba import describe_validation_error, ask_llm, is_exit_command, parse_ba_response, perform_next_action
+from uuid import uuid4
 
 
 JSON_FILE = os.path.join(
@@ -235,7 +236,7 @@ def should_skip_fetcher(name, address_analysis):
     return None
 
 
-def fetch_results(address):
+def fetch_results(address, requested_fields=None):
     """Run each address-based fetcher and keep failures isolated."""
     address_analysis = analyze_address_format(address)
     address_analysis["is_transaction_hash"] = is_transaction_hash(address)
@@ -250,8 +251,24 @@ def fetch_results(address):
     ]
     results = {}
 
+    field_fetchers = {
+        "contract": "contract", "tx_history": "transactions",
+        "tokens": "token_info", "liquidity": "liquidity",
+    }
+    selected = (
+        {field_fetchers[field] for field in requested_fields}
+        if requested_fields is not None else None
+    )
     for name, module_name, function_name in fetchers:
-        skip_reason = should_skip_fetcher(name, address_analysis)
+        if selected is not None and name not in selected:
+            continue
+        # Explicit information requests do not need an extra contract lookup
+        # merely to infer wallet/token type; the selected API can report failure.
+        skip_reason = (
+            None if selected is not None and name in {"token_info", "liquidity"}
+            and address_analysis["chain_family"] == "evm"
+            else should_skip_fetcher(name, address_analysis)
+        )
         if skip_reason:
             results[name] = make_skip(skip_reason)
             continue
@@ -412,13 +429,13 @@ def build_address_context_json(address, results, address_analysis):
     }
 
 
-def fetch_contract_address_results(token_name, token_symbol, chain_id=1):
+def fetch_contract_address_results(token_name, token_symbol="", chain_id=1):
     """Run the token-name/symbol contract-address resolver."""
     token_name = (token_name or "").strip()
     token_symbol = (token_symbol or "").strip()
 
-    if not token_name or not token_symbol:
-        raise ValueError("Token name and symbol are required.")
+    if not token_name and not token_symbol:
+        raise ValueError("A token name or symbol is required.")
 
     result = run_fetcher(
         "contract_address",
@@ -446,24 +463,26 @@ def fetch_contract_address_results(token_name, token_symbol, chain_id=1):
     }
 
 
-def save_info(address, results, address_analysis):
+def save_info(address, results, address_analysis, output_file=None):
     """Save all fetcher results to the required combined JSON file."""
-    os.makedirs(os.path.dirname(JSON_FILE), exist_ok=True)
+    output_file = output_file or JSON_FILE
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     info = build_address_context_json(address, results, address_analysis)
 
-    with open(JSON_FILE, "w", encoding="utf-8") as file:
+    with open(output_file, "w", encoding="utf-8") as file:
         json.dump(info, file, indent=4)
 
 
-def save_contract_address_info(resolver_results):
+def save_contract_address_info(resolver_results, output_file=None):
     """Save contract-address resolver results to the combined JSON file."""
-    os.makedirs(os.path.dirname(JSON_FILE), exist_ok=True)
+    output_file = output_file or JSON_FILE
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     info = {
         "lookup_type": "contract_address",
         **resolver_results,
     }
 
-    with open(JSON_FILE, "w", encoding="utf-8") as file:
+    with open(output_file, "w", encoding="utf-8") as file:
         json.dump(info, file, indent=4)
 
 
@@ -480,76 +499,152 @@ def print_results(results):
             print(f"  {result['error']}")
 
 
-def classification_value(analysis, field):
-    """Read a value from the BA's human-readable classification."""
-    match = re.search(
-        rf"^{re.escape(field)}:\s*(.+)$",
-        analysis,
-        flags=re.IGNORECASE | re.MULTILINE,
-    )
-    return match.group(1).strip() if match else ""
-
-
-def handle_ba_request(prompt):
-    """Classify one user request and run fetchers when a target is available."""
-    analysis = ask_llm(prompt)
-    print(f"\n{analysis}")
-
-    scope = classification_value(analysis, "Scope").lower()
-    request_type = classification_value(analysis, "Request Type").lower()
-    raw_input_type = classification_value(analysis, "Raw Input Type").lower()
-    raw_input = classification_value(analysis, "Raw Input")
-
-    if scope != "in_scope":
-        action_response = perform_next_action(prompt, analysis)
-        if action_response:
-            print(f"\nResponse:\n{action_response}")
-        return
-
-    if request_type == "general_question":
-        action_response = perform_next_action(prompt, analysis)
-        if action_response:
-            print(f"\nResponse:\n{action_response}")
-        return
-
-    if raw_input_type == "token_name":
-        if not raw_input or raw_input.lower() == "none":
-            print("\nNo token name was found in the request.")
-            return
-
-        token_symbol = input("Enter the token symbol: ").strip()
-        if not token_symbol:
-            print("\nA token symbol is required for contract lookup.")
-            return
-
-        resolver_results = fetch_contract_address_results(raw_input, token_symbol)
-        print_results(resolver_results["results"])
-        save_contract_address_info(resolver_results)
-        print(f"Contract lookup results saved to {JSON_FILE}")
-        return
-
-    if raw_input_type not in {"address", "contract", "tx_hash"}:
-        print(
-            "\nChainGuard needs a concrete blockchain address or transaction "
-            "hash before it can run the data fetchers."
+def resolve_ba_target(task, respond, output_file=None):
+    """Run one known resolver; only continue with an unambiguous address."""
+    raw_input = task.raw_input.value.strip()
+    if task.raw_input.type == "token_name":
+        resolver_results = fetch_contract_address_results(raw_input)
+        result = resolver_results["results"]["contract_address"]
+        save_contract_address_info(resolver_results, output_file=output_file)
+        if result["status"] != "pass":
+            respond(f"Contract address lookup failed: {result['error']}")
+            return None
+        data = result["data"]
+        matches = data.get("matches", [])
+        if not matches:
+            respond("No matching Ethereum token contract was found. Please check the name or symbol.")
+            return None
+        lines = [f"Token resolver result: {data.get('status', 'unknown')}"]
+        if data.get("cache", {}).get("warning"):
+            lines.append(data["cache"]["warning"])
+        for match in matches:
+            lines.append(
+                f"{match.get('name')} ({match.get('symbol')}): "
+                f"{match.get('contract_address')} "
+                f"[contract verification: {match.get('etherscan_verification', 'unknown')}]"
+            )
+        address = matches[0].get("contract_address")
+        resolved = (
+            data.get("status") == "resolved" and isinstance(address, str)
+            and is_evm_address(address)
+            and matches[0].get("etherscan_verification") != "not_contract"
         )
+        if not resolved:
+            lines.append("Please confirm the intended contract address from these candidates.")
+        respond("\n".join(lines))
+        # A resolver-only request is complete after displaying its result.
+        return address if resolved and task.requested_fields else None
+
+    if not is_transaction_hash(raw_input):
+        respond("Please supply a complete Ethereum transaction hash.")
+        return None
+    result = run_fetcher(
+        "tx_hash", "fetchers.tx_hash_fetcher", "get_transaction_by_hash",
+        raw_input, chain_id=1,
+    )
+    if result["status"] != "pass":
+        respond(f"Transaction lookup failed: {result['error']}")
+        return None
+    transaction = result["data"]
+    addresses = []
+    lines = [f"Transaction: {raw_input}"]
+    for role in ("from", "to"):
+        address = transaction.get(role)
+        lines.append(f"{role}: {address or 'not supplied (may be contract creation)'}")
+        if isinstance(address, str) and is_evm_address(address) and address not in addresses:
+            addresses.append(address)
+    if task.requested_fields and len(addresses) != 1:
+        lines.append("Please supply the address you want information about from this transaction.")
+    respond("\n".join(lines))
+    return addresses[0] if task.requested_fields and len(addresses) == 1 else None
+
+
+def handle_ba_request(prompt, history=None):
+    """Classify once, then execute each independent task in order."""
+    try:
+        analysis = ask_llm(prompt, history)
+        batch = parse_ba_response(analysis)
+    except ValueError as error:
+        print(f"\nThe BA returned an invalid task definition. {describe_validation_error(error)}")
+        return
+    print(f"\n{analysis}")
+    multiple = len(batch.tasks) > 1
+    request_id = uuid4().hex if multiple else None
+    for index, task in enumerate(batch.tasks, start=1):
+        label = f"Task {index}: {task.request_type}"
+        if task.raw_input:
+            label += f" - {task.raw_input.value}"
+        if multiple:
+            print(f"\n{label}")
+
+        def respond(message):
+            print(f"\nResponse:\n{message}")
+            if history is not None:
+                content = f"{label}\n{message}" if multiple else message
+                history.append({"role": "assistant", "content": content})
+
+        output_file = (
+            os.path.join(os.path.dirname(JSON_FILE), "requests", request_id, f"task_{index}.json")
+            if multiple else None
+        )
+        try:
+            execute_ba_task(task, respond, output_file)
+        except Exception as error:
+            # A failed fetch/save for one task must not discard other answers.
+            respond(f"This task could not be completed: {error}")
+
+
+def execute_ba_task(task, respond, output_file=None):
+    """Run one task; returning here does not stop other tasks in the prompt."""
+    analysis = task.model_dump_json()
+    action_response = perform_next_action(analysis)
+    if action_response:
+        respond(action_response)
         return
 
-    if not raw_input or raw_input.lower() == "none":
-        print("\nNo blockchain target was found in the request.")
+    if task.chain != "ethereum":
+        respond("Address lookups currently support Ethereum only.")
+        return
+    raw_input_type = task.raw_input.type if task.raw_input else None
+    raw_input = task.raw_input.value.strip() if task.raw_input else ""
+    if not raw_input:
+        respond("Please supply a blockchain address, token name/symbol, or transaction hash.")
         return
 
-    fetcher_results, address_analysis = fetch_results(raw_input)
+    if raw_input_type in {"token_name", "tx_hash"}:
+        expected_resolver = {
+            "token_name": "token_name_resolver_fetcher",
+            "tx_hash": "tx_hash_resolver_fetcher",
+        }[raw_input_type]
+        if not task.needs_resolution or task.resolution_plan != [expected_resolver]:
+            respond("The BA did not provide a matching resolution plan. Please try again.")
+            return
+        raw_input = resolve_ba_target(task, respond, output_file)
+        if raw_input is None:
+            return
+
+    if not is_evm_address(raw_input):
+        respond("Please supply a complete Ethereum address.")
+        return
+    if not task.requested_fields:
+        respond("Which information would you like: contract, transactions, tokens, or liquidity?")
+        return
+
+    fetcher_results, address_analysis = fetch_results(raw_input, task.requested_fields)
     print(
         f"\nAddress type: {address_analysis['chain_family']} / "
         f"{address_analysis['address_type']}"
     )
     print_results(fetcher_results)
-    save_info(raw_input, fetcher_results, address_analysis)
-    print(f"Combined results saved to {JSON_FILE}")
+    if output_file is None:
+        save_info(raw_input, fetcher_results, address_analysis)
+    else:
+        save_info(raw_input, fetcher_results, address_analysis, output_file=output_file)
+    respond(f"Requested information saved to {output_file or JSON_FILE}")
 
 
-if __name__ == "__main__":
+def run_cli():
+    history = []
     print_banner()
     print("ChainGuard is ready. Type 'goodbye' to exit.")
 
@@ -565,4 +660,8 @@ if __name__ == "__main__":
             break
 
         if user_input:
-            handle_ba_request(user_input)
+            handle_ba_request(user_input, history)
+
+
+if __name__ == "__main__":
+    run_cli()
