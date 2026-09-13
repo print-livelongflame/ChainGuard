@@ -1,7 +1,7 @@
 import os
 import sys
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -16,6 +16,7 @@ except ImportError:
     from detector import detect
 from src.context_builder import build_address_context
 from src.main import fetch_contract_address_results
+from src.detector_config import load_detector_config, detector_metadata
 
 
 app = FastAPI(
@@ -46,6 +47,16 @@ def root():
         "name": "ChainGuard Detector API",
         "status": "running"
     }
+
+
+@app.get("/configuration")
+def get_detector_configuration():
+    """Expose the same custom-detector registration used by the BA."""
+    try:
+        config = load_detector_config()
+    except ValueError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    return detector_metadata(config)
 
 
 @app.post("/detect", response_model=DetectionResult)

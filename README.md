@@ -118,6 +118,34 @@ In order to add your own detection logic you can go ahead and go to `detector_te
 
 ## Basic API flow
 
+### Register a custom detector with the BA
+
+After adding your algorithm to `detector_template/detector.py`, copy
+`detector_config.example.json` to `detector_config.json` in the project root.
+Set `name` to your detector's name and `endpoint` to its FastAPI `/detect` URL.
+Keep `enabled` set to `true` to register it. Start the wrapper from the project
+root with:
+
+```bash
+python -m uvicorn detector_template.app:app --reload --port 9000
+```
+
+The BA reads this shared configuration on every request. Its task output,
+including `address_info`, will contain:
+
+```json
+"selected_detector": "my_custom_scam_detector",
+"detector_configured": true
+```
+
+`GET /configuration` on the wrapper reports the same fields. Set `enabled` to
+`false` or remove `detector_config.json` to return to `null` / `false`. Invalid
+configuration produces an error instead of silently reporting no detector.
+The bundled example alone does not count as a custom detector; register your
+implementation explicitly. Registration describes setup and does not check
+endpoint availability. The BA does not invoke the endpoint yet; address lookups
+and scam-check context fetching continue as before.
+
 The intended architecture is:
 
 ```text
@@ -149,9 +177,3 @@ fetcher data -> AddressContext -> detect() -> DetectionResult
 works correctly before moving to a more advanced scam detection model.
 
 For a basic example, the template can simply inspect whether contract data, honeypot data, or risk indicators are present and return a label like `low_risk` or `medium_risk`.
-
----
-
-# Next step
-
-Once the API flow is working, the next extension will be the LLM layer. But for now our goal is just to keep the architecture clean and easy to extend.

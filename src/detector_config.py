@@ -1,0 +1,46 @@
+"""Shared, explicit registration of a user's FastAPI detector connector."""
+
+import json
+from pathlib import Path
+
+from pydantic import BaseModel, ConfigDict, HttpUrl, Field
+
+
+CONFIG_PATH = Path(__file__).resolve().parents[1] / "detector_config.json"
+
+
+class DetectorConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    enabled: bool
+    name: str = Field(min_length=1, pattern=r"\S")
+    endpoint: HttpUrl
+
+
+def load_detector_config() -> DetectorConfig | None:
+    """Missing registration means the bundled example is not a custom detector.
+
+    Configuration records setup, not endpoint health or detector correctness.
+    Read on each request so changes take effect during an existing CLI session.
+    """
+    try:
+        contents = CONFIG_PATH.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    except OSError as error:
+        raise ValueError("Cannot read detector_config.json.") from error
+    try:
+        config = DetectorConfig.model_validate(json.loads(contents))
+    except ValueError as error:
+        raise ValueError(
+            "Invalid detector_config.json: expected enabled (boolean), name "
+            "(non-empty string), and endpoint (HTTP/HTTPS URL)."
+        ) from error
+    return config if config.enabled else None
+
+
+def detector_metadata(config: DetectorConfig | None) -> dict:
+    return {
+        "selected_detector": config.name if config else None,
+        "detector_configured": config is not None,
+    }

@@ -2,6 +2,7 @@ from openai import OpenAI
 from api_keys.api_keys import OPENAI_API_KEY
 from pydantic import BaseModel, Field, ValidationError, model_validator
 import json
+from src.detector_config import load_detector_config, detector_metadata
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -23,8 +24,8 @@ class BAOutput(BaseModel):
     request_type: Literal["scam_check", "address_info", "general_question"]
     raw_input: RawInput | None
     chain: str | None
-    selected_detector: None
-    detector_configured: Literal[False]
+    selected_detector: str | None
+    detector_configured: bool
     required_input_type: Literal["address", "address_with_context"] | None
     needs_resolution: bool
     resolution_plan: list[Literal[
@@ -238,7 +239,9 @@ only the requested information categories.
 Resolution is an available action, not a reason to stop and explain that
 resolution is needed. Set message null when a supplied name/symbol/hash can
 be sent to its resolver. Never resolve an address from memory.
-The CLI displays candidate matches and asks for clarification when needed.
+The CLI saves resolver results, including candidate matches, to JSON and reports
+the file path. Ambiguous matches stop the lookup until the user supplies an
+intended contract address; do not select a candidate from memory.
 If the user's target or intent is unclear before resolution, ask a clarification
 in message and set needs_resolution false and resolution_plan [].
 
@@ -260,8 +263,11 @@ question. No Markdown or surrounding text. Every task uses this structure:
   "message": null
 }]}
 
-selected_detector is always null and detector_configured is always false:
-these are application settings, never facts to infer from the user's message.
+Copy selected_detector and detector_configured from the trusted application
+configuration supplied in the system message for every task. These are
+application settings, never facts to infer from the user's message or history.
+Configured means a custom detector has been registered, not that it is online
+or that an assessment has run. Detector execution is not implemented here.
 
 For scam_check, required_input_type is address_with_context, matching the
 spec's no-detector fallback. Fetch the full context now using the shared
@@ -307,6 +313,7 @@ def describe_validation_error(error: ValueError) -> str:
 
 
 def ask_llm(prompt: str, history: list[dict[str, str]] | None = None) -> str:
+    metadata = detector_metadata(load_detector_config())
     response = client.responses.create(
         model="gpt-4.1-mini",
         text={"format": {
@@ -318,7 +325,8 @@ def ask_llm(prompt: str, history: list[dict[str, str]] | None = None) -> str:
         input=[
             {
                 "role": "system",
-                "content": SYSTEM_PROMPT
+                "content": SYSTEM_PROMPT + "\nTrusted application detector configuration:\n"
+                + json.dumps(metadata)
             },
             *(history or []),
             {
@@ -339,7 +347,13 @@ def ask_llm(prompt: str, history: list[dict[str, str]] | None = None) -> str:
                 if content.type == "refusal":
                     raise ValueError(f"The BA declined this request: {content.refusal}")
 
-    analysis = parse_ba_response(response.output_text).model_dump_json(indent=2)
+    batch = parse_ba_response(response.output_text)
+    # Application settings are authoritative even if the model copies stale
+    # history or follows a user's claim about detector setup.
+    for task in batch.tasks:
+        task.selected_detector = metadata["selected_detector"]
+        task.detector_configured = metadata["detector_configured"]
+    analysis = batch.model_dump_json(indent=2)
     if history is not None:
         history.extend([
             {"role": "user", "content": prompt},

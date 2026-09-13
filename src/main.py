@@ -506,33 +506,21 @@ def resolve_ba_target(task, respond, output_file=None):
         resolver_results = fetch_contract_address_results(raw_input)
         result = resolver_results["results"]["contract_address"]
         save_contract_address_info(resolver_results, output_file=output_file)
+        respond(f"Contract address lookup results saved to {output_file or JSON_FILE}")
         if result["status"] != "pass":
-            respond(f"Contract address lookup failed: {result['error']}")
             return None
         data = result["data"]
         matches = data.get("matches", [])
         if not matches:
-            respond("No matching Ethereum token contract was found. Please check the name or symbol.")
             return None
-        lines = [f"Token resolver result: {data.get('status', 'unknown')}"]
-        if data.get("cache", {}).get("warning"):
-            lines.append(data["cache"]["warning"])
-        for match in matches:
-            lines.append(
-                f"{match.get('name')} ({match.get('symbol')}): "
-                f"{match.get('contract_address')} "
-                f"[contract verification: {match.get('etherscan_verification', 'unknown')}]"
-            )
         address = matches[0].get("contract_address")
         resolved = (
             data.get("status") == "resolved" and isinstance(address, str)
             and is_evm_address(address)
             and matches[0].get("etherscan_verification") != "not_contract"
         )
-        if not resolved:
-            lines.append("Please confirm the intended contract address from these candidates.")
-        respond("\n".join(lines))
-        # A resolver-only request is complete after displaying its result.
+        # Ambiguous matches stay in JSON; never choose a candidate implicitly.
+        # A resolver-only request is complete after saving its result.
         return address if resolved and task.requested_fields else None
 
     if not is_transaction_hash(raw_input):
