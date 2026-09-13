@@ -640,7 +640,10 @@ def execute_ba_task(task, respond, output_file=None):
         save_info(raw_input, fetcher_results, address_analysis)
     else:
         save_info(raw_input, fetcher_results, address_analysis, output_file=output_file)
-    respond(f"Requested information saved to {output_file or JSON_FILE}")
+    message = f"Requested information saved to {output_file or JSON_FILE}"
+    if task.request_type == "scam_check":
+        message += "\nAvailable context collected for the future Scam Checker; no scam assessment has been performed."
+    respond(message)
 
 
 def run_cli():

@@ -1,0 +1,538 @@
+{
+    "lookup_type": "contract_address",
+    "query": {
+        "token_name": "Pepe",
+        "token_symbol": "",
+        "chain_id": 1
+    },
+    "results": {
+        "contract_address": {
+            "status": "pass",
+            "data": {
+                "token_list_length": 21164,
+                "status": "ambiguous",
+                "matches": [
+                    {
+                        "name": "Pepe",
+                        "symbol": "pepe",
+                        "contract_address": "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+                        "match_score": 1.0,
+                        "match_quality": "case_insensitive_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 1.0,
+                                "quality": "exact"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.96,
+                                "quality": "case_insensitive_exact"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "El Sapo Pepe",
+                        "symbol": "pepe",
+                        "contract_address": "0x69e15ab0fd240de689d09e4851181a6667968008",
+                        "match_score": 0.96,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.96,
+                                "quality": "case_insensitive_exact"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "The Original Pepe",
+                        "symbol": "pepe",
+                        "contract_address": "0x4dfae3690b93c47470b03036a17b23c1be05127c",
+                        "match_score": 0.96,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.96,
+                                "quality": "case_insensitive_exact"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Pepe King Prawn",
+                        "symbol": "pepe",
+                        "contract_address": "0x51a59a02ba906194285e81eb1f98ffa28e7cf4c9",
+                        "match_score": 0.96,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.96,
+                                "quality": "case_insensitive_exact"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "Pepe Community",
+                        "symbol": "pepe",
+                        "contract_address": "0xbe042e9d09cb588331ff911c2b46fd833a3e5bd6",
+                        "match_score": 0.96,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.96,
+                                "quality": "case_insensitive_exact"
+                            }
+                        },
+                        "etherscan_verification": "verified"
+                    },
+                    {
+                        "name": "McPepe's",
+                        "symbol": "pepes",
+                        "contract_address": "0x6bf765c43030387a983f429c1438e9d2025b7e12",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.727,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Pepe Girl",
+                        "symbol": "pepeg",
+                        "contract_address": "0x8bcbef61acd66537362f38167f11875134ffcd63",
+                        "match_score": 0.86,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.86,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "American Pepe",
+                        "symbol": "uspepe",
+                        "contract_address": "0x07040971246a73ebda9cf29ea1306bb47c7c4e76",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Pepe 2.0",
+                        "symbol": "pepe2.0",
+                        "contract_address": "0x0305f515fa978cf87226cf8a9776d25bcfb2cc0b",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Pepega",
+                        "symbol": "pepega",
+                        "contract_address": "0x9634bdb20bbab07bb52d279fa6e0c53ccc89c879",
+                        "match_score": 0.8,
+                        "match_quality": "partial_name_and_symbol",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": true,
+                                "score": 0.8,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Pepedex",
+                        "symbol": "ppdex",
+                        "contract_address": "0xf1f508c7c9f0d1b15a76fba564eef2d956220cf7",
+                        "match_score": 0.727,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.727,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Artificial Pepe",
+                        "symbol": "",
+                        "contract_address": "0x8602b2fd8d105a56d3152e936e66b1d414142148",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "missing"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "AstroPepeX",
+                        "symbol": "apx",
+                        "contract_address": "0xed4e879087ebd0e8a77d66870012b5e0dffd0fa4",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "BabyPepe",
+                        "symbol": "babypepe",
+                        "contract_address": "0x5c559f3ee9a81da83e069c0093471cb05d84052a",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Baby Pepe",
+                        "symbol": "babypepe",
+                        "contract_address": "0x69babe9811cc86dcfc3b8f9a14de6470dd18eda4",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Baby Pepe Token",
+                        "symbol": "bepe",
+                        "contract_address": "0xdbcd57cc74b180f928258f7b1a32f6f7e64bf12e",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Book of Pepe",
+                        "symbol": "bope",
+                        "contract_address": "0x599955aa9fbc197a1b717d8da6a7012cafe70ab3",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Clown Pepe",
+                        "symbol": "honk",
+                        "contract_address": "0x5efcea234f7547de4569aad1215fa5d2adaced38",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Gaga (Pepe)",
+                        "symbol": "gaga",
+                        "contract_address": "0xb29dc1703facd2967bb8ade2e392385644c6dca9",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "History of Pepe",
+                        "symbol": "hope",
+                        "contract_address": "0x3b37a9caf74ead14e521d46af0bf00737d827828",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "MAGA Pepe",
+                        "symbol": "mape",
+                        "contract_address": "0x683a4ac99e65200921f556a19dadf4b0214b5938",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "MAGA PEPE (ETH)",
+                        "symbol": "magapepe",
+                        "contract_address": "0x8e7bd91f7d51d58145365341fdb37e0edfc8397f",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "Mind of Pepe",
+                        "symbol": "mind",
+                        "contract_address": "0xefc814a4c676a7314a13954e283de6cef597e6b2",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "OnChain Pepe 404",
+                        "symbol": "ocp404",
+                        "contract_address": "0xb87b96868644d99cc70a8565ba7311482edebf6e",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.0,
+                                "quality": "different"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    },
+                    {
+                        "name": "PE",
+                        "symbol": "pe",
+                        "contract_address": "0xbd32bec7c76d28aa054fc0c907d601b9263e22c7",
+                        "match_score": 0.72,
+                        "match_quality": "partial_name",
+                        "match_reason": {
+                            "name": {
+                                "matches": true,
+                                "score": 0.72,
+                                "quality": "partial"
+                            },
+                            "symbol": {
+                                "matches": false,
+                                "score": 0.72,
+                                "quality": "partial"
+                            }
+                        },
+                        "etherscan_verification": "skipped_candidate_limit"
+                    }
+                ],
+                "query": {
+                    "token_name": "Pepe",
+                    "token_symbol": "",
+                    "chain_id": 1,
+                    "platform": "ethereum"
+                },
+                "cache": {
+                    "source": "network",
+                    "path": "C:\\Users\\natha\\OneDrive\\Documents\\1..2026_Sem_2\\PP1\\Sprint 1\\ChainGuard\\fetchers\\cache\\coingecko_tokens_ethereum.json",
+                    "age_seconds": 0,
+                    "ttl_seconds": 21600,
+                    "is_fresh": true
+                }
+            },
+            "error": null
+        }
+    },
+    "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+    }
+}
