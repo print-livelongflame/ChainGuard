@@ -1,10 +1,10 @@
 {
     "chain": "ethereum",
     "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-    "queried_at": "2026-09-13T09:29:07Z",
+    "queried_at": "2026-09-12T08:43:03Z",
     "contract": {
-        "is_contract": false,
-        "bytecode": null,
+        "is_contract": true,
+        "bytecode": "Invalid API Key (#err2)",
         "abi": [],
         "verified_source": false,
         "creation_tx": null,
@@ -20,7 +20,7 @@
                 "WETH",
                 "WPLS"
             ],
-            "liquidity_usd": 146565.21,
+            "liquidity_usd": 152831.24,
             "liquidity_events": []
         },
         {
@@ -30,7 +30,7 @@
                 "WETH",
                 "ATROPA"
             ],
-            "liquidity_usd": 34987.4,
+            "liquidity_usd": 36757.98,
             "liquidity_events": []
         },
         {
@@ -40,7 +40,7 @@
                 "WETH",
                 "DAI"
             ],
-            "liquidity_usd": 26951.81,
+            "liquidity_usd": 28299.46,
             "liquidity_events": []
         },
         {
@@ -50,7 +50,7 @@
                 "WETH",
                 "USDT"
             ],
-            "liquidity_usd": 18914.9,
+            "liquidity_usd": 18929.91,
             "liquidity_events": []
         },
         {
@@ -60,7 +60,17 @@
                 "WETH",
                 "\ud83c\udf28\ufe0f"
             ],
-            "liquidity_usd": 13181.47,
+            "liquidity_usd": 13547.16,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "WBTC"
+            ],
+            "liquidity_usd": 11328.19,
             "liquidity_events": []
         },
         {
@@ -70,7 +80,7 @@
                 "WETH",
                 "WPLS"
             ],
-            "liquidity_usd": 10905.3,
+            "liquidity_usd": 10896.28,
             "liquidity_events": []
         },
         {
@@ -80,17 +90,7 @@
                 "WETH",
                 "USDC"
             ],
-            "liquidity_usd": 3468428.68,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0xc7bBeC68d12a0d1830360F8Ec58fA599bA1b0e9b",
-            "dex": "uniswap",
-            "token_pair": [
-                "WETH",
-                "USDT"
-            ],
-            "liquidity_usd": 3665325.76,
+            "liquidity_usd": 3507508.55,
             "liquidity_events": []
         },
         {
@@ -100,7 +100,17 @@
                 "WETH",
                 "USDC"
             ],
-            "liquidity_usd": 105983569.75,
+            "liquidity_usd": 106555397.14,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xc7bBeC68d12a0d1830360F8Ec58fA599bA1b0e9b",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 3712690.58,
             "liquidity_events": []
         },
         {
@@ -110,7 +120,7 @@
                 "WETH",
                 "USDC"
             ],
-            "liquidity_usd": 604161.41,
+            "liquidity_usd": 630043.79,
             "liquidity_events": []
         },
         {
@@ -120,17 +130,7 @@
                 "WETH",
                 "USDT"
             ],
-            "liquidity_usd": 8476053.59,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0xaCDb27b266142223e1e676841C1E809255Fc6d07",
-            "dex": "pancakeswap",
-            "token_pair": [
-                "WETH",
-                "USDT"
-            ],
-            "liquidity_usd": 201515.7,
+            "liquidity_usd": 8308080.33,
             "liquidity_events": []
         },
         {
@@ -140,7 +140,7 @@
                 "WETH",
                 "USDC"
             ],
-            "liquidity_usd": 3316423.09,
+            "liquidity_usd": 3363046.06,
             "liquidity_events": []
         },
         {
@@ -150,147 +150,27 @@
                 "WETH",
                 "USDT"
             ],
-            "liquidity_usd": 2377788.08,
+            "liquidity_usd": 2407879.18,
             "liquidity_events": []
         },
         {
-            "pool_address": "0x2a0BF9c4c85ef6462777425945714e1234Cd232B",
-            "dex": "pulsex",
-            "token_pair": [
-                "WETH",
-                "WETH"
-            ],
-            "liquidity_usd": 8706.31,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x0d63D099867919Bd523b48f5B8d4415245d270cc",
-            "dex": "pulsex",
-            "token_pair": [
-                "WETH",
-                "PCOCK"
-            ],
-            "liquidity_usd": 296.71,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x6B7a5b3754c15b8948f8c100b626b844aB6b44b5",
-            "dex": "9mm",
-            "token_pair": [
-                "WETH",
-                "WPLS"
-            ],
-            "liquidity_usd": 1767.7,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
-            "dex": "sushiswap",
-            "token_pair": [
-                "WETH",
-                "USDC"
-            ],
-            "liquidity_usd": 4621.05,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x402EDA7f4bB1d9c27F46A35b93c485458331Eca2",
-            "dex": "9mm",
-            "token_pair": [
-                "WETH",
-                "WPLS"
-            ],
-            "liquidity_usd": 3543.27,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x06da0fd433C1A5d7a4faa01111c044910A184553",
-            "dex": "sushiswap",
+            "pool_address": "0xaCDb27b266142223e1e676841C1E809255Fc6d07",
+            "dex": "pancakeswap",
             "token_pair": [
                 "WETH",
                 "USDT"
             ],
-            "liquidity_usd": 1931.63,
+            "liquidity_usd": 202434.73,
             "liquidity_events": []
         },
         {
-            "pool_address": "0xC3D03e4F041Fd4cD388c549Ee2A29a9E5075882f",
-            "dex": "sushiswap",
-            "token_pair": [
-                "WETH",
-                "DAI"
-            ],
-            "liquidity_usd": 1258.22,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
-            "dex": "sushiswap",
-            "token_pair": [
-                "WETH",
-                "WBTC"
-            ],
-            "liquidity_usd": 1064.18,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0xD116a786F81409C11F145b173f8c80F0CC87486a",
+            "pool_address": "0x4e68Ccd3E89f51C3074ca5072bbAC773960dFa36",
             "dex": "uniswap",
             "token_pair": [
                 "WETH",
-                "COM"
+                "USDT"
             ],
-            "liquidity_usd": 1070.42,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x7835A696e2d95389b059Bc91e68DFd306733651E",
-            "dex": "pulsex",
-            "token_pair": [
-                "WETH",
-                "WBTC"
-            ],
-            "liquidity_usd": 486.77,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x3AC19aE0352Aa0b12557349571ae7cd17Bfa2218",
-            "dex": "pulsex",
-            "token_pair": [
-                "WETH",
-                "DAI"
-            ],
-            "liquidity_usd": 343.98,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0xf2ED1236B5cC050Cb03F1F671bdCb517E14988cf",
-            "dex": "pulsex",
-            "token_pair": [
-                "WETH",
-                "PLSX"
-            ],
-            "liquidity_usd": 354.54,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x61689614CB6362C9bba089A43090852aa4E4BF83",
-            "dex": "pulsex",
-            "token_pair": [
-                "WETH",
-                "ATROPA"
-            ],
-            "liquidity_usd": 179.62,
-            "liquidity_events": []
-        },
-        {
-            "pool_address": "0x496Ffd148185a6266495bE39620E8fBFFb64a096",
-            "dex": "pulsex",
-            "token_pair": [
-                "WETH",
-                "F\u327eD"
-            ],
-            "liquidity_usd": 216.32,
+            "liquidity_usd": 111922114.24,
             "liquidity_events": []
         },
         {
@@ -300,17 +180,137 @@
                 "WETH",
                 "USDC"
             ],
-            "liquidity_usd": 235.5,
+            "liquidity_usd": 20340291.49,
             "liquidity_events": []
         },
         {
-            "pool_address": "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11",
+            "pool_address": "0x2a0BF9c4c85ef6462777425945714e1234Cd232B",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "WETH"
+            ],
+            "liquidity_usd": 8920.86,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x0d63D099867919Bd523b48f5B8d4415245d270cc",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "PCOCK"
+            ],
+            "liquidity_usd": 294.93,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x6B7a5b3754c15b8948f8c100b626b844aB6b44b5",
+            "dex": "9mm",
+            "token_pair": [
+                "WETH",
+                "WPLS"
+            ],
+            "liquidity_usd": 1862.96,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 31883450.36,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x6CA298D2983aB03Aa1dA7679389D955A4eFEE15C",
+            "dex": "pancakeswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 1273279.65,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x60594a405d53811d3BC4766596EFD80fd545A270",
             "dex": "uniswap",
             "token_pair": [
                 "WETH",
                 "DAI"
             ],
-            "liquidity_usd": 155.09,
+            "liquidity_usd": 1065497.87,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x397FF1542f962076d0BFE58eA045FfA2d347ACa0",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "USDC"
+            ],
+            "liquidity_usd": 4457.92,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x402EDA7f4bB1d9c27F46A35b93c485458331Eca2",
+            "dex": "9mm",
+            "token_pair": [
+                "WETH",
+                "WPLS"
+            ],
+            "liquidity_usd": 3789.86,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x06da0fd433C1A5d7a4faa01111c044910A184553",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "USDT"
+            ],
+            "liquidity_usd": 1947.01,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xC3D03e4F041Fd4cD388c549Ee2A29a9E5075882f",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "DAI"
+            ],
+            "liquidity_usd": 1332.37,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xCEfF51756c56CeFFCA006cD410B03FFC46dd3a58",
+            "dex": "sushiswap",
+            "token_pair": [
+                "WETH",
+                "WBTC"
+            ],
+            "liquidity_usd": 1118.19,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0xD116a786F81409C11F145b173f8c80F0CC87486a",
+            "dex": "uniswap",
+            "token_pair": [
+                "WETH",
+                "COM"
+            ],
+            "liquidity_usd": 1077.64,
+            "liquidity_events": []
+        },
+        {
+            "pool_address": "0x7835A696e2d95389b059Bc91e68DFd306733651E",
+            "dex": "pulsex",
+            "token_pair": [
+                "WETH",
+                "WBTC"
+            ],
+            "liquidity_usd": 505.85,
             "liquidity_events": []
         }
     ],
@@ -319,28 +319,28 @@
             "fields": [
                 "contract"
             ],
-            "fetched_at": "2026-09-13T09:29:07Z",
-            "status": "skip"
+            "fetched_at": "2026-09-12T08:43:03Z",
+            "status": "pass"
         },
         "tx_history_fetcher": {
             "fields": [
                 "tx_history"
             ],
-            "fetched_at": "2026-09-13T09:29:07Z",
-            "status": "skip"
+            "fetched_at": "2026-09-12T08:43:03Z",
+            "status": "pass"
         },
         "token_fetcher": {
             "fields": [
                 "tokens"
             ],
-            "fetched_at": "2026-09-13T09:29:07Z",
-            "status": "skip"
+            "fetched_at": "2026-09-12T08:43:03Z",
+            "status": "pass"
         },
         "liquidity_fetcher": {
             "fields": [
                 "liquidity"
             ],
-            "fetched_at": "2026-09-13T09:29:07Z",
+            "fetched_at": "2026-09-12T08:43:03Z",
             "status": "pass"
         }
     }
