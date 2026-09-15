@@ -10,7 +10,7 @@ CONFIG_PATH = Path(__file__).resolve().parents[1] / "detector_config.json"
 
 
 class DetectorConfig(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True)
+    model_config = ConfigDict(extra="forbid")
 
     enabled: bool
     name: str = Field(min_length=1, pattern=r"\S")

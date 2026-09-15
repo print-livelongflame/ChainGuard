@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timezone
 
 from agents.ba import describe_validation_error, ask_llm, is_exit_command, parse_ba_response, perform_next_action
+from agents.sch import assess_saved_context
 from uuid import uuid4
 
 
@@ -236,7 +237,7 @@ def should_skip_fetcher(name, address_analysis):
     return None
 
 
-def fetch_results(address, requested_fields=None):
+def fetch_results(address, requested_fields=None, include_scam_detectors=False):
     """Run each address-based fetcher and keep failures isolated."""
     address_analysis = analyze_address_format(address)
     address_analysis["is_transaction_hash"] = is_transaction_hash(address)
@@ -259,6 +260,8 @@ def fetch_results(address, requested_fields=None):
         {field_fetchers[field] for field in requested_fields}
         if requested_fields is not None else None
     )
+    if include_scam_detectors and selected is not None:
+        selected.update({"honeypot", "rugcheck"})
     for name, module_name, function_name in fetchers:
         if selected is not None and name not in selected:
             continue
@@ -394,6 +397,8 @@ def build_fetcher_provenance(results, fetched_at):
         "tx_history_fetcher": ("transactions", ["tx_history"]),
         "token_fetcher": ("token_info", ["tokens"]),
         "liquidity_fetcher": ("liquidity", ["liquidity"]),
+        "honeypot_detector": ("honeypot", ["honeypot"]),
+        "rugcheck_detector": ("rugcheck", ["rugcheck"]),
     }
     provenance = {}
 
@@ -421,10 +426,13 @@ def build_address_context_json(address, results, address_analysis):
         "chain": "ethereum" if address_analysis.get("chain_family") == "evm" else "unknown",
         "address": address,
         "queried_at": queried_at,
+        "address_analysis": address_analysis,
         "contract": normalize_contract_context(results),
         "tx_history": normalize_tx_history_context(results),
         "tokens": normalize_tokens_context(results),
         "liquidity": normalize_liquidity_context(results),
+        "honeypot": _passed_data(results, "honeypot", {}),
+        "rugcheck": _passed_data(results, "rugcheck", {}),
         "fetcher_provenance": build_fetcher_provenance(results, queried_at),
     }
 
@@ -547,6 +555,32 @@ def resolve_ba_target(task, respond, output_file=None):
     return addresses[0] if task.requested_fields and len(addresses) == 1 else None
 
 
+def run_scam_check(task, context_file, respond):
+    """Read saved context with SCH when no custom detector is configured."""
+    if task.detector_configured:
+        respond(
+            f"Scam-check context saved to {context_file}. "
+            f"Configured detector '{task.selected_detector}' is authoritative "
+            "and the built-in Scam Checker was not run."
+        )
+        return
+
+    try:
+        assessment = assess_saved_context(context_file)
+    except ValueError as error:
+        respond(f"Scam Checker could not assess the saved context: {error}")
+        return
+
+    result = assessment.detection_result
+    respond(
+        f"Scam assessment: {result.label} "
+        f"(confidence {result.confidence:.0%})\n"
+        f"{assessment.explanation}\n"
+        f"Evidence: {'; '.join(result.evidence)}\n"
+        f"Context saved to {context_file}"
+    )
+
+
 def handle_ba_request(prompt, history=None):
     """Classify once, then execute each independent task in order."""
     try:
@@ -612,13 +646,25 @@ def execute_ba_task(task, respond, output_file=None):
             return
 
     if not is_evm_address(raw_input):
-        respond("Please supply a complete Ethereum address.")
+        if raw_input.lower().startswith("0x"):
+            hex_part = raw_input[2:]
+            if re.fullmatch(r"[0-9a-fA-F]*", hex_part):
+                respond(
+                    "Please supply a complete Ethereum address: it must contain "
+                    f"40 hexadecimal characters after 0x; received {len(hex_part)}."
+                )
+                return
+        respond("Please supply a complete Ethereum address in the form 0x followed by 40 hexadecimal characters.")
         return
     if not task.requested_fields:
         respond("Which information would you like: contract, transactions, tokens, or liquidity?")
         return
 
-    fetcher_results, address_analysis = fetch_results(raw_input, task.requested_fields)
+    fetcher_results, address_analysis = fetch_results(
+        raw_input,
+        task.requested_fields,
+        include_scam_detectors=task.request_type == "scam_check",
+    )
     print(
         f"\nAddress type: {address_analysis['chain_family']} / "
         f"{address_analysis['address_type']}"
@@ -628,10 +674,10 @@ def execute_ba_task(task, respond, output_file=None):
         save_info(raw_input, fetcher_results, address_analysis)
     else:
         save_info(raw_input, fetcher_results, address_analysis, output_file=output_file)
-    message = f"Requested information saved to {output_file or JSON_FILE}"
     if task.request_type == "scam_check":
-        message += "\nAvailable context collected for the future Scam Checker; no scam assessment has been performed."
-    respond(message)
+        run_scam_check(task, output_file or JSON_FILE, respond)
+        return
+    respond(f"Requested information saved to {output_file or JSON_FILE}")
 
 
 def run_cli():

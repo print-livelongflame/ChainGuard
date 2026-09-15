@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "name": "Example_Scam_Detector_V2",
   "endpoint": "http://127.0.0.1:9000/detect"
 }
