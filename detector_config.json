@@ -1,5 +1,8 @@
 {
   "enabled": false,
-  "name": "Example_Scam_Detector_V2",
-  "endpoint": "http://127.0.0.1:9000/detect"
+  "name": "ChainGuard External Detector",
+  "endpoint": "http://127.0.0.1:9000/detect",
+  "mode": "template",
+  "required_input_type": "address_with_context",
+  "is_llm_based": false
 }

@@ -66,3 +66,4 @@ class DetectionResult(BaseModel):
     risk_type: str = Field(min_length=1)
     confidence: float = Field(ge=0.0, le=1.0)
     evidence: list[EvidenceItem]
+    explanation: str | None = None

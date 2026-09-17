@@ -9,8 +9,17 @@ import os
 import re
 from datetime import datetime, timezone
 
-from agents.ba import describe_validation_error, ask_llm, is_exit_command, parse_ba_response, perform_next_action
+from agents.ba import (
+    CONTEXT_FIELDS,
+    describe_validation_error,
+    ask_llm,
+    is_exit_command,
+    parse_ba_response,
+    perform_next_action,
+)
 from agents.sch import assess_saved_context
+from detector_integration.client import call_detector
+from src.schema import AddressContext
 from uuid import uuid4
 
 
@@ -551,14 +560,8 @@ def resolve_ba_target(task, respond, output_file=None):
 
 
 def run_scam_check(task, context_file, respond):
-    """Read saved context with SCH when no custom detector is configured."""
+    """Read saved context with SCH for the local fallback assessment."""
     if not task.in_scope or task.request_type != "scam_check":
-        return
-    if task.detector_configured or task.selected_detector is not None:
-        respond(
-            f"External detector configured: {task.selected_detector}. "
-            "Integration not implemented yet. No assessment was performed."
-        )
         return
 
     try:
@@ -576,6 +579,40 @@ def run_scam_check(task, context_file, respond):
         f"Context saved to {context_file}"
     )
     respond(assessment.explanation)
+    return assessment
+
+
+def run_external_detector(task, address, respond, output_file=None):
+    """Fetch the required context and call the configured detector service."""
+    try:
+        if task.required_input_type == "address_with_context":
+            fetcher_results, address_analysis = fetch_results(
+                address, list(CONTEXT_FIELDS)
+            )
+            context = AddressContext.model_validate(
+                build_address_context_json(address, fetcher_results, address_analysis)
+            )
+            save_info(address, fetcher_results, address_analysis, output_file)
+        else:
+            context = AddressContext(address=address, chain=task.chain or "ethereum")
+
+        assessment = call_detector(context)
+    except Exception as error:
+        respond(
+            "External detector assessment unavailable: "
+            f"{error} No scam conclusion was produced."
+        )
+        return None
+
+    print(
+        "\nExternal Detector output:\n"
+        f"Source: {task.selected_detector}\n"
+        f"{assessment.model_dump_json(indent=2, exclude_none=True)}"
+    )
+    respond(
+        assessment.explanation
+        or f"The external detector classified this address as {assessment.label}."
+    )
     return assessment
 
 
@@ -624,12 +661,6 @@ def execute_ba_task(task, respond, output_file=None):
 
     if not task.in_scope or task.request_type == "general_question":
         return
-    if task.request_type == "scam_check" and (
-        task.detector_configured or task.selected_detector is not None
-    ):
-        run_scam_check(task, None, respond)
-        return
-
     if task.chain != "ethereum":
         respond("Address lookups currently support Ethereum only.")
         return
@@ -662,6 +693,13 @@ def execute_ba_task(task, respond, output_file=None):
                 return
         respond("Please supply a complete Ethereum address in the form 0x followed by 40 hexadecimal characters.")
         return
+
+    if task.request_type == "scam_check" and (
+        task.detector_configured or task.selected_detector is not None
+    ):
+        run_external_detector(task, raw_input, respond, output_file)
+        return
+
     if not task.requested_fields:
         respond("Which information would you like: contract, transactions, tokens, or liquidity?")
         return

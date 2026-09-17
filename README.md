@@ -134,6 +134,26 @@ availability.
 The optional `mode`, `required_input_type`, and `is_llm_based` settings default
 to `template`, `address_with_context`, and `false` for existing registrations.
 
+### Detector configuration fields
+
+`detector_config.json` must remain valid JSON, so do not add `//` comments
+inside the file. The fields mean:
+
+- `enabled`: set to `true` to allow the CLI to call the external detector; set
+   to `false` to disable it.
+- `name`: the display name used for the selected detector in BA task output.
+- `endpoint`: the external detector's HTTP `POST /detect` URL.
+- `mode`: use `template` for the standard `AddressContext` and
+   `DetectionResult` contract. `generic` is reserved for future custom mapping.
+- `required_input_type`: use `address_with_context` when the detector needs
+   fetched blockchain data, or `address` when it only needs the address.
+- `is_llm_based`: set to `true` only when the external detector itself uses an
+   LLM; this is metadata and does not change how the request is sent.
+
+If the detector requires authentication, set `DETECTOR_API_KEY` in the shell
+where ChainGuard runs. The key is sent as the `X-API-Key` header and should not
+be stored in `detector_config.json`.
+
 The intended architecture is:
 
 ```text
