@@ -7,7 +7,7 @@ from openai import OpenAI
 from pydantic import Field, ValidationError
 
 from api_keys.api_keys import OPENAI_API_KEY
-from detector_template.schema import AddressContext, DetectionResult
+from src.schema import AddressContext, DetectionResult
 
 
 client = OpenAI(api_key=OPENAI_API_KEY)

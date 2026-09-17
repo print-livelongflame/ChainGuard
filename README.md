@@ -111,42 +111,28 @@ This keeps the detector logic simple and future-proof.
 
 ---
 
-# Running API wrapper and adding personal detection logic 
-In order to add your own detection logic you can go ahead and go to `detector_template\detector.py` and add your own logic there. From there you can run `python -m uvicorn app:app --reload --port 9000` in termainl to start the wrapper. 
+## External detector registration
 
-## Basic API flow
+The detection algorithm is hosted outside this repository. To register it with
+the BA, edit `detector_config.json` in the project root and set `enabled` to
+`true`, `name` to the detector name, and `endpoint` to the detector service's
+HTTP endpoint.
 
-### Register a custom detector with the BA
-
-After adding your algorithm to `detector_template/detector.py`, edit
-`detector_config.json` in the project root.
-Set `name` to your detector's name and `endpoint` to its FastAPI `/detect` URL.
-Keep `enabled` set to `true` to register it. Start the wrapper from the project
-root with:
-
-```bash
-python -m uvicorn detector_template.app:app --reload --port 9000
-```
-
-The BA reads this shared configuration on every request. Its task output,
-including `address_info`, will contain:
+The BA reads this configuration on every request. Its task output, including
+`address_info`, will contain:
 
 ```json
 "selected_detector": "my_custom_scam_detector",
 "detector_configured": true
 ```
 
-`GET /configuration` on the wrapper reports the same fields. Set `enabled` to
-`false` or remove `detector_config.json` to return to `null` / `false`. Invalid
-configuration produces an error instead of silently reporting no detector.
-The bundled example alone does not count as a custom detector; register your
-implementation explicitly. Registration describes setup and does not check
-endpoint availability. A configured detector currently produces an integration
-placeholder for scam checks, without fetching context or invoking SCH or the detector.
-Address information requests continue to run their requested fetchers.
+Set `enabled` to `false` or remove `detector_config.json` to return to
+`null` / `false`. Invalid configuration produces an error instead of silently
+reporting no detector. Registration describes setup; it does not check endpoint
+availability.
+
 The optional `mode`, `required_input_type`, and `is_llm_based` settings default
 to `template`, `address_with_context`, and `false` for existing registrations.
-Generic request/response mapping and detector execution remain unimplemented.
 
 The intended architecture is:
 
@@ -160,27 +146,11 @@ AddressContext
 detect(context)
 ```
 
-There are two main API routes:
-
-- `POST /detect`  -> accepts an already-created `AddressContext`
-- `POST /analyse` -> takes an address, runs the fetchers, builds the `AddressContext`, then passes it to the detector
-- `POST /resolve-contract-address` -> takes a token name/symbol and returns possible contract address matches
-
----
-
-# Current detector template
-
-The detector template is intentionally simple for now. It is designed to verify that:
+The shared detector contract is:
 
 ```text
 fetcher data -> AddressContext -> detect() -> DetectionResult
 ```
-
-works correctly before moving to a more advanced scam detection model.
-
-The template is a stub returning `insufficient_evidence` until its detection
-algorithm is implemented. It shares the same labels and weighted evidence
-contract as SCH.
 
 
 ## CLI Scam Checker

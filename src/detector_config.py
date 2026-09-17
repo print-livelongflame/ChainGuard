@@ -1,4 +1,4 @@
-"""Shared, explicit registration of a user's FastAPI detector connector."""
+"""Shared, explicit registration of an external detector endpoint."""
 
 import json
 from pathlib import Path

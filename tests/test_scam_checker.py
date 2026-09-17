@@ -15,8 +15,7 @@ with patch.dict("sys.modules", {
     from agents import ba, sch
     from src import main, context_builder
 
-from detector_template.schema import AddressContext
-from detector_template.detector import detect
+from src.schema import AddressContext
 from src.detector_config import DetectorConfig, detector_metadata
 
 
@@ -192,15 +191,13 @@ class ScamCheckerTests(unittest.TestCase):
             self.assertEqual(actual.requested_fields, [] if selected else list(ba.CONTEXT_FIELDS))
         self.assertEqual(detector_metadata(config)["required_input_type"], "address")
 
-    def test_template_and_builder_use_shared_contract(self):
+    def test_builder_uses_shared_context_contract(self):
         with patch.object(context_builder, "fetch_results", return_value=({}, {"chain_family": "evm"})):
             context = context_builder.build_address_context(ADDRESS)
         self.assertEqual(context.tx_history, [])
         self.assertEqual(context.tokens, [])
         self.assertEqual(context.liquidity, [])
-        result = detect(context)
-        self.assertEqual(result.label, "insufficient_evidence")
-        self.assertEqual(result.evidence[0].weight, 0.0)
+        self.assertEqual(context.address, ADDRESS)
 
 
 if __name__ == "__main__":
