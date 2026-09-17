@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, HttpUrl, Field
 
@@ -15,6 +16,9 @@ class DetectorConfig(BaseModel):
     enabled: bool
     name: str = Field(min_length=1, pattern=r"\S")
     endpoint: HttpUrl
+    mode: Literal["template", "generic"] = "template"
+    required_input_type: Literal["address", "address_with_context"] = "address_with_context"
+    is_llm_based: bool = False
 
 
 def load_detector_config() -> DetectorConfig | None:
@@ -43,4 +47,5 @@ def detector_metadata(config: DetectorConfig | None) -> dict:
     return {
         "selected_detector": config.name if config else None,
         "detector_configured": config is not None,
+        "required_input_type": config.required_input_type if config else "address_with_context",
     }

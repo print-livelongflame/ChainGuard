@@ -212,7 +212,7 @@ def should_skip_fetcher(name, address_analysis):
     if name == "token_info" and address_type not in ("wallet", "delegated_wallet"):
         return "Token info fetcher skipped because it expects an EVM wallet address."
 
-    if name in ("honeypot", "liquidity"):
+    if name == "liquidity":
         if chain_family != "evm":
             return "This fetcher supports EVM token contracts only."
 
@@ -231,13 +231,10 @@ def should_skip_fetcher(name, address_analysis):
                 "as an ERC-20 token."
             )
 
-    if name == "rugcheck" and chain_family != "solana":
-        return "RugCheck supports Solana token addresses only."
-
     return None
 
 
-def fetch_results(address, requested_fields=None, include_scam_detectors=False):
+def fetch_results(address, requested_fields=None):
     """Run each address-based fetcher and keep failures isolated."""
     address_analysis = analyze_address_format(address)
     address_analysis["is_transaction_hash"] = is_transaction_hash(address)
@@ -245,9 +242,7 @@ def fetch_results(address, requested_fields=None, include_scam_detectors=False):
         ("tx_hash", "fetchers.tx_hash_fetcher", "get_transaction_by_hash"),
         ("contract", "fetchers.contract_fetcher", "get_contract_info"),
         ("transactions", "fetchers.transaction_history_fetcher", "get_transactions"),
-        ("honeypot", "scam_detectors.honeypot", "get_honeypot"),
         ("liquidity", "fetchers.liquidty_pairedPool_fetcher", "get_liquidity"),
-        ("rugcheck", "scam_detectors.rugcheck", "get_rugcheck"),
         ("token_info", "fetchers.token_info_fetcher", "get_token_info"),
     ]
     results = {}
@@ -260,8 +255,6 @@ def fetch_results(address, requested_fields=None, include_scam_detectors=False):
         {field_fetchers[field] for field in requested_fields}
         if requested_fields is not None else None
     )
-    if include_scam_detectors and selected is not None:
-        selected.update({"honeypot", "rugcheck"})
     for name, module_name, function_name in fetchers:
         if selected is not None and name not in selected:
             continue
@@ -302,6 +295,8 @@ def _passed_data(results, name, default):
 
 
 def normalize_contract_context(results):
+    if results.get("contract", {}).get("status") != "pass":
+        return {}
     data = _passed_data(results, "contract", {})
     bytecode = data.get("bytecode")
     abi = data.get("abi")
@@ -397,8 +392,6 @@ def build_fetcher_provenance(results, fetched_at):
         "tx_history_fetcher": ("transactions", ["tx_history"]),
         "token_fetcher": ("token_info", ["tokens"]),
         "liquidity_fetcher": ("liquidity", ["liquidity"]),
-        "honeypot_detector": ("honeypot", ["honeypot"]),
-        "rugcheck_detector": ("rugcheck", ["rugcheck"]),
     }
     provenance = {}
 
@@ -431,8 +424,6 @@ def build_address_context_json(address, results, address_analysis):
         "tx_history": normalize_tx_history_context(results),
         "tokens": normalize_tokens_context(results),
         "liquidity": normalize_liquidity_context(results),
-        "honeypot": _passed_data(results, "honeypot", {}),
-        "rugcheck": _passed_data(results, "rugcheck", {}),
         "fetcher_provenance": build_fetcher_provenance(results, queried_at),
     }
 
@@ -516,10 +507,12 @@ def resolve_ba_target(task, respond, output_file=None):
         save_contract_address_info(resolver_results, output_file=output_file)
         respond(f"Contract address lookup results saved to {output_file or JSON_FILE}")
         if result["status"] != "pass":
+            respond("The target could not be resolved. Please supply its contract address.")
             return None
         data = result["data"]
         matches = data.get("matches", [])
         if not matches:
+            respond("No matching contract was found. Please supply the contract address.")
             return None
         address = matches[0].get("contract_address")
         resolved = (
@@ -529,6 +522,8 @@ def resolve_ba_target(task, respond, output_file=None):
         )
         # Ambiguous matches stay in JSON; never choose a candidate implicitly.
         # A resolver-only request is complete after saving its result.
+        if not resolved and task.requested_fields:
+            respond("The token lookup is ambiguous or unverified. Please supply the exact contract address.")
         return address if resolved and task.requested_fields else None
 
     if not is_transaction_hash(raw_input):
@@ -557,28 +552,31 @@ def resolve_ba_target(task, respond, output_file=None):
 
 def run_scam_check(task, context_file, respond):
     """Read saved context with SCH when no custom detector is configured."""
-    if task.detector_configured:
+    if not task.in_scope or task.request_type != "scam_check":
+        return
+    if task.detector_configured or task.selected_detector is not None:
         respond(
-            f"Scam-check context saved to {context_file}. "
-            f"Configured detector '{task.selected_detector}' is authoritative "
-            "and the built-in Scam Checker was not run."
+            f"External detector configured: {task.selected_detector}. "
+            "Integration not implemented yet. No assessment was performed."
         )
         return
 
     try:
-        assessment = assess_saved_context(context_file)
-    except ValueError as error:
-        respond(f"Scam Checker could not assess the saved context: {error}")
+        assessment = assess_saved_context(context_file, task=task)
+    except Exception as error:
+        respond("Scam Checker assessment unavailable: "
+                f"{describe_validation_error(error) if isinstance(error, ValueError) else type(error).__name__}. "
+                "No scam conclusion was produced.")
         return
 
-    result = assessment.detection_result
-    respond(
-        f"Scam assessment: {result.label} "
-        f"(confidence {result.confidence:.0%})\n"
-        f"{assessment.explanation}\n"
-        f"Evidence: {'; '.join(result.evidence)}\n"
+    print(
+        "\nScam Checker output:\n"
+        "Source: Scam Checker LLM reasoning (no external detector)\n"
+        f"{assessment.model_dump_json(indent=2, exclude_none=True)}\n"
         f"Context saved to {context_file}"
     )
+    respond(assessment.explanation)
+    return assessment
 
 
 def handle_ba_request(prompt, history=None):
@@ -624,6 +622,14 @@ def execute_ba_task(task, respond, output_file=None):
         respond(action_response)
         return
 
+    if not task.in_scope or task.request_type == "general_question":
+        return
+    if task.request_type == "scam_check" and (
+        task.detector_configured or task.selected_detector is not None
+    ):
+        run_scam_check(task, None, respond)
+        return
+
     if task.chain != "ethereum":
         respond("Address lookups currently support Ethereum only.")
         return
@@ -663,7 +669,6 @@ def execute_ba_task(task, respond, output_file=None):
     fetcher_results, address_analysis = fetch_results(
         raw_input,
         task.requested_fields,
-        include_scam_detectors=task.request_type == "scam_check",
     )
     print(
         f"\nAddress type: {address_analysis['chain_family']} / "

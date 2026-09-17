@@ -99,13 +99,11 @@ AddressContext(
     address=address,
     address_analysis=address_analysis,
     contract=...,
-    transactions=...,
-    token=...,
+    tx_history=...,
+    tokens=...,
     liquidity=...,
-    honeypot=...,
-    rugcheck=...,
-    tx_hash=...,
-    raw_results=results,
+    queried_at=...,
+    fetcher_provenance=...,
 )
 ```
 
@@ -120,8 +118,8 @@ In order to add your own detection logic you can go ahead and go to `detector_te
 
 ### Register a custom detector with the BA
 
-After adding your algorithm to `detector_template/detector.py`, copy
-`detector_config.example.json` to `detector_config.json` in the project root.
+After adding your algorithm to `detector_template/detector.py`, edit
+`detector_config.json` in the project root.
 Set `name` to your detector's name and `endpoint` to its FastAPI `/detect` URL.
 Keep `enabled` set to `true` to register it. Start the wrapper from the project
 root with:
@@ -143,18 +141,22 @@ including `address_info`, will contain:
 configuration produces an error instead of silently reporting no detector.
 The bundled example alone does not count as a custom detector; register your
 implementation explicitly. Registration describes setup and does not check
-endpoint availability. The BA does not invoke the endpoint yet; address lookups
-and scam-check context fetching continue as before.
+endpoint availability. A configured detector currently produces an integration
+placeholder for scam checks, without fetching context or invoking SCH or the detector.
+Address information requests continue to run their requested fetchers.
+The optional `mode`, `required_input_type`, and `is_llm_based` settings default
+to `template`, `address_with_context`, and `false` for existing registrations.
+Generic request/response mapping and detector execution remain unimplemented.
 
 The intended architecture is:
 
 ```text
 address
-   ↓
+   â†“
 existing fetchers
-   ↓
+   â†“
 AddressContext
-   ↓
+   â†“
 detect(context)
 ```
 
@@ -176,4 +178,35 @@ fetcher data -> AddressContext -> detect() -> DetectionResult
 
 works correctly before moving to a more advanced scam detection model.
 
-For a basic example, the template can simply inspect whether contract data, honeypot data, or risk indicators are present and return a label like `low_risk` or `medium_risk`.
+The template is a stub returning `insufficient_evidence` until its detection
+algorithm is implemented. It shares the same labels and weighted evidence
+contract as SCH.
+
+
+## CLI Scam Checker
+
+Run `python -m src.main` from the project root. For example, ask
+`Is 0x0000000000000000000000000000000000000000 a scam?`.
+
+For an in-scope `scam_check` with no configured detector, BA resolves the target
+and fetches contract, transaction, token and liquidity context. SCH receives
+that BA task and its saved `AddressContext`, then produces an assessment and
+explanation in one LLM call. The Forensic
+Investigator is not called, as the Scam Checker creates it's own LLM plain text response. Fetcher failures remain visible in provenance;
+missing evidence must not be interpreted as safety.
+
+The CLI's **Scam Checker output** section identifies the LLM source and prints
+the validated flat JSON contract: `label` (`scam`, `not_scam`, or
+`insufficient_evidence`), `risk_type`, `confidence` (0 to 1), `evidence` (objects
+with `description` and `weight`, 0 to 1), and `explanation`. The optional
+`reasoning_trace` is null in the current zero-shot strategy and omitted from
+CLI output. The context file remains separate from this result. Invalid model
+responses or API failures show an assessment-unavailable message, never a verdict.
+
+After the structured diagnostic output, the normal `Response:` section shows
+SCH's plain-language `explanation`, and the CLI returns to the next `You:` prompt.
+Only that explanation is added as the assistant reply in conversation history;
+the structured result stays in the Scam Checker output area.
+
+Shared consumers now use `tx_history` and `tokens`, rather than the old
+`transactions`/`token` aliases, and structured evidence rather than strings.

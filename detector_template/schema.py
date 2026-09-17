@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import Any
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Any, Literal
 
 
 class FetcherResult(BaseModel):
@@ -56,13 +56,7 @@ class AddressContext(BaseModel):
     address_analysis: dict[str, Any] = Field(default_factory=dict)
 
     contract: dict[str, Any] = Field(default_factory=dict)
-    transactions: list[dict[str, Any]] = Field(default_factory=list)
-    token: dict[str, Any] = Field(default_factory=dict)
-    liquidity: dict[str, Any] | list[dict[str, Any]] = Field(default_factory=dict)
-    honeypot: dict[str, Any] = Field(default_factory=dict)
-    rugcheck: dict[str, Any] = Field(default_factory=dict)
-    tx_hash: dict[str, Any] = Field(default_factory=dict)
-    raw_results: dict[str, Any] = Field(default_factory=dict)
+    liquidity: list[dict[str, Any]] = Field(default_factory=list)
 
     # Normalized fields emitted by src.main.save_info().
     tx_history: list[dict[str, Any]] = Field(default_factory=list)
@@ -70,13 +64,22 @@ class AddressContext(BaseModel):
     fetcher_provenance: dict[str, FetcherProvenance] = Field(default_factory=dict)
 
 
+class EvidenceItem(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    description: str = Field(min_length=1)
+    weight: float = Field(ge=0.0, le=1.0)
+
+
 class DetectionResult(BaseModel):
-    label: str
-    risk_type: str | None = None
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    label: Literal["scam", "not_scam", "insufficient_evidence"]
+    risk_type: str = Field(min_length=1)
 
     confidence: float = Field(
         ge=0.0,
         le=1.0
     )
 
-    evidence: list[str] = Field(default_factory=list)
+    evidence: list[EvidenceItem]
