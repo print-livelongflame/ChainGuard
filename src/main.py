@@ -17,9 +17,11 @@ from agents.ba import (
     parse_ba_response,
     perform_next_action,
 )
+from agents.fi import explain_detector_result
 from agents.sch import assess_saved_context
 from detector_integration.client import call_detector
 from src.schema import AddressContext
+from src.detector_config import load_detector_config
 from uuid import uuid4
 
 
@@ -609,10 +611,22 @@ def run_external_detector(task, address, respond, output_file=None):
         f"Source: {task.selected_detector}\n"
         f"{assessment.model_dump_json(indent=2, exclude_none=True)}"
     )
-    respond(
-        assessment.explanation
-        or f"The external detector classified this address as {assessment.label}."
-    )
+    config = load_detector_config()
+    if config is not None and not config.is_llm_based:
+        try:
+            explanation = explain_detector_result(assessment)
+        except ValueError as error:
+            respond(
+                "The external detector returned a result, but its plain-language "
+                f"explanation was unavailable: {error}"
+            )
+            return assessment
+    else:
+        explanation = assessment.explanation or (
+            f"The external detector classified this address as {assessment.label}."
+        )
+
+    respond(explanation)
     return assessment
 
 
