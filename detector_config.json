@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "name": "ChainGuard External Detector",
   "endpoint": "http://127.0.0.1:9000/detect",
   "mode": "template",

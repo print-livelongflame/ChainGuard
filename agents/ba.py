@@ -1,10 +1,7 @@
-from openai import OpenAI
-from api_keys.api_keys import OPENAI_API_KEY
 from pydantic import BaseModel, Field, ValidationError, model_validator
 import json
 from src.detector_config import load_detector_config, detector_metadata
-
-client = OpenAI(api_key=OPENAI_API_KEY)
+from src.llm_provider import complete
 
 from typing import Literal
 
@@ -319,15 +316,8 @@ def describe_validation_error(error: ValueError) -> str:
 
 def ask_llm(prompt: str, history: list[dict[str, str]] | None = None) -> str:
     metadata = detector_metadata(load_detector_config())
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        text={"format": {
-            "type": "json_schema",
-            "name": "ba_response",
-            "strict": True,
-            "schema": BAResponse.model_json_schema(),
-        }},
-        input=[
+    analysis = complete(
+        messages=[
             {
                 "role": "system",
                 "content": SYSTEM_PROMPT + "\nTrusted application detector configuration:\n"
@@ -338,21 +328,17 @@ def ask_llm(prompt: str, history: list[dict[str, str]] | None = None) -> str:
                 "role": "user",
                 "content": prompt
             }
-        ]
+        ],
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": "ba_response",
+                "strict": True,
+                "schema": BAResponse.model_json_schema(),
+            },
+        },
     )
-
-    if response.status == "incomplete":
-        reason = getattr(response.incomplete_details, "reason", "unknown")
-        raise ValueError(f"The BA response was incomplete ({reason}). Please try again.")
-    if response.status == "failed":
-        raise ValueError("OpenAI could not complete the BA response. Please try again.")
-    for item in response.output:
-        if item.type == "message":
-            for content in item.content:
-                if content.type == "refusal":
-                    raise ValueError(f"The BA declined this request: {content.refusal}")
-
-    batch = parse_ba_response(response.output_text)
+    batch = parse_ba_response(analysis)
     # Application settings are authoritative even if the model copies stale
     # history or follows a user's claim about detector setup.
     for task in batch.tasks:

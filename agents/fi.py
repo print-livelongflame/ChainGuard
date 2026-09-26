@@ -2,14 +2,10 @@
 
 import json
 
-from openai import OpenAI
-
-from api_keys.api_keys import OPENAI_API_KEY
 from src.detector_config import load_detector_config
+from src.llm_provider import complete
 from src.schema import DetectionResult
 
-
-client = OpenAI(api_key=OPENAI_API_KEY)
 
 SYSTEM_PROMPT = """
 You are ChainGuard's Forensic Investigator. Rewrite the supplied external
@@ -33,9 +29,8 @@ def explain_detector_result(result: DetectionResult) -> str:
 		raise ValueError("Forensic Investigator only explains non-LLM detectors.")
 
 	validated_result = DetectionResult.model_validate(result)
-	response = client.responses.create(
-		model="gpt-4.1-mini",
-		input=[
+	explanation = complete(
+		messages=[
 			{"role": "system", "content": SYSTEM_PROMPT},
 			{
 				"role": "user",
@@ -48,13 +43,7 @@ def explain_detector_result(result: DetectionResult) -> str:
 			},
 		],
 	)
-
-	if response.status == "incomplete":
-		reason = getattr(response.incomplete_details, "reason", "unknown")
-		raise ValueError(f"The Forensic Investigator response was incomplete ({reason}).")
-	if response.status == "failed":
-		raise ValueError("OpenAI could not complete the Forensic Investigator response.")
-	explanation = response.output_text.strip()
+	explanation = explanation.strip()
 	if not explanation:
 		raise ValueError("The Forensic Investigator returned an empty explanation.")
 	return explanation

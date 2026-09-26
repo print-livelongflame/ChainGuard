@@ -16,6 +16,24 @@ ETHERSCAN_API_KEY = "xxxxxxxxx"
 OPENAI_API_KEY = "xxxxxxxxx"
 ```
 
+Install the LLM provider dependency:
+
+```bash
+pip install -r requirements.txt
+```
+
+The CLI starts with OpenAI. Type `change ai` to select OpenAI, Gemini, or
+Claude for all LLM-backed agents in the current session. Configure a key in
+the environment or as the matching constant in `api_keys/api_keys.py`:
+
+| Provider | Environment variable | `api_keys.py` constant |
+| --- | --- | --- |
+| OpenAI | `OPENAI_API_KEY` | `OPENAI_API_KEY` |
+| Gemini | `GEMINI_API_KEY` | `GEMINI_API_KEY` |
+| Claude | `ANTHROPIC_API_KEY` or `CLAUDE_API_KEY` | `CLAUDE_API_KEY` |
+
+Values such as `"Enter key here"` are treated as unset.
+
 ## Run ChainGuard
 
 Start the interactive CLI from the project root:

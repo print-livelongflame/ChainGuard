@@ -3,14 +3,10 @@
 import json
 from pathlib import Path
 
-from openai import OpenAI
 from pydantic import Field, ValidationError
 
-from api_keys.api_keys import OPENAI_API_KEY
 from src.schema import AddressContext, DetectionResult
-
-
-client = OpenAI(api_key=OPENAI_API_KEY)
+from src.llm_provider import complete
 
 
 class ScamCheckerResponse(DetectionResult):
@@ -110,15 +106,8 @@ def ask_scam_checker(context: AddressContext, task=None) -> ScamCheckerResponse:
 	response_schema = _make_openai_strict_schema(
 		ScamCheckerResponse.model_json_schema()
 	)
-	response = client.responses.create(
-		model="gpt-4.1-mini",
-		text={"format": {
-			"type": "json_schema",
-			"name": "scam_checker_response",
-			"strict": True,
-			"schema": response_schema,
-		}},
-		input=[
+	analysis = complete(
+		messages=[
 			{"role": "system", "content": SYSTEM_PROMPT},
 			{
 				"role": "user",
@@ -128,22 +117,16 @@ def ask_scam_checker(context: AddressContext, task=None) -> ScamCheckerResponse:
 				}),
 			},
 		],
+		response_format={
+			"type": "json_schema",
+			"json_schema": {
+				"name": "scam_checker_response",
+				"strict": True,
+				"schema": response_schema,
+			},
+		},
 	)
-
-	if response.status == "incomplete":
-		reason = getattr(response.incomplete_details, "reason", "unknown")
-		raise ValueError(f"The Scam Checker response was incomplete ({reason}).")
-	if response.status == "failed":
-		raise ValueError("OpenAI could not complete the Scam Checker response.")
-	for item in response.output:
-		if item.type == "message":
-			for content in item.content:
-				if content.type == "refusal":
-					raise ValueError(
-						f"The Scam Checker declined this request: {content.refusal}"
-					)
-
-	return parse_scam_checker_response(response.output_text)
+	return parse_scam_checker_response(analysis)
 
 
 def assess_saved_context(path: str | Path, task=None) -> ScamCheckerResponse:

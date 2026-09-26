@@ -22,6 +22,7 @@ from agents.sch import assess_saved_context
 from detector_integration.client import call_detector
 from src.schema import AddressContext
 from src.detector_config import load_detector_config
+from src.llm_provider import get_provider, list_providers, set_provider
 from uuid import uuid4
 
 
@@ -737,10 +738,33 @@ def execute_ba_task(task, respond, output_file=None):
     respond(f"Requested information saved to {output_file or JSON_FILE}")
 
 
+def change_ai_provider():
+    print("\nSelect AI provider:")
+    providers = list_providers()
+    for index, (name, label) in enumerate(providers, start=1):
+        current = " (current)" if name == get_provider() else ""
+        print(f"{index}. {label}{current}")
+
+    try:
+        selection = input("Provider (number or name): ").strip().casefold()
+    except (EOFError, KeyboardInterrupt):
+        print("\nProvider change cancelled.")
+        return
+
+    aliases = {str(index): name for index, (name, _) in enumerate(providers, start=1)}
+    selected = aliases.get(selection, selection)
+    try:
+        label = set_provider(selected)
+    except ValueError as error:
+        print(f"\n{error}")
+        return
+    print(f"\nAI provider changed to {label}.")
+
+
 def run_cli():
     history = []
     print_banner()
-    print("ChainGuard is ready. Type 'goodbye' to exit.")
+    print("ChainGuard is ready. Type 'change ai' to switch providers or 'goodbye' to exit.")
 
     while True:
         try:
@@ -752,6 +776,10 @@ def run_cli():
         if is_exit_command(user_input):
             print("Goodbye!")
             break
+
+        if user_input.casefold() == "change ai":
+            change_ai_provider()
+            continue
 
         if user_input:
             handle_ba_request(user_input, history)
