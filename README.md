@@ -2,11 +2,22 @@
 
 AI LLM which wil help users to investigate blockchain wallet address
 
+## Project Layout
+
+- `backend/` contains the Python CLI, fetchers, detectors, and API integrations.
+- `frontend/` is reserved for the web application; the frontend framework has
+   not been initialized yet.
+
+## Backend Setup
+
+Run the following commands from the repository root unless a command says to
+enter `backend/`.
+
 ---
 
 # Setup the Project
 
-So far setting up the project will be very simple. Just add a file at `api_keys\api_keys.py`. Inside the file add your api keys.
+Create `backend/api_keys/api_keys.py` and add your API keys there:
 
 ```python
 '''
@@ -16,15 +27,16 @@ ETHERSCAN_API_KEY = "xxxxxxxxx"
 OPENAI_API_KEY = "xxxxxxxxx"
 ```
 
-Install the LLM provider and terminal UI dependencies:
+Install the LLM provider and terminal UI dependencies from the backend folder:
 
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
 The CLI starts with OpenAI. Type `change ai` to select OpenAI, Gemini, or
 Claude for all LLM-backed agents in the current session. Configure a key in
-the environment or as the matching constant in `api_keys/api_keys.py`:
+the environment or as the matching constant in `backend/api_keys/api_keys.py`:
 
 | Provider | Environment variable | `api_keys.py` constant |
 | --- | --- | --- |
@@ -36,7 +48,7 @@ Values such as `"Enter key here"` are treated as unset.
 
 ## Run ChainGuard
 
-Start the interactive CLI from the project root:
+Start the interactive CLI from the `backend/` directory:
 
 ```bash
 python -m src.main
@@ -51,8 +63,8 @@ python -m src.main -dev
 
 ## Test Individual Fetchers
 
-Run a fetcher with `-test` to enter an address, check whether JSON is returned,
-and save the response in `fetchers/json_files_test/`:
+Run a fetcher with `-test` from `backend/` to enter an address, check whether
+JSON is returned, and save the response in `fetchers/json_files_test/`:
 
 ```bash
 python -m fetchers.contract_fetcher -test
@@ -79,12 +91,12 @@ python -m fetchers.contract_address_fetcher -test
 
 | Data Fetcher      | Purpose           | Project File(s)   |
 | ----------------- | ----------------- | ----------------- |
-| Contract Fetcher | Bytecode, ABI (if verified), creator, creation tx | `fetchers\contract_fetcher.py` |
-| Transaction History Fetcher | Recent transactions in/out | `fetchers\transaction_history_fetcher.py` |
-| Token Info Fetcher | Token balances and metadata held by the address | `fetchers\token_info_fetcher.py` |
-| Liquidity / paired-pool Fetcher | DEX pool pairing, liquidity depth, recent add/remove events | `fetchers\liquidty_pairedPool_fetcher.py` |
-| Tx-hash Resolver Fetcher | Given a tx hash, look up the transaction and extract the address(es) involved | `fetchers\tx_hash_resolver_fetcher.py` |
-| Contract Address Resolver Fetcher | Given a token name/symbol, resolve possible contract addresses (best-effort, flag ambiguous matches rather than guessing) | `fetchers\contract_address_fetcher.py` |
+| Contract Fetcher | Bytecode, ABI (if verified), creator, creation tx | `backend/fetchers/contract_fetcher.py` |
+| Transaction History Fetcher | Recent transactions in/out | `backend/fetchers/transaction_history_fetcher.py` |
+| Token Info Fetcher | Token balances and metadata held by the address | `backend/fetchers/token_info_fetcher.py` |
+| Liquidity / paired-pool Fetcher | DEX pool pairing, liquidity depth, recent add/remove events | `backend/fetchers/liquidty_pairedPool_fetcher.py` |
+| Tx-hash Resolver Fetcher | Given a tx hash, look up the transaction and extract the address(es) involved | `backend/fetchers/tx_hash_fetcher.py` |
+| Contract Address Resolver Fetcher | Given a token name/symbol, resolve possible contract addresses (best-effort, flag ambiguous matches rather than guessing) | `backend/fetchers/contract_address_fetcher.py` |
 
 ---
 
@@ -94,10 +106,10 @@ The API has two key stages:
 
 1. Fetcher stage
    - Existing fetchers are run against the address.
-   - The CLI already contains this logic in `src/main.py` via `fetch_results()`.
+   - The CLI already contains this logic in `backend/src/main.py` via `fetch_results()`.
 
 2. Context-building stage
-   - `src/context_builder.py` takes the raw fetcher output and converts it into a single `AddressContext` object.
+   - `backend/src/context_builder.py` takes the raw fetcher output and converts it into a single `AddressContext` object.
    - This normalises the data into a structure that the detector can use without needing to know the internal details of every fetcher.
 
 The builder is important because the detector should receive consistent data, not a pile of raw fetcher results with different formats and skip/fail states.
@@ -139,11 +151,11 @@ This keeps the detector logic simple and future-proof.
 ## External detector registration
 
 The detection algorithm is hosted outside this repository. To register it with
-the BA, edit `detector_config.json` in the project root and set `enabled` to
+the BA, edit `backend/detector_config.json` and set `enabled` to
 `true`, `name` to the detector name, and `endpoint` to the detector service's
 HTTP endpoint.
 
-The BA reads this configuration on every request. Its task output, including
+The BA reads `backend/detector_config.json` on every request. Its task output, including
 `address_info`, will contain:
 
 ```json
@@ -151,7 +163,7 @@ The BA reads this configuration on every request. Its task output, including
 "detector_configured": true
 ```
 
-Set `enabled` to `false` or remove `detector_config.json` to return to
+Set `enabled` to `false` or remove `backend/detector_config.json` to return to
 `null` / `false`. Invalid configuration produces an error instead of silently
 reporting no detector. Registration describes setup; it does not check endpoint
 availability.
@@ -161,7 +173,7 @@ to `template`, `address_with_context`, and `false` for existing registrations.
 
 ### Detector configuration fields
 
-`detector_config.json` must remain valid JSON, so do not add `//` comments
+`backend/detector_config.json` must remain valid JSON, so do not add `//` comments
 inside the file. The fields mean:
 
 - `enabled`: set to `true` to allow the CLI to call the external detector; set
@@ -177,7 +189,7 @@ inside the file. The fields mean:
 
 If the detector requires authentication, set `DETECTOR_API_KEY` in the shell
 where ChainGuard runs. The key is sent as the `X-API-Key` header and should not
-be stored in `detector_config.json`.
+be stored in `backend/detector_config.json`.
 
 The intended architecture is:
 
@@ -200,7 +212,7 @@ fetcher data -> AddressContext -> detect() -> DetectionResult
 
 ## CLI Scam Checker
 
-Run `python -m src.main` from the project root. For example, ask
+Run `python -m src.main` from `backend/`. For example, ask
 `Is 0x0000000000000000000000000000000000000000 a scam?`.
 
 For an in-scope `scam_check` with no configured detector, BA resolves the target
