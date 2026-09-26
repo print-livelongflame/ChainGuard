@@ -4,10 +4,16 @@ This file is for the main cli of the program.
 Current cli implementation:
 As according to sprint 1 w2; The cli lets users input address and from calls all the different fetchers and returns 1 json file containing all accepted results
 '''
+import argparse
 import json
 import os
 import re
 from datetime import datetime, timezone
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 from agents.ba import (
     CONTEXT_FIELDS,
@@ -22,9 +28,17 @@ from agents.sch import assess_saved_context
 from detector_integration.client import call_detector
 from src.schema import AddressContext
 from src.detector_config import load_detector_config
-from src.llm_provider import get_provider, list_providers, set_provider
+from src.llm_provider import (
+    get_provider,
+    list_providers,
+    set_progress_enabled,
+    set_provider,
+)
 from uuid import uuid4
 
+
+console = Console()
+DEV_MODE = False
 
 JSON_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -189,6 +203,12 @@ def format_fetcher_result(data):
     }
 
 
+def debug_print_json(title, payload):
+    if DEV_MODE:
+        print(f"\n[DEV] {title} (JSON):")
+        print(json.dumps(payload, indent=2, default=str))
+
+
 def utc_now_iso():
     """Return a spec-friendly UTC timestamp."""
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
@@ -202,13 +222,15 @@ def run_fetcher(name, module_name, function_name, *args, **kwargs):
         module = __import__(module_name, fromlist=[function_name])
         fetcher = getattr(module, function_name)
         data = fetcher(*args, **kwargs)
-        return format_fetcher_result(data)
+        result = format_fetcher_result(data)
     except Exception as error:
-        return {
+        result = {
             "status": "fail",
             "data": None,
             "error": str(error),
         }
+    debug_print_json(f"{name} fetcher output", result)
+    return result
 
 
 def should_skip_fetcher(name, address_analysis):
@@ -482,6 +504,7 @@ def save_info(address, results, address_analysis, output_file=None):
 
     with open(output_file, "w", encoding="utf-8") as file:
         json.dump(info, file, indent=4)
+    debug_print_json("Saved address context", info)
 
 
 def save_contract_address_info(resolver_results, output_file=None):
@@ -495,19 +518,36 @@ def save_contract_address_info(resolver_results, output_file=None):
 
     with open(output_file, "w", encoding="utf-8") as file:
         json.dump(info, file, indent=4)
+    debug_print_json("Saved contract-address lookup", info)
 
 
 def print_results(results):
+    if DEV_MODE:
+        print("\nLookup results:")
+        for name, result in results.items():
+            print(f"{name}: {result['status'].upper()}")
+            if result["error"]:
+                print(f"  {result['error']}")
+        return
+
+    table = Table(title="Lookup results", border_style="bright_blue")
+    table.add_column("Source", style="bold")
+    table.add_column("Status", justify="center")
+    table.add_column("Details", overflow="fold")
+
     for name, result in results.items():
         status = result["status"].upper()
-        color = {
-            "pass": GREEN,
-            "fail": RED,
-            "skip": YELLOW,
-        }[result["status"]]
-        print(f"{color}{name}: {status}{RESET}")
-        if result["error"]:
-            print(f"  {result['error']}")
+        style = {
+            "PASS": "bold green",
+            "FAIL": "bold red",
+            "SKIP": "bold yellow",
+        }[status]
+        table.add_row(
+            Text(name),
+            Text(status, style=style),
+            Text(str(result["error"] or "Completed")),
+        )
+    console.print(table)
 
 
 def resolve_ba_target(task, respond, output_file=None):
@@ -639,7 +679,7 @@ def handle_ba_request(prompt, history=None):
     except ValueError as error:
         print(f"\nThe BA returned an invalid task definition. {describe_validation_error(error)}")
         return
-    print(f"\n{analysis}")
+    debug_print_json("BA task analysis", json.loads(analysis))
     multiple = len(batch.tasks) > 1
     request_id = uuid4().hex if multiple else None
     for index, task in enumerate(batch.tasks, start=1):
@@ -647,10 +687,23 @@ def handle_ba_request(prompt, history=None):
         if task.raw_input:
             label += f" - {task.raw_input.value}"
         if multiple:
-            print(f"\n{label}")
+            if DEV_MODE:
+                print(f"\n{label}")
+            else:
+                console.rule(label, style="bright_blue")
 
         def respond(message):
-            print(f"\nResponse:\n{message}")
+            if DEV_MODE:
+                print(f"\nResponse:\n{message}")
+            else:
+                title = label if multiple else "ChainGuard"
+                console.print(Panel(
+                    Markdown(str(message)),
+                    title=title,
+                    border_style="bright_cyan",
+                    padding=(1, 2),
+                    expand=False,
+                ))
             if history is not None:
                 content = f"{label}\n{message}" if multiple else message
                 history.append({"role": "assistant", "content": content})
@@ -738,33 +791,79 @@ def execute_ba_task(task, respond, output_file=None):
     respond(f"Requested information saved to {output_file or JSON_FILE}")
 
 
-def change_ai_provider():
-    print("\nSelect AI provider:")
-    providers = list_providers()
-    for index, (name, label) in enumerate(providers, start=1):
-        current = " (current)" if name == get_provider() else ""
-        print(f"{index}. {label}{current}")
+def change_ai_provider(required=False):
+    while True:
+        if DEV_MODE:
+            print("\nSelect AI provider:")
+        else:
+            console.print("\n[bold cyan]Select AI provider[/bold cyan]")
+        providers = list_providers()
+        for index, (name, label) in enumerate(providers, start=1):
+            if DEV_MODE:
+                current = " (current)" if name == get_provider() else ""
+                print(f"  {index}. {label}{current}")
+            else:
+                current = " [green](current)[/green]" if name == get_provider() else ""
+                console.print(f"  [bold]{index}.[/bold] {label}{current}")
 
-    try:
-        selection = input("Provider (number or name): ").strip().casefold()
-    except (EOFError, KeyboardInterrupt):
-        print("\nProvider change cancelled.")
-        return
+        try:
+            selection = input("Provider (number or name, Enter for current): ").strip().casefold()
+        except (EOFError, KeyboardInterrupt):
+            if DEV_MODE:
+                print("\nProvider selection cancelled.")
+            else:
+                console.print("\n[yellow]Provider selection cancelled.[/yellow]")
+            return False
 
-    aliases = {str(index): name for index, (name, _) in enumerate(providers, start=1)}
-    selected = aliases.get(selection, selection)
-    try:
-        label = set_provider(selected)
-    except ValueError as error:
-        print(f"\n{error}")
-        return
-    print(f"\nAI provider changed to {label}.")
+        if not selection:
+            if required:
+                selection = get_provider()
+            else:
+                if DEV_MODE:
+                    print("Provider unchanged.")
+                else:
+                    console.print("[yellow]Provider unchanged.[/yellow]")
+                return False
+
+        aliases = {str(index): name for index, (name, _) in enumerate(providers, start=1)}
+        selected = aliases.get(selection, selection)
+        try:
+            label = set_provider(selected)
+        except ValueError as error:
+            if DEV_MODE:
+                print(error)
+            else:
+                console.print(f"[bold red]{error}[/bold red]")
+            if required:
+                continue
+            return False
+
+        if DEV_MODE:
+            print(f"Using {label} for all AI agents in this session.")
+        else:
+            console.print(Panel(
+                f"Using [bold]{label}[/bold] for all AI agents in this session.",
+                title="AI provider",
+                border_style="green",
+                expand=False,
+            ))
+        return True
 
 
-def run_cli():
+def run_cli(dev_mode=False):
+    global DEV_MODE
+    DEV_MODE = dev_mode
+    set_progress_enabled(not DEV_MODE)
+
     history = []
     print_banner()
-    print("ChainGuard is ready. Type 'change ai' to switch providers or 'goodbye' to exit.")
+    if not change_ai_provider(required=True):
+        print("Goodbye!")
+        return
+    if DEV_MODE:
+        print("ChainGuard is ready. Type 'change ai' to switch providers or 'goodbye' to exit.")
+    else:
+        console.print("ChainGuard is ready. Type [bold cyan]'change ai'[/bold cyan] to switch providers or [bold]'goodbye'[/bold] to exit.")
 
     while True:
         try:
@@ -786,4 +885,11 @@ def run_cli():
 
 
 if __name__ == "__main__":
-    run_cli()
+    parser = argparse.ArgumentParser(description="ChainGuard blockchain assistant")
+    parser.add_argument(
+        "-dev",
+        "--dev",
+        action="store_true",
+        help="show raw model, fetcher, and saved JSON output",
+    )
+    run_cli(dev_mode=parser.parse_args().dev)

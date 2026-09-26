@@ -2,6 +2,11 @@
 
 import os
 
+from rich.console import Console
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
+
+
+console = Console()
 
 _PROVIDERS = {
     "openai": {
@@ -24,6 +29,7 @@ _PROVIDERS = {
     },
 }
 _active_provider = "openai"
+_progress_enabled = True
 
 
 def list_providers() -> list[tuple[str, str]]:
@@ -32,6 +38,11 @@ def list_providers() -> list[tuple[str, str]]:
 
 def get_provider() -> str:
     return _active_provider
+
+
+def set_progress_enabled(enabled: bool) -> None:
+    global _progress_enabled
+    _progress_enabled = enabled
 
 
 def _get_api_key(provider: str) -> str | None:
@@ -90,13 +101,28 @@ def complete(messages: list[dict[str, str]], response_format: dict | None = None
         raise ValueError("Install the LLM provider dependency with: pip install -r requirements.txt") from error
 
     try:
-        response = completion(
-            model=_PROVIDERS[provider]["model"],
-            messages=messages,
-            api_key=api_key,
-            max_tokens=8192,
-            response_format=response_format,
-        )
+        def send_request():
+            return completion(
+                model=_PROVIDERS[provider]["model"],
+                messages=messages,
+                api_key=api_key,
+                max_tokens=8192,
+                response_format=response_format,
+            )
+
+        if _progress_enabled:
+            with Progress(
+                SpinnerColumn(spinner_name="dots", style="bold magenta"),
+                TextColumn(f"[bold cyan]Thinking with {_PROVIDERS[provider]['label']}..."),
+                BarColumn(bar_width=32, pulse_style="bright_cyan"),
+                TimeElapsedColumn(),
+                transient=True,
+                console=console,
+            ) as progress:
+                progress.add_task("", total=None)
+                response = send_request()
+        else:
+            response = send_request()
     except Exception as error:
         label = _PROVIDERS[provider]["label"]
         raise ValueError(f"{label} request failed: {error}") from error

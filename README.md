@@ -16,7 +16,7 @@ ETHERSCAN_API_KEY = "xxxxxxxxx"
 OPENAI_API_KEY = "xxxxxxxxx"
 ```
 
-Install the LLM provider dependency:
+Install the LLM provider and terminal UI dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -40,6 +40,13 @@ Start the interactive CLI from the project root:
 
 ```bash
 python -m src.main
+```
+
+Use development mode to print the raw BA analysis, fetcher JSON, and saved
+context alongside plain-text responses:
+
+```bash
+python -m src.main -dev
 ```
 
 ## Test Individual Fetchers
