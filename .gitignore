@@ -2,3 +2,5 @@
 api_keys/
 __pycache__/
 backend/fetchers/cache/
+backend/detector_config.json
+backend/fetchers/json_files/info.json

@@ -229,7 +229,6 @@ def run_fetcher(name, module_name, function_name, *args, **kwargs):
             "data": None,
             "error": str(error),
         }
-    debug_print_json(f"{name} fetcher output", result)
     return result
 
 
@@ -504,7 +503,8 @@ def save_info(address, results, address_analysis, output_file=None):
 
     with open(output_file, "w", encoding="utf-8") as file:
         json.dump(info, file, indent=4)
-    debug_print_json("Saved address context", info)
+    if DEV_MODE:
+        print(f"\n[DEV] Address context JSON created and saved to {output_file}")
 
 
 def save_contract_address_info(resolver_results, output_file=None):
@@ -518,7 +518,8 @@ def save_contract_address_info(resolver_results, output_file=None):
 
     with open(output_file, "w", encoding="utf-8") as file:
         json.dump(info, file, indent=4)
-    debug_print_json("Saved contract-address lookup", info)
+    if DEV_MODE:
+        print(f"\n[DEV] Contract-address lookup JSON created and saved to {output_file}")
 
 
 def print_results(results):
@@ -890,6 +891,6 @@ if __name__ == "__main__":
         "-dev",
         "--dev",
         action="store_true",
-        help="show raw model, fetcher, and saved JSON output",
+        help="show raw model output and saved JSON file paths",
     )
     run_cli(dev_mode=parser.parse_args().dev)

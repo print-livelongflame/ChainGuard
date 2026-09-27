@@ -54,8 +54,10 @@ Start the interactive CLI from the `backend/` directory:
 python -m src.main
 ```
 
-Use development mode to print the raw BA analysis, fetcher JSON, and saved
-context alongside plain-text responses:
+Use development mode to print the raw BA analysis alongside plain-text
+responses. Raw fetcher results are saved to JSON without being printed.
+Saved context and contract-address lookup files are
+reported with a confirmation and file path instead of printing their contents:
 
 ```bash
 python -m src.main -dev
