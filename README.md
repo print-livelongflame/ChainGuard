@@ -4,9 +4,90 @@ AI LLM which wil help users to investigate blockchain wallet address
 
 ## Project Layout
 
-- `backend/` contains the Python CLI, fetchers, detectors, and API integrations.
-- `frontend/` is reserved for the web application; the frontend framework has
-   not been initialized yet.
+- `backend/` contains the Python CLI, chat API, fetchers, detectors, and AI integrations.
+- `frontend/` contains the React/Vite web chat.
+
+## Run the web chat
+
+Configure the backend keys as described below. Then use two terminals from the
+repository root.
+
+**Terminal 1 — API:**
+
+```powershell
+cd backend
+python -m pip install -r requirements.txt
+python -m uvicorn src.api:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+**Terminal 2 — frontend:**
+
+```powershell
+cd frontend
+npm.cmd install
+npm.cmd run dev
+```
+
+Open the local URL printed by Vite (normally `http://localhost:5173`). On other
+shells, `npm` can be used instead of `npm.cmd`. Vite proxies `/api` to port 8000;
+keep the browser on the Vite URL so session cookies and downloads use the same origin.
+
+Select **New Chat**, or type in the welcome screen to create a chat automatically.
+Enter sends a message; Shift+Enter adds a newline. Suggestion cards fill an editable
+prompt. Replace address placeholders with a complete Ethereum address. Replies
+can include JSON download links. The sidebar switches between conversations,
+including while another conversation is processing.
+
+The web API uses OpenAI by default. To select another configured provider, set
+`$env:CHAINGUARD_AI_PROVIDER = "gemini"` (or `"claude"` / `"openai"`) in the API
+terminal before starting it. Restart the API after changing keys or providers.
+Keys stay on the backend; do not put them in frontend environment variables.
+
+This is a local demo with no accounts. An HTTP-only cookie identifies each browser
+session; the selected chat ID is kept in local storage. Chat transcripts and internal
+model history remain in server memory. Refreshing the page restores the chats and
+checks any pending reply. Restarting the API expires all chats. JSON downloads are
+temporary files removed on normal server shutdown. Run **one worker**; additional
+workers would have independent session stores. Do not expose this development
+configuration as a public service.
+
+### Web API
+
+| Method and path | Behavior |
+| --- | --- |
+| `GET /api/chats` | Session chats, configured provider, and configuration errors |
+| `POST /api/chats` | Create an empty chat |
+| `GET /api/chats/{id}` | Transcript and processing state |
+| `POST /api/chats/{id}/messages` | Send `{ "text": "your question" }`; return completed chat |
+| `GET /api/chats/{id}/files/{file_id}` | Download an attached JSON result |
+
+Chats expose `id`, `title`, `created_at`, `messages`, `processing`, and `error`.
+Messages contain `id`, `role`, `text`, `created_at`, and `attachments`; attachments
+contain `id`, `name`, and `url`. Internal BA task JSON is never included in the
+visible transcript. Only one turn may run per chat (`409` for overlapping sends).
+Messages must contain 1–12,000 characters after trimming. Unknown chats or files
+return `404`; unavailable provider configuration returns `503` before accepting a turn.
+An accepted turn continues after a browser disconnect. Clients can query its chat
+to recover the result; they should not automatically resend a failed HTTP request.
+
+### Checks
+
+```powershell
+cd backend
+python -m unittest discover -s tests -v
+```
+
+```powershell
+cd frontend
+npm.cmd run build
+npm.cmd run lint
+```
+
+Backend tests mock the provider and external work, so they do not need keys or
+make paid requests. To smoke-test configured integrations, ask a general blockchain
+question, then request contract information for a complete Ethereum address and
+open its JSON attachment. Check a follow-up, a second chat, refresh during processing,
+and restart the backend to verify expiry.
 
 ## Backend Setup
 

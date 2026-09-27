@@ -18,9 +18,7 @@ from rich.text import Text
 from agents.ba import (
     CONTEXT_FIELDS,
     describe_validation_error,
-    ask_llm,
     is_exit_command,
-    parse_ba_response,
     perform_next_action,
 )
 from agents.fi import explain_detector_result
@@ -34,7 +32,6 @@ from src.llm_provider import (
     set_progress_enabled,
     set_provider,
 )
-from uuid import uuid4
 
 
 console = Console()
@@ -603,7 +600,7 @@ def resolve_ba_target(task, respond, output_file=None):
     return addresses[0] if task.requested_fields and len(addresses) == 1 else None
 
 
-def run_scam_check(task, context_file, respond):
+def run_scam_check(task, context_file, respond, diagnostics=True):
     """Read saved context with SCH for the local fallback assessment."""
     if not task.in_scope or task.request_type != "scam_check":
         return
@@ -616,17 +613,18 @@ def run_scam_check(task, context_file, respond):
                 "No scam conclusion was produced.")
         return
 
-    print(
-        "\nScam Checker output:\n"
-        "Source: Scam Checker LLM reasoning (no external detector)\n"
-        f"{assessment.model_dump_json(indent=2, exclude_none=True)}\n"
-        f"Context saved to {context_file}"
-    )
+    if diagnostics:
+        print(
+            "\nScam Checker output:\n"
+            "Source: Scam Checker LLM reasoning (no external detector)\n"
+            f"{assessment.model_dump_json(indent=2, exclude_none=True)}\n"
+            f"Context saved to {context_file}"
+        )
     respond(assessment.explanation)
     return assessment
 
 
-def run_external_detector(task, address, respond, output_file=None):
+def run_external_detector(task, address, respond, output_file=None, diagnostics=True):
     """Fetch the required context and call the configured detector service."""
     try:
         if task.required_input_type == "address_with_context":
@@ -648,11 +646,12 @@ def run_external_detector(task, address, respond, output_file=None):
         )
         return None
 
-    print(
-        "\nExternal Detector output:\n"
-        f"Source: {task.selected_detector}\n"
-        f"{assessment.model_dump_json(indent=2, exclude_none=True)}"
-    )
+    if diagnostics:
+        print(
+            "\nExternal Detector output:\n"
+            f"Source: {task.selected_detector}\n"
+            f"{assessment.model_dump_json(indent=2, exclude_none=True)}"
+        )
     config = load_detector_config()
     if config is not None and not config.is_llm_based:
         try:
@@ -673,54 +672,38 @@ def run_external_detector(task, address, respond, output_file=None):
 
 
 def handle_ba_request(prompt, history=None):
-    """Classify once, then execute each independent task in order."""
+    """Present the shared chat service in the terminal."""
+    from src.chat_service import run_turn
+
+    def respond(message, label, output):
+        if DEV_MODE:
+            print(f"\nResponse:\n{message}")
+        else:
+            console.print(Panel(
+                Markdown(message), title=label or "ChainGuard",
+                border_style="bright_cyan", padding=(1, 2), expand=False,
+            ))
+
+    def task_heading(label):
+        if DEV_MODE:
+            print(f"\n{label}")
+        else:
+            console.rule(label, style="bright_blue")
+
     try:
-        analysis = ask_llm(prompt, history)
-        batch = parse_ba_response(analysis)
-    except ValueError as error:
-        print(f"\nThe BA returned an invalid task definition. {describe_validation_error(error)}")
-        return
-    debug_print_json("BA task analysis", json.loads(analysis))
-    multiple = len(batch.tasks) > 1
-    request_id = uuid4().hex if multiple else None
-    for index, task in enumerate(batch.tasks, start=1):
-        label = f"Task {index}: {task.request_type}"
-        if task.raw_input:
-            label += f" - {task.raw_input.value}"
-        if multiple:
-            if DEV_MODE:
-                print(f"\n{label}")
-            else:
-                console.rule(label, style="bright_blue")
-
-        def respond(message):
-            if DEV_MODE:
-                print(f"\nResponse:\n{message}")
-            else:
-                title = label if multiple else "ChainGuard"
-                console.print(Panel(
-                    Markdown(str(message)),
-                    title=title,
-                    border_style="bright_cyan",
-                    padding=(1, 2),
-                    expand=False,
-                ))
-            if history is not None:
-                content = f"{label}\n{message}" if multiple else message
-                history.append({"role": "assistant", "content": content})
-
-        output_file = (
-            os.path.join(os.path.dirname(JSON_FILE), "requests", request_id, f"task_{index}.json")
-            if multiple else None
+        run_turn(
+            prompt, history if history is not None else [],
+            execute=execute_ba_task, respond=respond,
+            output_root=os.path.join(os.path.dirname(JSON_FILE), "requests"),
+            unique_single_output=False,
+            on_analysis=lambda payload: debug_print_json("BA task analysis", payload),
+            on_task=task_heading,
         )
-        try:
-            execute_ba_task(task, respond, output_file)
-        except Exception as error:
-            # A failed fetch/save for one task must not discard other answers.
-            respond(f"This task could not be completed: {error}")
+    except ValueError as error:
+        print(f"\nUnable to process request: {error}")
 
 
-def execute_ba_task(task, respond, output_file=None):
+def execute_ba_task(task, respond, output_file=None, diagnostics=True):
     """Run one task; returning here does not stop other tasks in the prompt."""
     analysis = task.model_dump_json()
     action_response = perform_next_action(analysis)
@@ -766,7 +749,7 @@ def execute_ba_task(task, respond, output_file=None):
     if task.request_type == "scam_check" and (
         task.detector_configured or task.selected_detector is not None
     ):
-        run_external_detector(task, raw_input, respond, output_file)
+        run_external_detector(task, raw_input, respond, output_file, diagnostics=diagnostics)
         return
 
     if not task.requested_fields:
@@ -777,17 +760,18 @@ def execute_ba_task(task, respond, output_file=None):
         raw_input,
         task.requested_fields,
     )
-    print(
-        f"\nAddress type: {address_analysis['chain_family']} / "
-        f"{address_analysis['address_type']}"
-    )
-    print_results(fetcher_results)
+    if diagnostics:
+        print(
+            f"\nAddress type: {address_analysis['chain_family']} / "
+            f"{address_analysis['address_type']}"
+        )
+        print_results(fetcher_results)
     if output_file is None:
         save_info(raw_input, fetcher_results, address_analysis)
     else:
         save_info(raw_input, fetcher_results, address_analysis, output_file=output_file)
     if task.request_type == "scam_check":
-        run_scam_check(task, output_file or JSON_FILE, respond)
+        run_scam_check(task, output_file or JSON_FILE, respond, diagnostics=diagnostics)
         return
     respond(f"Requested information saved to {output_file or JSON_FILE}")
 

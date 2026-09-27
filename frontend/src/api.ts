@@ -1,0 +1,31 @@
+export type Attachment = { id: string; name: string; url: string }
+export type Message = {
+  id: string; role: 'user' | 'assistant'; text: string; created_at: string
+  attachments: Attachment[]
+}
+export type Chat = {
+  id: string; title: string; created_at: string; messages: Message[]
+  processing: boolean; error: string | null
+}
+export type ChatList = { chats: Chat[]; provider: string; configuration_error: string | null }
+
+export class ApiError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.status = status
+  }
+}
+
+export async function api<T>(path: string, body?: object): Promise<T> {
+  const response = await fetch(`/api${path}`, {
+    method: body ? 'POST' : 'GET', credentials: 'same-origin',
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    throw new ApiError(typeof data.detail === 'string' ? data.detail : 'The request could not be completed.', response.status)
+  }
+  return response.json() as Promise<T>
+}
