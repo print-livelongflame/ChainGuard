@@ -56,6 +56,10 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 .message-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.8; color: #d5deeb; }
 .attachment { display: inline-flex; gap: 8px; align-items: center; margin-top: 16px; padding: 9px 13px; border: 1px solid #28465a; background: #101e2b; border-radius: 8px; font-size: 12px; color: #54dced; text-decoration: none; }
 .attachment:hover { background: #172d3d; }
+.pending-attachment { width: fit-content; max-width: 100%; display: flex; align-items: center; gap: 10px; margin: 0 0 8px 4px; padding: 7px 10px; border: 1px solid #28465a; border-radius: 6px; color: #b9d8e1; font-size: 12px; }
+.pending-attachment > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pending-attachment button { border: 0; background: transparent; color: #9cb4c3; font-size: 18px; line-height: 1; }
+.file-error { margin: 0 0 8px 4px; color: #ffb7a8; font-size: 12px; }
 .thinking { color: #20d3e8; display: flex; align-items: center; gap: 12px; font-size: 14px; margin: 0; }
 .thinking span { height: 8px; width: 8px; background: #20d3e8; border-radius: 50%; box-shadow: 0 0 10px #20d3e8; animation: pulse 1.5s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
@@ -66,6 +70,9 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 .composer textarea::placeholder { color: #637189; }
 .send-button { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; }
 .send-button svg { width: 22px; height: 22px; }
+.attach-button { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid #34445c; border-radius: 6px; background: transparent; color: #a8bdce; }
+.attach-button:hover:not(:disabled) { border-color: #42bfd0; color: #54dced; }
+.attach-button svg { width: 20px; height: 20px; }
 .notice { display: flex; align-items: center; gap: 12px; justify-content: space-between; color: #e8d4a8; background: #292419; border: 1px solid #4e432b; border-radius: 8px; margin: 0 36px 8px; padding: 10px 14px; font-size: 12px; }
 .notice button { color: #d2f6ff; background: transparent; border: 0; text-decoration: underline; }
 .icon-button { background: transparent; color: #bac9df; border: 0; font-size: 22px; }

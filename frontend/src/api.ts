@@ -1,4 +1,5 @@
-export type Attachment = { id: string; name: string; url: string }
+export type Attachment = { id: string; name: string; url: string | null }
+export type InputAttachment = { name: string; content: string }
 export type Message = {
   id: string; role: 'user' | 'assistant'; text: string; created_at: string
   attachments: Attachment[]

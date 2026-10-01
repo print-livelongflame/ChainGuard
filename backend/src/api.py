@@ -14,11 +14,11 @@ from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.concurrency import run_in_threadpool
 
 from agents.ba import is_exit_command
-from src.chat_service import run_turn
+from src.chat_service import build_prompt, run_turn, validate_attachment
 from src.llm_provider import list_providers, set_progress_enabled, set_provider
 from src.main import execute_ba_task
 
@@ -33,7 +33,17 @@ def now():
 class Attachment(BaseModel):
     id: str
     name: str
-    url: str
+    url: str | None = None
+
+
+class InputAttachment(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    content: str = Field(max_length=50 * 1024)
+
+    @model_validator(mode="after")
+    def valid_file(self):
+        validate_attachment(self.name, self.content)
+        return self
 
 
 class Message(BaseModel):
@@ -54,14 +64,15 @@ class ChatView(BaseModel):
 
 
 class MessageInput(BaseModel):
-    text: str = Field(min_length=1, max_length=12000)
+    text: str = Field(default="", max_length=12000)
+    attachments: list[InputAttachment] = Field(default_factory=list, max_length=1)
 
-    @field_validator("text")
-    @classmethod
-    def not_blank(cls, value):
-        if not value.strip():
+    @model_validator(mode="after")
+    def has_message_content(self):
+        if not self.text.strip() and not self.attachments:
             raise ValueError("Enter a message.")
-        return value.strip()
+        self.text = self.text.strip()
+        return self
 
 
 @dataclass
@@ -209,10 +220,15 @@ def create_app():
             raise HTTPException(503, app.state.provider_error)
         chat.processing = True
         chat.error = None
+        attachments = [validate_attachment(item.name, item.content) for item in body.attachments]
+        prompt = build_prompt(body.text or "Please analyze the attached file.", attachments)
         if not chat.messages:
-            chat.title = body.text[:60]
-        chat.messages.append(Message(role="user", text=body.text))
-        task = asyncio.create_task(finish_turn(chat, body.text))
+            chat.title = (body.text or attachments[0]["name"])[:60]
+        chat.messages.append(Message(
+            role="user", text=body.text,
+            attachments=[Attachment(id=uuid4().hex, name=item["name"]) for item in attachments],
+        ))
+        task = asyncio.create_task(finish_turn(chat, prompt))
         app.state.tasks.add(task)
         task.add_done_callback(app.state.tasks.discard)
         # A refresh/disconnect must not cancel an accepted turn.

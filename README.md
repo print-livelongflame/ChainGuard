@@ -33,9 +33,10 @@ shells, `npm` can be used instead of `npm.cmd`. Vite proxies `/api` to port 8000
 keep the browser on the Vite URL so session cookies and downloads use the same origin.
 
 Select **New Chat**, or type in the welcome screen to create a chat automatically.
-Enter sends a message; Shift+Enter adds a newline. Suggestion cards fill an editable
-prompt. Replace address placeholders with a complete Ethereum address. Replies
-can include JSON download links. The sidebar switches between conversations,
+Enter sends a message; Shift+Enter adds a newline. Use the paperclip button to
+attach one UTF-8 `.txt` or `.json` file (up to 50 KB) to a message. Suggestion
+cards fill an editable prompt. Replace address placeholders with a complete
+Ethereum address. Replies can include JSON download links. The sidebar switches between conversations,
 including while another conversation is processing.
 
 The web API uses OpenAI by default. To select another configured provider, set
@@ -58,12 +59,13 @@ configuration as a public service.
 | `GET /api/chats` | Session chats, configured provider, and configuration errors |
 | `POST /api/chats` | Create an empty chat |
 | `GET /api/chats/{id}` | Transcript and processing state |
-| `POST /api/chats/{id}/messages` | Send `{ "text": "your question" }`; return completed chat |
+| `POST /api/chats/{id}/messages` | Send `{ "text": "your question", "attachments": [{ "name": "notes.txt", "content": "..." }] }`; return completed chat |
 | `GET /api/chats/{id}/files/{file_id}` | Download an attached JSON result |
 
 Chats expose `id`, `title`, `created_at`, `messages`, `processing`, and `error`.
 Messages contain `id`, `role`, `text`, `created_at`, and `attachments`; attachments
-contain `id`, `name`, and `url`. Internal BA task JSON is never included in the
+contain `id`, `name`, and an optional `url`. Uploaded file contents are provided
+to the model as untrusted reference data and are not stored as downloads. Internal BA task JSON is never included in the
 visible transcript. Only one turn may run per chat (`409` for overlapping sends).
 Messages must contain 1–12,000 characters after trimming. Unknown chats or files
 return `404`; unavailable provider configuration returns `503` before accepting a turn.
@@ -134,6 +136,10 @@ Start the interactive CLI from the `backend/` directory:
 ```bash
 python -m src.main
 ```
+
+In the interactive CLI, enter `attach "path to file.json"` to queue a UTF-8
+`.txt` or `.json` file (up to 50 KB) for your next prompt. The file is sent as
+untrusted reference data; JSON attachments must parse successfully.
 
 Use development mode to print the raw BA analysis alongside plain-text
 responses. Raw fetcher results are saved to JSON without being printed.

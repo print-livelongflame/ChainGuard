@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, ApiError } from './api'
-import type { Chat, ChatList } from './api'
+import type { Chat, ChatList, InputAttachment } from './api'
 import AppLayout from './layouts/AppLayout'
 import Sidebar from './components/Sidebar'
 import ChatPage from './pages/ChatPage'
@@ -108,24 +108,26 @@ function App() {
   const draftKey = selected ?? 'welcome'
   const draft = drafts[draftKey] ?? ''
 
-  async function send() {
+  async function send(attachment?: InputAttachment): Promise<boolean> {
     const text = draft.trim()
     const originKey = draftKey
-    if (!text || !ready || creatingRef.current || active?.processing || configurationError || submitting.current.has(originKey)) return
+    if ((!text && !attachment) || !ready || creatingRef.current || active?.processing || configurationError || submitting.current.has(originKey)) return false
     submitting.current.add(originKey)
     let chat = active
     try {
       if (!chat) chat = await newChat()
-      if (!chat) return
+      if (!chat) return false
       const id = chat.id
       submitting.current.add(id)
       setNotice('')
       setDrafts(current => ({ ...current, [originKey]: '' }))
       updateChat({ ...chat, processing: true, messages: [...chat.messages, {
-        id: `pending-${id}`, role: 'user', text, created_at: new Date().toISOString(), attachments: [],
+        id: `pending-${id}`, role: 'user', text, created_at: new Date().toISOString(),
+        attachments: attachment ? [{ id: `pending-file-${id}`, name: attachment.name, url: null }] : [],
       }] })
       try {
-        updateChat(await api<Chat>(`/chats/${id}/messages`, { text }))
+        updateChat(await api<Chat>(`/chats/${id}/messages`, { text, attachments: attachment ? [attachment] : [] }))
+        return true
       } catch (error) {
         uncertain.current.set(id, { text, count: chat.messages.length })
         if (error instanceof ApiError && error.status === 404) {
@@ -139,6 +141,7 @@ function App() {
             if (actual.messages.length === chat.messages.length) setDrafts(current => ({ ...current, [id]: text }))
           } catch { /* Polling keeps checking an uncertain submission. */ }
         }
+        return false
       } finally { submitting.current.delete(id) }
     } finally { submitting.current.delete(originKey) }
   }
@@ -146,7 +149,7 @@ function App() {
   return <AppLayout sidebar={<Sidebar chats={chats} selected={selected} open={sidebarOpen} creating={creating || !ready} onNew={() => { void newChat() }} onSelect={select} onClose={() => setSidebarOpen(false)} />}>
     <header className="topbar"><button className="mobile-menu icon-button" onClick={() => setSidebarOpen(true)} aria-label="Open navigation" aria-expanded={sidebarOpen} aria-controls="chat-navigation">☰</button><span>ChainGuard Assistant</span><span className="header-divider">/</span><span className="provider">{provider}</span></header>
     {(notice || configurationError) && <div className="notice" role="status"><span>{notice || configurationError}</span><button onClick={() => { void restore() }}>Reconnect</button></div>}
-    <ChatPage chat={active} draft={draft} disabled={!ready || creating || !!active?.processing || !!configurationError} onDraft={value => setDrafts(current => ({ ...current, [draftKey]: value }))} onSend={() => { void send() }} />
+    <ChatPage key={active?.id ?? 'welcome'} chat={active} draft={draft} disabled={!ready || creating || !!active?.processing || !!configurationError} onDraft={value => setDrafts(current => ({ ...current, [draftKey]: value }))} onSend={send} />
   </AppLayout>
 }
 
