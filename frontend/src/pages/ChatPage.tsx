@@ -3,7 +3,7 @@ import type { Chat, InputAttachment } from '../api'
 import Brand from '../components/Brand'
 
 const suggestions = [
-  { title: 'Wallet Risk', description: 'Check a wallet for suspicious activity', prompt: 'Check this wallet for scam activity: [enter a complete Ethereum address]' },
+  { title: 'Scam Check', description: 'Check a token name or address and see the evidence', prompt: 'Is Pepe Coin a scam? Check the available on-chain evidence and explain your reasoning.' },
   { title: 'Token Security', description: 'Take a closer look at an ERC-20 token', prompt: 'Check the security of this token contract: [enter a complete Ethereum contract address]' },
   { title: 'Risk Indicators', description: 'Understand why a contract may be flagged', prompt: 'Explain the risk indicators for this contract: [enter a complete Ethereum contract address]' },
   { title: 'Educational', description: 'Learn how blockchain scams work', prompt: 'What is a blockchain rug pull, and what warning signs should I look for?' },

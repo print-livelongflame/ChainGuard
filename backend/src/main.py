@@ -8,9 +8,7 @@ import argparse
 import json
 import os
 import re
-import shlex
 from datetime import datetime, timezone
-from pathlib import Path
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -27,7 +25,6 @@ from agents.fi import explain_detector_result
 from agents.sch import assess_saved_context
 from detector_integration.client import call_detector
 from src.schema import AddressContext
-from src.chat_service import MAX_ATTACHMENT_BYTES, build_prompt, validate_attachment
 from src.detector_config import load_detector_config
 from src.llm_provider import (
     get_provider,
@@ -674,7 +671,7 @@ def run_external_detector(task, address, respond, output_file=None, diagnostics=
     return assessment
 
 
-def handle_ba_request(prompt, history=None, attachments=None):
+def handle_ba_request(prompt, history=None):
     """Present the shared chat service in the terminal."""
     from src.chat_service import run_turn
 
@@ -695,7 +692,7 @@ def handle_ba_request(prompt, history=None, attachments=None):
 
     try:
         run_turn(
-            build_prompt(prompt, attachments or []), history if history is not None else [],
+            prompt, history if history is not None else [],
             execute=execute_ba_task, respond=respond,
             output_root=os.path.join(os.path.dirname(JSON_FILE), "requests"),
             unique_single_output=False,
@@ -844,7 +841,6 @@ def run_cli(dev_mode=False):
     set_progress_enabled(not DEV_MODE)
 
     history = []
-    pending_attachments = []
     print_banner()
     if not change_ai_provider(required=True):
         print("Goodbye!")
@@ -869,28 +865,8 @@ def run_cli(dev_mode=False):
             change_ai_provider()
             continue
 
-        if user_input.casefold().startswith("attach "):
-            try:
-                parts = shlex.split(user_input, posix=False)
-                if len(parts) != 2:
-                    raise ValueError('Use: attach "path to file.txt"')
-                file_path = parts[1]
-                if len(file_path) > 1 and file_path[0] == file_path[-1] and file_path[0] in "\"'":
-                    file_path = file_path[1:-1]
-                path = Path(file_path)
-                if path.stat().st_size > MAX_ATTACHMENT_BYTES:
-                    raise ValueError("Each attachment must be 50 KB or smaller.")
-                pending_attachments = [validate_attachment(
-                    path.name, path.read_text(encoding="utf-8-sig"),
-                )]
-                print(f"Attached {path.name} for your next message.")
-            except (OSError, UnicodeError, ValueError) as error:
-                print(f"Could not attach file: {error}")
-            continue
-
         if user_input:
-            handle_ba_request(user_input, history, pending_attachments)
-            pending_attachments = []
+            handle_ba_request(user_input, history)
 
 
 if __name__ == "__main__":
