@@ -9,7 +9,6 @@ Uses:
 - Etherscan API V2
 """
 
-import importlib
 import json
 import os
 import re
@@ -27,12 +26,9 @@ sys.path.append(
     )
 )
 
-try:
-    ETHERSCAN_API_KEY = importlib.import_module(
-        "api_keys.api_keys"
-    ).ETHERSCAN_API_KEY
-except (ImportError, AttributeError):
-    ETHERSCAN_API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+from src.api_key_config import get_api_key
+
+ETHERSCAN_API_KEY = get_api_key("ETHERSCAN_API_KEY")
 
 
 # Etherscan API V2
@@ -424,7 +420,8 @@ def resolve_contract_address(
     # ---------------------------------------------------------
     # 3. Use Etherscan to verify that matches have bytecode
     # ---------------------------------------------------------
-    if not ETHERSCAN_API_KEY.strip():
+    api_key = get_api_key("ETHERSCAN_API_KEY")
+    if not api_key:
         for match in possible_matches:
             match["etherscan_verification"] = "skipped_missing_api_key"
 
@@ -443,7 +440,7 @@ def resolve_contract_address(
 
     etherscan_base_params = {
         "chainid": chain_id,
-        "apikey": ETHERSCAN_API_KEY
+        "apikey": api_key
     }
 
     matches_to_verify = possible_matches[:MAX_ETHERSCAN_VERIFICATIONS]

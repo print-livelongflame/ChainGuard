@@ -1,6 +1,9 @@
 .vscode/
 api_keys/
 __pycache__/
+.env
+.env.*
+!.env.example
 backend/fetchers/cache/
 backend/detector_config.json
 backend/fetchers/json_files/info.json

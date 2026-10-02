@@ -2,6 +2,8 @@
 
 import os
 
+from src.api_key_config import get_api_key
+
 from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 
@@ -52,15 +54,8 @@ def _get_api_key(provider: str) -> str | None:
         if key and key.strip() and key.strip().casefold() != "enter key here":
             return key.strip()
 
-    try:
-        from api_keys import api_keys
-    except ImportError:
-        return None
-    key = getattr(api_keys, details["config_key"], None)
-    if not isinstance(key, str) or not key.strip():
-        return None
-    key = key.strip()
-    return None if key.casefold() == "enter key here" else key
+    key = get_api_key(details["config_key"])
+    return key or None
 
 
 def set_provider(provider: str) -> str:

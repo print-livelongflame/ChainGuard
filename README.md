@@ -7,10 +7,95 @@ AI LLM which wil help users to investigate blockchain wallet address
 - `backend/` contains the Python CLI, chat API, fetchers, detectors, and AI integrations.
 - `frontend/` contains the React/Vite web chat.
 
-## Run the web chat
+## Quick Start (Docker)
 
-Configure the backend keys as described below. Then use two terminals from the
-repository root. *!!!Note this setup is only temp, and currently working on create a 1 line command for users to use!!!*
+Install Docker Desktop on Windows/macOS, or Docker Engine with the Compose plugin
+on Linux. Clone ChainGuard and the independent detector repository side by side:
+
+```text
+Projects/
+├── ChainGuard/
+└── ChainGuard-detector-template/
+```
+
+```powershell
+git clone https://github.com/print-livelongflame/ChainGuard.git
+git clone https://github.com/Mossata/ChainGuard-detector-template.git
+cd ChainGuard
+Copy-Item .env.example .env
+```
+
+On macOS/Linux, use `cp .env.example .env` in place of `Copy-Item`. Edit `.env`
+if you use a custom detector path or prefer to configure keys before startup.
+Otherwise, the default sibling detector path works without `.env`. You can also
+enter keys after startup under **Settings → API Keys**; chat stays unavailable
+until the selected LLM provider key is configured. Etherscan is needed for
+Ethereum fetcher data. `.env` is ignored by Git and secrets are passed only to
+backend/detector containers, never to the frontend.
+
+Then start the app from the ChainGuard directory:
+
+```powershell
+docker compose up
+```
+
+Open <http://localhost:5173>. Compose builds dependencies automatically. The
+detector path defaults to `../ChainGuard-detector-template`, relative to this
+project directory. For a fork or custom detector next to ChainGuard, set the
+path in `.env`, for example `DETECTOR_PATH=../my-custom-detector`. The chosen
+detector repository must have a root `Dockerfile`, `requirements.txt`, and the
+template-compatible `app.py`/`/health` and `/detect` API. A missing detector
+directory or Dockerfile makes Compose stop with a build/mount error; clone the
+detector next to ChainGuard or correct `DETECTOR_PATH` before retrying. The
+detector does not silently fall back to an empty folder.
+
+```powershell
+docker compose down
+docker compose up --build
+docker compose restart detector
+```
+
+The first command stops the stack; the second rebuilds local images after
+ChainGuard source or dependency changes; the third restarts the detector after
+editing mounted detector code. Editing detector dependencies requires rebuilding
+its image with `docker compose up --build detector`.
+
+### Docker architecture
+
+```text
+Browser
+   │ http://localhost:5173
+   ▼
+ChainGuard frontend (Vite)
+   │ /api → http://backend:8000
+   ▼
+ChainGuard backend (FastAPI)
+   │ POST /detect → http://detector:9000
+   ▼
+Detector service container
+   │ /app is a bind mount, not code copied into the ChainGuard image
+   ▼
+User's separate detector repository (DETECTOR_PATH)
+```
+
+The host ports are `5173` (web app), `8000` (backend API), and `9000` (detector
+health/docs/debug access); all are bound to localhost only. Container-to-container
+traffic uses Compose service names. Docker builds the frontend/backend from this
+checkout, and builds the detector runtime from the detector repository's own
+Dockerfile. The detector source remains in the mounted repository; edit it on
+the host and restart the detector container to load changes. The detector
+settings page writes settings to a named Docker volume, so they persist across
+container restarts.
+
+The official template starts with a stub response. Replace its `detector.py`
+implementation with your algorithm before treating results as meaningful. No
+Docker setup can provide LLM or blockchain API credentials automatically; valid
+provider keys must be supplied in `.env`.
+
+## Development setup without Docker
+
+Configure backend keys as described below, then use two terminals from the
+repository root.
 
 **Terminal 1 — API:**
 
@@ -41,8 +126,20 @@ including while another conversation is processing.
 
 The web API uses OpenAI by default. To select another configured provider, set
 `$env:CHAINGUARD_AI_PROVIDER = "gemini"` (or `"claude"` / `"openai"`) in the API
-terminal before starting it. Restart the API after changing keys or providers.
-Keys stay on the backend; do not put them in frontend environment variables.
+terminal before starting it. Restart the API after changing the selected
+provider; API keys saved through Settings apply without a restart. Keys stay on
+the backend; do not put them in frontend environment variables.
+
+In the web app, open **Settings → API Keys** to enter or remove provider,
+Etherscan, and detector keys. Save keys to apply them immediately. The page
+shows only whether a key is configured; it never reads a saved secret back into
+the browser. The backend writes the values as plaintext constants in
+`backend/api_keys/api_keys.py`. This folder is ignored by Git and, in Docker,
+bind-mounted from the host so the file is created/updated in the local checkout.
+Anyone with access to that file can read its keys; use this local-only page only
+on a trusted machine, never commit the file, and rotate credentials if it was
+ever shared. If a provider key is already supplied by `.env`, update/remove it
+there too so the environment does not override the saved file after restart.
 
 This is a local demo with no accounts. An HTTP-only cookie identifies each browser
 session; the selected chat ID is kept in local storage. Chat transcripts and internal
@@ -63,6 +160,8 @@ configuration as a public service.
 | `GET /api/chats/{id}/files/{file_id}` | Download an attached JSON result |
 | `GET /api/settings/detector` | Read the saved external detector configuration |
 | `POST /api/settings/detector` | Validate and save external detector settings to `backend/detector_config.json` |
+| `GET /api/settings/api-keys` | Return configured/not-configured status only; never returns key values |
+| `POST /api/settings/api-keys` | Create, update, or remove local API-key constants |
 
 Chats expose `id`, `title`, `created_at`, `messages`, `processing`, and `error`.
 Messages contain `id`, `role`, `text`, `created_at`, and `attachments`; attachments
@@ -98,19 +197,11 @@ and restart the backend to verify expiry.
 Run the following commands from the repository root unless a command says to
 enter `backend/`.
 
----
-
-# Setup the Project
-
-Create `backend/api_keys/api_keys.py` and add your API keys there:
-
-```python
-'''
-Enter your keys here
-'''
-ETHERSCAN_API_KEY = "xxxxxxxxx"
-OPENAI_API_KEY = "xxxxxxxxx"
-```
+For Docker, put secrets in the ignored root `.env` file. The Compose service
+passes them only to the backend and detector. For a native/manual run, set the
+same variables in the shell or use the locally ignored
+`backend/api_keys/api_keys.py`. Never commit real credentials or place them in
+frontend settings.
 
 Install the LLM provider and terminal UI dependencies from the backend folder:
 

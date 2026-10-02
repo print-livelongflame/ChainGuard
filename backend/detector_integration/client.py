@@ -1,8 +1,8 @@
 import json
-import os
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from src.api_key_config import get_api_key
 from src.detector_config import load_detector_config
 from src.schema import AddressContext, DetectionResult
 
@@ -14,7 +14,7 @@ def call_detector(context: AddressContext) -> DetectionResult:
         raise ValueError("No external detector is configured.")
 
     headers = {"Content-Type": "application/json"}
-    api_key = os.environ.get("DETECTOR_API_KEY")
+    api_key = get_api_key("DETECTOR_API_KEY")
     if api_key:
         headers["X-API-Key"] = api_key
 

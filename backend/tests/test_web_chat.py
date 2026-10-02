@@ -1,6 +1,8 @@
 """Run from backend/: python -m unittest discover -s tests -v."""
 import io
 import json
+import os
+import tempfile
 import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
@@ -52,6 +54,41 @@ class WebChatTests(unittest.TestCase):
 
     def send(self, chat, text="What is a blockchain?"):
         return self.client.post(f"/api/chats/{chat}/messages", json={"text": text})
+
+    def test_health_route(self):
+        self.assertEqual(self.client.get("/health").json(), {"status": "ok"})
+
+    def test_api_key_settings_write_only(self):
+        secret = "test-openai-key-do-not-return"
+        with tempfile.TemporaryDirectory() as directory:
+            key_file = Path(directory) / "api_keys.py"
+            with patch("src.api_key_config.API_KEYS_PATH", key_file), patch.dict(
+                os.environ,
+                {"OPENAI_API_KEY": ""},
+            ):
+                from src.api_key_config import get_api_key
+
+                response = self.client.post(
+                    "/api/settings/api-keys",
+                    json={"keys": {"OPENAI_API_KEY": secret}},
+                )
+
+                self.assertEqual(response.status_code, 200)
+                self.assertNotIn(secret, response.text)
+                self.assertTrue(response.json()["configured"]["OPENAI_API_KEY"])
+                self.assertIn("OPENAI_API_KEY =", key_file.read_text(encoding="utf-8"))
+                self.assertIn(secret, key_file.read_text(encoding="utf-8"))
+                with patch.dict(os.environ, {"OPENAI_API_KEY": ""}):
+                    self.assertEqual(get_api_key("OPENAI_API_KEY"), secret)
+
+                removed = self.client.post(
+                    "/api/settings/api-keys",
+                    json={"keys": {"OPENAI_API_KEY": None}},
+                )
+                self.assertEqual(removed.status_code, 200)
+                self.assertFalse(removed.json()["configured"]["OPENAI_API_KEY"])
+                with patch.dict(os.environ, {"OPENAI_API_KEY": ""}):
+                    self.assertEqual(get_api_key("OPENAI_API_KEY"), "")
 
     def test_create_follow_up_and_private_model_history(self):
         chat = self.create()

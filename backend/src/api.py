@@ -21,6 +21,11 @@ from agents.ba import is_exit_command
 from src.chat_service import build_prompt, run_turn, validate_attachment
 from src.llm_provider import list_providers, set_progress_enabled, set_provider
 from src.main import execute_ba_task
+from src.api_key_config import (
+    apply_api_key_updates,
+    get_api_key_status,
+    save_api_keys,
+)
 
 from src.detector_config import (DetectorConfig, get_detector_settings,save_detector_settings,)
 
@@ -77,6 +82,26 @@ class MessageInput(BaseModel):
         return self
 
 
+ApiKeyName = Literal[
+    "OPENAI_API_KEY",
+    "GEMINI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "CLAUDE_API_KEY",
+    "ETHERSCAN_API_KEY",
+    "DETECTOR_API_KEY",
+]
+
+
+class ApiKeyUpdate(BaseModel):
+    keys: dict[ApiKeyName, str | None] = Field(min_length=1, max_length=6)
+
+
+class ApiKeyStatus(BaseModel):
+    configured: dict[str, bool]
+    provider: str
+    configuration_error: str | None
+
+
 @dataclass
 class Chat:
     id: str = field(default_factory=lambda: uuid4().hex)
@@ -101,6 +126,7 @@ def create_app():
         labels = dict(list_providers())
         if provider not in labels:
             raise RuntimeError("CHAINGUARD_AI_PROVIDER must be openai, gemini, or claude.")
+        app.state.provider_id = provider
         app.state.provider = labels[provider]
         app.state.provider_error = None
         try:
@@ -135,6 +161,10 @@ def create_app():
         if chat is None:
             raise HTTPException(404, "Chat no longer available. Start a new chat.")
         return chat
+
+    @app.get("/health", include_in_schema=False)
+    async def health():
+        return {"status": "ok"}
     
     @app.get(
         "/api/settings/detector",
@@ -162,6 +192,35 @@ def create_app():
                 status_code=500,
                 detail=str(error),
             ) from error
+
+    @app.get("/api/settings/api-keys", response_model=ApiKeyStatus)
+    async def read_api_key_settings():
+        try:
+            return ApiKeyStatus(
+                configured=get_api_key_status(),
+                provider=app.state.provider,
+                configuration_error=app.state.provider_error,
+            )
+        except ValueError as error:
+            raise HTTPException(status_code=500, detail=str(error)) from error
+
+    @app.post("/api/settings/api-keys", response_model=ApiKeyStatus)
+    async def update_api_key_settings(body: ApiKeyUpdate):
+        try:
+            save_api_keys(body.keys)
+            apply_api_key_updates(body.keys)
+            try:
+                app.state.provider = set_provider(app.state.provider_id)
+                app.state.provider_error = None
+            except ValueError as error:
+                app.state.provider_error = str(error)
+            return ApiKeyStatus(
+                configured=get_api_key_status(),
+                provider=app.state.provider,
+                configuration_error=app.state.provider_error,
+            )
+        except ValueError as error:
+            raise HTTPException(status_code=500, detail=str(error)) from error
 
     @app.get("/api/chats")
     async def list_chats(request: Request):

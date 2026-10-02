@@ -11,6 +11,20 @@ export type DetectorSettings = {
   is_llm_based: boolean
 }
 
+export type ApiKeyName =
+  | 'OPENAI_API_KEY'
+  | 'GEMINI_API_KEY'
+  | 'ANTHROPIC_API_KEY'
+  | 'CLAUDE_API_KEY'
+  | 'ETHERSCAN_API_KEY'
+  | 'DETECTOR_API_KEY'
+
+export type ApiKeySettings = {
+  configured: Record<ApiKeyName, boolean>
+  provider: string
+  configuration_error: string | null
+}
+
 export type Message = {
   id: string; role: 'user' | 'assistant'; text: string; created_at: string
   attachments: Attachment[]

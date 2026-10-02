@@ -19,7 +19,6 @@ Information retrieved:
 import os
 import sys
 import json
-import importlib
 import requests
 
 
@@ -30,12 +29,9 @@ sys.path.append(
     )
 )
 
-try:
-    ETHERSCAN_API_KEY = importlib.import_module(
-        "api_keys.api_keys"
-    ).ETHERSCAN_API_KEY
-except (ImportError, AttributeError):
-    ETHERSCAN_API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+from src.api_key_config import get_api_key
+
+ETHERSCAN_API_KEY = get_api_key("ETHERSCAN_API_KEY")
 
 
 ETHERSCAN_URL = "https://api.etherscan.io/v2/api"
@@ -55,6 +51,8 @@ def get_transactions(
     sort: str = "desc"
 ) -> list[dict]:
 
+    api_key = get_api_key("ETHERSCAN_API_KEY")
+
     params = {
         "chainid": chain_id,
         "module": "account",
@@ -65,7 +63,7 @@ def get_transactions(
         "page": page,
         "offset": offset,
         "sort": sort,
-        "apikey": ETHERSCAN_API_KEY
+        "apikey": api_key
     }
 
     response = requests.get(

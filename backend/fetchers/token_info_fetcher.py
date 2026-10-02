@@ -20,7 +20,6 @@ Chain IDs:
 import os
 import sys
 import json
-import importlib
 import requests
 
 
@@ -31,12 +30,9 @@ sys.path.append(
     )
 )
 
-try:
-    ETHERSCAN_API_KEY = importlib.import_module(
-        "api_keys.api_keys"
-    ).ETHERSCAN_API_KEY
-except (ImportError, AttributeError):
-    ETHERSCAN_API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+from src.api_key_config import get_api_key
+
+ETHERSCAN_API_KEY = get_api_key("ETHERSCAN_API_KEY")
 
 
 # Etherscan API V2
@@ -62,7 +58,8 @@ def get_etherscan_api_key_error(data: dict) -> str | None:
 
 def get_token_info(wallet_address: str, chain_id: int = 1) -> dict:
 
-    if not ETHERSCAN_API_KEY.strip():
+    api_key = get_api_key("ETHERSCAN_API_KEY")
+    if not api_key:
         return {
             "error": (
                 "Etherscan API key is missing. Add ETHERSCAN_API_KEY "
@@ -73,7 +70,7 @@ def get_token_info(wallet_address: str, chain_id: int = 1) -> dict:
     # Common parameters used by Etherscan V2
     base_params = {
         "chainid": chain_id,
-        "apikey": ETHERSCAN_API_KEY
+        "apikey": api_key
     }
 
     # ---------------------------------------------------------

@@ -194,7 +194,7 @@ function App() {
   
         {page === 'settings' ? (
           <span className="provider">
-            Settings / API Wrapper Configuration
+            Settings / API Configuration
           </span>
         ) : (
           <span className="provider">
@@ -248,7 +248,13 @@ function App() {
   
   
       {page === 'settings' && (
-        <SettingsPage />
+        <SettingsPage
+          provider={provider}
+          onApiKeysSaved={settings => {
+            setProvider(settings.provider)
+            setConfigurationError(settings.configuration_error)
+          }}
+        />
       )}
   
     </AppLayout>

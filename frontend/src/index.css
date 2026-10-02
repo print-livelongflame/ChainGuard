@@ -310,6 +310,79 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
     background: #29161b;
     color: #ff9da2;
   }
+
+  .api-keys-card {
+    margin-top: 18px;
+  }
+
+  .api-keys-heading {
+    margin-bottom: 18px;
+  }
+
+  .api-keys-heading h2 {
+    margin: 0 0 8px;
+    color: #e3ebf7;
+    font-size: 17px;
+  }
+
+  .api-keys-heading p {
+    margin: 4px 0;
+    color: #9babc0;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .api-key-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 24px;
+  }
+
+  .api-key-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #1e2c40;
+  }
+
+  .api-key-row small {
+    color: #8191a8;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .api-key-actions {
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+  }
+
+  .api-key-status {
+    color: #9babc0;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .api-key-remove {
+    border: 1px solid #34445a;
+    border-radius: 6px;
+    padding: 5px 9px;
+    color: #becadd;
+    font-size: 11px;
+  }
+
+  .api-key-remove:hover:not(:disabled) {
+    border-color: #d74b51;
+    color: #ff9da2;
+  }
+
+  .api-key-remove:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+  }
   
   
   .settings-actions {
@@ -365,6 +438,10 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
     }
   
     .settings-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .api-key-grid {
       grid-template-columns: 1fr;
     }
   

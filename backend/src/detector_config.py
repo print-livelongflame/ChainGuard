@@ -1,13 +1,17 @@
 """Shared configuration for an external detector endpoint."""
 
 import json
+import os
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
-CONFIG_PATH = Path(__file__).resolve().parents[1] / "detector_config.json"
+CONFIG_PATH = Path(os.environ.get(
+    "CHAINGUARD_DETECTOR_CONFIG_PATH",
+    Path(__file__).resolve().parents[1] / "detector_config.json",
+))
 
 
 class DetectorConfig(BaseModel):
@@ -24,7 +28,18 @@ class DetectorConfig(BaseModel):
     is_llm_based: bool = False
 
 
-DEFAULT_DETECTOR_CONFIG = DetectorConfig()
+def default_detector_config() -> DetectorConfig:
+    return DetectorConfig(
+        enabled=os.environ.get("CHAINGUARD_DETECTOR_DEFAULT_ENABLED", "false").casefold() == "true",
+        name=os.environ.get(
+            "CHAINGUARD_DETECTOR_DEFAULT_NAME",
+            "ChainGuard External Detector",
+        ),
+        endpoint=os.environ.get(
+            "CHAINGUARD_DETECTOR_DEFAULT_ENDPOINT",
+            "http://127.0.0.1:9000/detect",
+        ),
+    )
 
 
 def get_detector_settings() -> DetectorConfig:
@@ -38,7 +53,7 @@ def get_detector_settings() -> DetectorConfig:
     try:
         contents = CONFIG_PATH.read_text(encoding="utf-8")
     except FileNotFoundError:
-        return DEFAULT_DETECTOR_CONFIG.model_copy(deep=True)
+        return default_detector_config()
     except OSError as error:
         raise ValueError("Cannot read detector_config.json.") from error
 
@@ -57,6 +72,7 @@ def save_detector_settings(config: DetectorConfig) -> DetectorConfig:
     validated = DetectorConfig.model_validate(config)
 
     try:
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
         CONFIG_PATH.write_text(
             json.dumps(
                 validated.model_dump(mode="json"),
