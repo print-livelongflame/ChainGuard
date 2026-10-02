@@ -22,6 +22,8 @@ from src.chat_service import build_prompt, run_turn, validate_attachment
 from src.llm_provider import list_providers, set_progress_enabled, set_provider
 from src.main import execute_ba_task
 
+from src.detector_config import (DetectorConfig, get_detector_settings,save_detector_settings,)
+
 logger = logging.getLogger(__name__)
 COOKIE = "chainguard_session"
 
@@ -133,6 +135,33 @@ def create_app():
         if chat is None:
             raise HTTPException(404, "Chat no longer available. Start a new chat.")
         return chat
+    
+    @app.get(
+        "/api/settings/detector",
+        response_model=DetectorConfig,
+    )
+    async def read_detector_settings():
+        try:
+            return get_detector_settings()
+        except ValueError as error:
+            raise HTTPException(
+                status_code=500,
+                detail=str(error),
+            ) from error
+
+
+    @app.post(
+        "/api/settings/detector",
+        response_model=DetectorConfig,
+    )
+    async def update_detector_settings(body: DetectorConfig):
+        try:
+            return save_detector_settings(body)
+        except ValueError as error:
+            raise HTTPException(
+                status_code=500,
+                detail=str(error),
+            ) from error
 
     @app.get("/api/chats")
     async def list_chats(request: Request):

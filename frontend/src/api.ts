@@ -1,13 +1,26 @@
 export type Attachment = { id: string; name: string; url: string | null }
+
 export type InputAttachment = { name: string; content: string }
+
+export type DetectorSettings = {
+  enabled: boolean
+  name: string
+  endpoint: string
+  mode: 'template' | 'generic'
+  required_input_type: 'address' | 'address_with_context'
+  is_llm_based: boolean
+}
+
 export type Message = {
   id: string; role: 'user' | 'assistant'; text: string; created_at: string
   attachments: Attachment[]
 }
+
 export type Chat = {
   id: string; title: string; created_at: string; messages: Message[]
   processing: boolean; error: string | null
 }
+
 export type ChatList = { chats: Chat[]; provider: string; configuration_error: string | null }
 
 export class ApiError extends Error {
