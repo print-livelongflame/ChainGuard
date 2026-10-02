@@ -10,7 +10,7 @@ AI LLM which wil help users to investigate blockchain wallet address
 ## Run the web chat
 
 Configure the backend keys as described below. Then use two terminals from the
-repository root.
+repository root. *!!!Note this setup is only temp, and currently working on create a 1 line command for users to use!!!*
 
 **Terminal 1 — API:**
 
@@ -61,6 +61,8 @@ configuration as a public service.
 | `GET /api/chats/{id}` | Transcript and processing state |
 | `POST /api/chats/{id}/messages` | Send `{ "text": "your question", "attachments": [{ "name": "notes.txt", "content": "..." }] }`; return completed chat |
 | `GET /api/chats/{id}/files/{file_id}` | Download an attached JSON result |
+| `GET /api/settings/detector` | Read the saved external detector configuration |
+| `POST /api/settings/detector` | Validate and save external detector settings to `backend/detector_config.json` |
 
 Chats expose `id`, `title`, `created_at`, `messages`, `processing`, and `error`.
 Messages contain `id`, `role`, `text`, `created_at`, and `attachments`; attachments
@@ -129,7 +131,7 @@ the environment or as the matching constant in `backend/api_keys/api_keys.py`:
 
 Values such as `"Enter key here"` are treated as unset.
 
-## Run ChainGuard
+## Run ChainGuard CLI
 
 Start the interactive CLI from the `backend/` directory:
 
@@ -256,6 +258,14 @@ Set `enabled` to `false` or remove `backend/detector_config.json` to return to
 `null` / `false`. Invalid configuration produces an error instead of silently
 reporting no detector. Registration describes setup; it does not check endpoint
 availability.
+
+In the web app, open **Settings**, edit the detector fields, then select **Save
+Changes**. The Enabled toggle is only a draft until saved. Enabling the detector
+does not start or install it; the service at `endpoint` must already be running
+and reachable from the backend. The backend sends an HTTP `POST` with an
+`AddressContext` JSON body and validates a `DetectionResult` response. Opening
+the endpoint in a browser sends `GET`, so a `405 Method Not Allowed` response
+can be expected; test it with a `POST` or the detector's `/docs` page.
 
 The optional `mode`, `required_input_type`, and `is_llm_based` settings default
 to `template`, `address_with_context`, and `false` for existing registrations.
