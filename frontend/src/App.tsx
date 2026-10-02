@@ -4,10 +4,13 @@ import type { Chat, ChatList, InputAttachment } from './api'
 import AppLayout from './layouts/AppLayout'
 import Sidebar from './components/Sidebar'
 import ChatPage from './pages/ChatPage'
+import SettingsPage from './pages/SettingsPage'
 
 const SELECTION_KEY = 'chainguard.activeChat'
+type Page = 'chat' | 'settings'
 
 function App() {
+  const [page, setPage] = useState<Page>('chat')
   const [chats, setChats] = useState<Chat[]>([])
   const [selected, setSelected] = useState<string | null>(null)
   const [provider, setProvider] = useState('Connecting…')
@@ -23,8 +26,14 @@ function App() {
 
   const select = useCallback((id: string | null) => {
     setSelected(id)
-    if (id) localStorage.setItem(SELECTION_KEY, id)
-    else localStorage.removeItem(SELECTION_KEY)
+  
+    if (id) {
+      localStorage.setItem(SELECTION_KEY, id)
+    } else {
+      localStorage.removeItem(SELECTION_KEY)
+    }
+  
+    setPage('chat')
     setSidebarOpen(false)
   }, [])
 
@@ -146,11 +155,104 @@ function App() {
     } finally { submitting.current.delete(originKey) }
   }
 
-  return <AppLayout sidebar={<Sidebar chats={chats} selected={selected} open={sidebarOpen} creating={creating || !ready} onNew={() => { void newChat() }} onSelect={select} onClose={() => setSidebarOpen(false)} />}>
-    <header className="topbar"><button className="mobile-menu icon-button" onClick={() => setSidebarOpen(true)} aria-label="Open navigation" aria-expanded={sidebarOpen} aria-controls="chat-navigation">☰</button><span>ChainGuard Assistant</span><span className="header-divider">/</span><span className="provider">{provider}</span></header>
-    {(notice || configurationError) && <div className="notice" role="status"><span>{notice || configurationError}</span><button onClick={() => { void restore() }}>Reconnect</button></div>}
-    <ChatPage key={active?.id ?? 'welcome'} chat={active} draft={draft} disabled={!ready || creating || !!active?.processing || !!configurationError} onDraft={value => setDrafts(current => ({ ...current, [draftKey]: value }))} onSend={send} />
-  </AppLayout>
-}
+  return (
+    <AppLayout
+      sidebar={
+        <Sidebar
+          chats={chats}
+          selected={selected}
+          page={page}
+          open={sidebarOpen}
+          creating={creating || !ready}
+          onNew={() => {
+            void newChat()
+          }}
+          onSelect={select}
+          onSettings={() => {
+            setPage('settings')
+            setSidebarOpen(false)
+          }}
+          onClose={() => setSidebarOpen(false)}
+        />
+      }
+    >
+  
+      <header className="topbar">
+        <button
+          className="mobile-menu icon-button"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open navigation"
+          aria-expanded={sidebarOpen}
+          aria-controls="chat-navigation"
+        >
+          ☰
+        </button>
+  
+        <span>ChainGuard Assistant</span>
+  
+        <span className="header-divider">/</span>
+  
+        {page === 'settings' ? (
+          <span className="provider">
+            Settings / API Wrapper Configuration
+          </span>
+        ) : (
+          <span className="provider">
+            {provider}
+          </span>
+        )}
+      </header>
+  
+  
+      {page === 'chat' && (
+        <>
+          {(notice || configurationError) && (
+            <div
+              className="notice"
+              role="status"
+            >
+              <span>
+                {notice || configurationError}
+              </span>
+  
+              <button
+                onClick={() => {
+                  void restore()
+                }}
+              >
+                Reconnect
+              </button>
+            </div>
+          )}
+  
+          <ChatPage
+            key={active?.id ?? 'welcome'}
+            chat={active}
+            draft={draft}
+            disabled={
+              !ready ||
+              creating ||
+              !!active?.processing ||
+              !!configurationError
+            }
+            onDraft={value =>
+              setDrafts(current => ({
+                ...current,
+                [draftKey]: value,
+              }))
+            }
+            onSend={send}
+          />
+        </>
+      )}
+  
+  
+      {page === 'settings' && (
+        <SettingsPage />
+      )}
+  
+    </AppLayout>
+  )
+  }
 
 export default App
