@@ -57,3 +57,7 @@ export async function api<T>(path: string, body?: object): Promise<T> {
   }
   return response.json() as Promise<T>
 }
+
+export type AuthSession = {
+  role: 'user' | 'admin'
+}
