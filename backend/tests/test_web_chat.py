@@ -59,6 +59,14 @@ class WebChatTests(unittest.TestCase):
         self.assertEqual(self.client.get("/health").json(), {"status": "ok"})
 
     def test_api_key_settings_write_only(self):
+        with patch.dict(os.environ, {
+            "CHAINGUARD_ADMIN_USERNAME": "admin",
+            "CHAINGUARD_ADMIN_PASSWORD": "test-password",
+        }):
+            response = self.client.post("/api/auth/login", json={
+                "username": "admin", "password": "test-password",
+            })
+        self.assertEqual(response.status_code, 200)
         secret = "test-openai-key-do-not-return"
         with tempfile.TemporaryDirectory() as directory:
             key_file = Path(directory) / "api_keys.py"

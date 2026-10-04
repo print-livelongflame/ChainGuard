@@ -16,7 +16,7 @@ from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.concurrency import run_in_threadpool
-from src.auth import router as auth_router, require_admin
+from src.auth import router as auth_router, require_login, get_session
 
 from agents.ba import is_exit_command
 from src.chat_service import build_prompt, run_turn, validate_attachment
@@ -122,6 +122,8 @@ def create_app():
     @asynccontextmanager
     async def lifespan(app):
         app.state.sessions = {}
+        app.state.auth_sessions = {}
+        app.state.account_chats = {}
         app.state.tasks = set()
         provider = os.environ.get("CHAINGUARD_AI_PROVIDER", "openai").strip().lower()
         labels = dict(list_providers())
@@ -142,6 +144,7 @@ def create_app():
                 await asyncio.gather(*app.state.tasks, return_exceptions=True)
 
     app = FastAPI(title="ChainGuard local chat", lifespan=lifespan)
+    app.include_router(auth_router)
 
     @app.middleware("http")
     async def browser_session(request: Request, call_next):
@@ -150,7 +153,12 @@ def create_app():
         if fresh:
             session_id = secrets.token_urlsafe(32)
             app.state.sessions[session_id] = {}
-        request.state.chats = app.state.sessions[session_id]
+        account = get_session(request)
+        if account:
+            identity = (account["role"], account["username"])
+            request.state.chats = app.state.account_chats.setdefault(identity, {})
+        else:
+            request.state.chats = app.state.sessions[session_id]
         response = await call_next(request)
         if fresh:
             response.set_cookie(COOKIE, session_id, httponly=True, samesite="strict")
@@ -170,6 +178,7 @@ def create_app():
     @app.get(
         "/api/settings/detector",
         response_model=DetectorConfig,
+        dependencies=[Depends(require_login)],
     )
     async def read_detector_settings():
         try:
@@ -184,6 +193,7 @@ def create_app():
     @app.post(
         "/api/settings/detector",
         response_model=DetectorConfig,
+        dependencies=[Depends(require_login)],
     )
     async def update_detector_settings(body: DetectorConfig):
         try:
@@ -194,7 +204,7 @@ def create_app():
                 detail=str(error),
             ) from error
 
-    @app.get("/api/settings/api-keys", response_model=ApiKeyStatus)
+    @app.get("/api/settings/api-keys", response_model=ApiKeyStatus, dependencies=[Depends(require_login)])
     async def read_api_key_settings():
         try:
             return ApiKeyStatus(
@@ -205,7 +215,7 @@ def create_app():
         except ValueError as error:
             raise HTTPException(status_code=500, detail=str(error)) from error
 
-    @app.post("/api/settings/api-keys", response_model=ApiKeyStatus)
+    @app.post("/api/settings/api-keys", response_model=ApiKeyStatus, dependencies=[Depends(require_login)])
     async def update_api_key_settings(body: ApiKeyUpdate):
         try:
             save_api_keys(body.keys)
