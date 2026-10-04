@@ -20,6 +20,12 @@ const API_KEY_FIELDS: { name: ApiKeyName; label: string; help: string }[] = [
   { name: 'DETECTOR_API_KEY', label: 'External detector', help: 'Optional; sent as X-API-Key to the detector.' },
 ]
 
+const AI_KEY_NAMES: ApiKeyName[] = [
+  'OPENAI_API_KEY', 'GEMINI_API_KEY', 'CLAUDE_API_KEY', 'ANTHROPIC_API_KEY',
+]
+const SHARED_KEY_FIELDS = API_KEY_FIELDS.filter(field => !AI_KEY_NAMES.includes(field.name))
+const AI_KEY_FIELDS = API_KEY_FIELDS.filter(field => AI_KEY_NAMES.includes(field.name))
+
 const EMPTY_API_KEY_STATUS: Record<ApiKeyName, boolean> = {
   OPENAI_API_KEY: false,
   GEMINI_API_KEY: false,
@@ -39,6 +45,7 @@ const EMPTY_API_KEY_VALUES: Record<ApiKeyName, string> = {
 }
 
 type Props = {
+  isAdmin: boolean
   provider: string
   onApiKeysSaved: (settings: ApiKeySettings) => void
 }
@@ -62,7 +69,7 @@ function normalizeEndpoint(endpoint: string) {
 }
 
 
-export default function SettingsPage({ provider, onApiKeysSaved }: Props) {
+export default function SettingsPage({ isAdmin, provider, onApiKeysSaved }: Props) {
   const [settings, setSettings] =
     useState<DetectorSettings>(DEFAULT_SETTINGS)
 
@@ -178,9 +185,11 @@ export default function SettingsPage({ provider, onApiKeysSaved }: Props) {
   }
 
 
-  async function saveApiKeys() {
+  async function saveApiKeys(group: 'shared' | 'ai') {
+    if (group === 'ai' && !isAdmin) return
+    const fields = group === 'ai' ? AI_KEY_FIELDS : SHARED_KEY_FIELDS
     const keys: Partial<Record<ApiKeyName, string | null>> = {}
-    for (const { name } of API_KEY_FIELDS) {
+    for (const { name } of fields) {
       const value = apiKeyValues[name].trim()
       if (keysToRemove[name]) keys[name] = null
       else if (value) keys[name] = value
@@ -201,8 +210,16 @@ export default function SettingsPage({ provider, onApiKeysSaved }: Props) {
         { keys },
       )
       setApiKeyStatus(result.configured)
-      setApiKeyValues({ ...EMPTY_API_KEY_VALUES })
-      setKeysToRemove({})
+      setApiKeyValues(current => {
+        const next = { ...current }
+        for (const { name } of fields) next[name] = ''
+        return next
+      })
+      setKeysToRemove(current => {
+        const next = { ...current }
+        for (const { name } of fields) delete next[name]
+        return next
+      })
       setKeyMessage('API keys saved. The active provider status has been refreshed.')
       onApiKeysSaved(result)
     } catch (error) {
@@ -416,18 +433,52 @@ export default function SettingsPage({ provider, onApiKeysSaved }: Props) {
       </div>
 
 
-      <div className="settings-card api-keys-card">
+      <div className="settings-actions">
+
+        <button
+          className="settings-default-button"
+          onClick={restoreDefaults}
+          disabled={saving}
+        >
+          Restore Defaults
+        </button>
+
+        <button
+          className="settings-reset-button"
+          onClick={reset}
+          disabled={saving}
+        >
+          Reset
+        </button>
+
+        <button
+          className="settings-save-button"
+          onClick={() => void save()}
+          disabled={saving}
+        >
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+
+      </div>
+      {keyMessage && <div className="settings-status settings-success" role="status">{keyMessage}</div>}
+      {keyError && <div className="settings-status settings-error" role="alert">{keyError}</div>}
+      {([
+        { id: 'shared' as const, title: 'Integration API Keys', fields: SHARED_KEY_FIELDS },
+        ...(isAdmin ? [{ id: 'ai' as const, title: 'AI Configuration — Admin', fields: AI_KEY_FIELDS }] : []),
+      ]).map(group => (
+      <section className="settings-card api-keys-card" key={group.id} aria-label={group.title}>
         <div className="api-keys-heading">
-          <h2>API Keys</h2>
-          <p>Active LLM provider: <strong>{provider}</strong></p>
-          <p>Keys are write-only here. Saved values are stored locally in the ignored backend API key file.</p>
+          <h2>{group.title}</h2>
+          {group.id === 'ai' && <>
+            <p>Admin only · Changes affect all users.</p>
+            <p>Active LLM provider: <strong>{provider}</strong></p>
+          </>}
+          <p>Enter a key to add or replace it. Saved keys are never displayed.</p>
         </div>
 
-        {keyMessage && <div className="settings-status settings-success" role="status">{keyMessage}</div>}
-        {keyError && <div className="settings-status settings-error" role="alert">{keyError}</div>}
 
         <div className="api-key-grid">
-          {API_KEY_FIELDS.map(({ name, label, help }) => (
+          {group.fields.map(({ name, label, help }) => (
             <div className="api-key-row" key={name}>
               <label className="settings-field">
                 <span>{label}</span>
@@ -472,42 +523,36 @@ export default function SettingsPage({ provider, onApiKeysSaved }: Props) {
           <button
             className="settings-save-button"
             type="button"
-            onClick={() => void saveApiKeys()}
+            onClick={() => void saveApiKeys(group.id)}
             disabled={loadingKeys || savingKeys}
           >
-            {savingKeys ? 'Saving…' : 'Save API Keys'}
+            {savingKeys ? 'Saving…' : group.id === 'ai' ? 'Save AI Keys' : 'Save Integration Keys'}
           </button>
         </div>
-      </div>
+      {group.id === 'ai' && (
+          <div className="ai-planned-controls">
+            <h3>AI Provider &amp; Self-hosted Model</h3>
+            <p>Coming next: provider selection, your own model, and connection testing.</p>
+            <fieldset disabled>
+              <legend className="sr-only">Upcoming AI configuration</legend>
+              <div className="settings-grid">
+                <label className="settings-field"><span>AI provider</span>
+                  <select defaultValue=""><option value="">Select provider (coming soon)</option><option>OpenAI</option><option>Gemini</option><option>Claude</option><option>Self-hosted AI</option></select>
+                </label>
+                <label className="settings-field"><span>Model name</span><input placeholder="Model name (coming soon)" /></label>
+                <label className="settings-field"><span>Self-hosted endpoint</span><input placeholder="https://your-model-server" /></label>
+              </div>
+              <div className="settings-actions">
+                <button type="button" className="settings-reset-button" disabled>Test Connection</button>
+                <button type="button" className="settings-save-button" disabled>Save AI Configuration</button>
+              </div>
+            </fieldset>
+          </div>
+        )}
+      </section>
 
+      ))}
 
-      <div className="settings-actions">
-
-        <button
-          className="settings-default-button"
-          onClick={restoreDefaults}
-          disabled={saving}
-        >
-          Restore Defaults
-        </button>
-
-        <button
-          className="settings-reset-button"
-          onClick={reset}
-          disabled={saving}
-        >
-          Reset
-        </button>
-
-        <button
-          className="settings-save-button"
-          onClick={() => void save()}
-          disabled={saving}
-        >
-          {saving ? 'Saving…' : 'Save Changes'}
-        </button>
-
-      </div>
     </section>
   )
 }

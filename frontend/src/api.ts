@@ -59,5 +59,7 @@ export async function api<T>(path: string, body?: object): Promise<T> {
 }
 
 export type AuthSession = {
-  role: 'user' | 'admin'
+  authenticated: boolean
+  role: 'user' | 'admin' | null
+  username: string | null
 }

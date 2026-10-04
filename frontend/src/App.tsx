@@ -3,7 +3,7 @@ import { api, ApiError } from './api'
 import type { AuthSession, Chat, ChatList, InputAttachment } from './api'
 import AppLayout from './layouts/AppLayout'
 import Sidebar from './components/Sidebar'
-import AdminLogin from './components/AdminLogin'
+import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
 import SettingsPage from './pages/SettingsPage'
 
@@ -11,10 +11,12 @@ const SELECTION_KEY = 'chainguard.activeChat'
 type Page = 'chat' | 'settings'
 
 function App() {
-  const [role, setRole] = useState<AuthSession['role']>('user')
+  const [session, setSession] = useState<AuthSession>({ authenticated: false, role: null, username: null })
+  const [logoutBusy, setLogoutBusy] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
   const [checkingAuth, setCheckingAuth] = useState(true)
   const authRevision = useRef(0)
-  const isAdmin = role === 'admin'
+  const isAdmin = session.role === 'admin'
   const [page, setPage] = useState<Page>('chat')
   const [chats, setChats] = useState<Chat[]>([])
   const [selected, setSelected] = useState<string | null>(null)
@@ -60,23 +62,28 @@ function App() {
   }, [select])
 
   useEffect(() => {
+    if (!session.authenticated) return
     // Defer startup so StrictMode's setup/cleanup probe cannot create two sessions.
     const timer = window.setTimeout(() => { void restore() }, 0)
     return () => window.clearTimeout(timer)
-  }, [restore])
+  }, [restore, session.authenticated, session.username])
 
   const handleSessionChange = useCallback((session: AuthSession) => {
     authRevision.current += 1
-    setRole(session.role)
+    setSession(session)
     setCheckingAuth(false)
-    if (session.role !== 'admin') {
+    if (!session.authenticated) {
+      setChats([])
+      setSelected(null)
+      setDrafts({})
+      setReady(false)
+      localStorage.removeItem(SELECTION_KEY)
       setPage('chat')
       setSidebarOpen(false)
     }
   }, [])
 
   useEffect(() => {
-    if (!ready) return
     let cancelled = false
 
     async function checkSession() {
@@ -88,19 +95,20 @@ function App() {
         }
       } catch {
         if (!cancelled && revision === authRevision.current) {
-          handleSessionChange({ role: 'user' })
+          handleSessionChange({ authenticated: false, role: null, username: null })
         }
       }
     }
 
-    void checkSession()
+    const timer = window.setTimeout(() => { void checkSession() }, 0)
     const onFocus = () => { void checkSession() }
     window.addEventListener('focus', onFocus)
     return () => {
       cancelled = true
+      window.clearTimeout(timer)
       window.removeEventListener('focus', onFocus)
     }
-  }, [ready, handleSessionChange])
+  }, [handleSessionChange])
 
   const updateChat = useCallback((updated: Chat) => {
     setChats(current => current.map(chat => chat.id === updated.id && updated.messages.length >= chat.messages.length ? updated : chat))
@@ -197,11 +205,29 @@ function App() {
     } finally { submitting.current.delete(originKey) }
   }
 
+  async function logout() {
+    setLogoutBusy(true)
+    setLogoutError('')
+    try {
+      handleSessionChange(await api<AuthSession>('/auth/logout', {}))
+    } catch {
+      setLogoutError('Could not sign out. Please try again.')
+    } finally {
+      setLogoutBusy(false)
+    }
+  }
+
+  if (checkingAuth) return <main className="login-page" role="status">Loading…</main>
+  if (!session.authenticated) return <LoginPage onLogin={handleSessionChange} />
+
   return (
     <AppLayout
       sidebar={
         <Sidebar
           isAdmin={isAdmin}
+          username={session.username ?? ''}
+          logoutBusy={logoutBusy}
+          onLogout={() => void logout()}
           chats={chats}
           selected={selected}
           page={page}
@@ -212,7 +238,6 @@ function App() {
           }}
           onSelect={select}
           onSettings={() => {
-            if (!isAdmin) return
             setPage('settings')
             setSidebarOpen(false)
           }}
@@ -221,12 +246,7 @@ function App() {
       }
     >
   
-      <AdminLogin
-        isAdmin={isAdmin}
-        checking={checkingAuth}
-        onSessionChange={handleSessionChange}
-      />
-
+      {logoutError && <p className="notice" role="alert">{logoutError}</p>}
       <header className="topbar">
         <button
           className="mobile-menu icon-button"
@@ -244,7 +264,7 @@ function App() {
   
         {page === 'settings' ? (
           <span className="provider">
-            Admin Settings / API Configuration
+            Settings / API Configuration
           </span>
         ) : (
           <span className="provider">
@@ -297,8 +317,10 @@ function App() {
       )}
   
   
-      {page === 'settings' && isAdmin && (
+      {page === 'settings' && (
         <SettingsPage
+          key={session.role}
+          isAdmin={isAdmin}
           provider={provider}
           onApiKeysSaved={settings => {
             setProvider(settings.provider)

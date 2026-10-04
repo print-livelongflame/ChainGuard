@@ -4,6 +4,9 @@ import Brand from './Brand'
 
 type Props = {
   isAdmin: boolean
+  username: string
+  logoutBusy: boolean
+  onLogout: () => void
   chats: Chat[]
   selected: string | null
   page: 'chat' | 'settings'
@@ -19,6 +22,9 @@ type Props = {
 
 export default function Sidebar({
   isAdmin,
+  username,
+  logoutBusy,
+  onLogout,
   chats,
   selected,
   page,
@@ -145,33 +151,27 @@ export default function Sidebar({
         </nav>
 
 
-        {isAdmin && (
-          <button
-            type="button"
-            className={`settings-nav-button ${page === 'settings' ? 'selected' : ''}`}
-            onClick={onSettings}
-            aria-current={page === 'settings' ? 'page' : undefined}
-          >
-            <span aria-hidden="true">⚙</span>
-            Admin Settings
-          </button>
-        )}
-
+        <button className={`settings-nav-button ${page === 'settings' ? 'selected' : ''}`} onClick={onSettings} aria-current={page === 'settings' ? 'page' : undefined}>
+          <span aria-hidden="true">⚙</span> Settings
+        </button>
 
         <div className="team">
           <span className="team-avatar">
-            CG
+            {username.slice(0, 2).toUpperCase()}
           </span>
 
           <div>
-            RMIT Capstone Team
+            {username}
 
             <small>
-              Project Alpha
+              {isAdmin ? 'Admin' : 'User'}
             </small>
           </div>
         </div>
 
+        <button className="settings-nav-button" onClick={onLogout} disabled={logoutBusy}>
+          {logoutBusy ? 'Signing out…' : 'Sign out'}
+        </button>
       </aside>
     </>
   )
