@@ -3,6 +3,7 @@ import Brand from './Brand'
 
 
 type Props = {
+  isAdmin: boolean
   chats: Chat[]
   selected: string | null
   page: 'chat' | 'settings'
@@ -17,6 +18,7 @@ type Props = {
 
 
 export default function Sidebar({
+  isAdmin,
   chats,
   selected,
   page,
@@ -143,20 +145,17 @@ export default function Sidebar({
         </nav>
 
 
-        <button
-          className={`settings-nav-button ${
-            page === 'settings'
-              ? 'selected'
-              : ''
-          }`}
-          onClick={onSettings}
-        >
-          <span aria-hidden="true">
-            ⚙
-          </span>
-
-          Settings
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            className={`settings-nav-button ${page === 'settings' ? 'selected' : ''}`}
+            onClick={onSettings}
+            aria-current={page === 'settings' ? 'page' : undefined}
+          >
+            <span aria-hidden="true">⚙</span>
+            Admin Settings
+          </button>
+        )}
 
 
         <div className="team">

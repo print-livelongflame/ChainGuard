@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, ApiError } from './api'
-import type { Chat, ChatList, InputAttachment } from './api'
+import type { AuthSession, Chat, ChatList, InputAttachment } from './api'
 import AppLayout from './layouts/AppLayout'
 import Sidebar from './components/Sidebar'
+import AdminLogin from './components/AdminLogin'
 import ChatPage from './pages/ChatPage'
 import SettingsPage from './pages/SettingsPage'
 
@@ -10,6 +11,10 @@ const SELECTION_KEY = 'chainguard.activeChat'
 type Page = 'chat' | 'settings'
 
 function App() {
+  const [role, setRole] = useState<AuthSession['role']>('user')
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  const authRevision = useRef(0)
+  const isAdmin = role === 'admin'
   const [page, setPage] = useState<Page>('chat')
   const [chats, setChats] = useState<Chat[]>([])
   const [selected, setSelected] = useState<string | null>(null)
@@ -59,6 +64,43 @@ function App() {
     const timer = window.setTimeout(() => { void restore() }, 0)
     return () => window.clearTimeout(timer)
   }, [restore])
+
+  const handleSessionChange = useCallback((session: AuthSession) => {
+    authRevision.current += 1
+    setRole(session.role)
+    setCheckingAuth(false)
+    if (session.role !== 'admin') {
+      setPage('chat')
+      setSidebarOpen(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!ready) return
+    let cancelled = false
+
+    async function checkSession() {
+      const revision = authRevision.current
+      try {
+        const session = await api<AuthSession>('/auth/me')
+        if (!cancelled && revision === authRevision.current) {
+          handleSessionChange(session)
+        }
+      } catch {
+        if (!cancelled && revision === authRevision.current) {
+          handleSessionChange({ role: 'user' })
+        }
+      }
+    }
+
+    void checkSession()
+    const onFocus = () => { void checkSession() }
+    window.addEventListener('focus', onFocus)
+    return () => {
+      cancelled = true
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [ready, handleSessionChange])
 
   const updateChat = useCallback((updated: Chat) => {
     setChats(current => current.map(chat => chat.id === updated.id && updated.messages.length >= chat.messages.length ? updated : chat))
@@ -159,6 +201,7 @@ function App() {
     <AppLayout
       sidebar={
         <Sidebar
+          isAdmin={isAdmin}
           chats={chats}
           selected={selected}
           page={page}
@@ -169,6 +212,7 @@ function App() {
           }}
           onSelect={select}
           onSettings={() => {
+            if (!isAdmin) return
             setPage('settings')
             setSidebarOpen(false)
           }}
@@ -177,6 +221,12 @@ function App() {
       }
     >
   
+      <AdminLogin
+        isAdmin={isAdmin}
+        checking={checkingAuth}
+        onSessionChange={handleSessionChange}
+      />
+
       <header className="topbar">
         <button
           className="mobile-menu icon-button"
@@ -194,7 +244,7 @@ function App() {
   
         {page === 'settings' ? (
           <span className="provider">
-            Settings / API Configuration
+            Admin Settings / API Configuration
           </span>
         ) : (
           <span className="provider">
@@ -247,7 +297,7 @@ function App() {
       )}
   
   
-      {page === 'settings' && (
+      {page === 'settings' && isAdmin && (
         <SettingsPage
           provider={provider}
           onApiKeysSaved={settings => {
