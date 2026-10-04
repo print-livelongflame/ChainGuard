@@ -12,10 +12,11 @@ from tempfile import TemporaryDirectory
 from typing import Literal
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.concurrency import run_in_threadpool
+from src.auth import router as auth_router, require_admin
 
 from agents.ba import is_exit_command
 from src.chat_service import build_prompt, run_turn, validate_attachment
