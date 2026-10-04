@@ -532,7 +532,6 @@ export default function SettingsPage({ isAdmin, provider, onApiKeysSaved }: Prop
       {group.id === 'ai' && (
           <div className="ai-planned-controls">
             <h3>AI Provider &amp; Self-hosted Model</h3>
-            <p>Coming next: provider selection, your own model, and connection testing.</p>
             <fieldset disabled>
               <legend className="sr-only">Upcoming AI configuration</legend>
               <div className="settings-grid">
