@@ -26,6 +26,11 @@ from agents.sch import assess_saved_context
 from detector_integration.client import call_detector
 from src.schema import AddressContext
 from src.detector_config import load_detector_config
+from src.fetcher_cache import (
+    build_fetcher_cache_key,
+    read_fetcher_cache,
+    write_fetcher_cache,
+)
 from src.llm_provider import (
     get_provider,
     list_providers,
@@ -36,6 +41,13 @@ from src.llm_provider import (
 
 console = Console()
 DEV_MODE = False
+FETCHER_CACHE_TTLS = {
+    "contract": 5 * 60,
+    "transactions": 60,
+    "liquidity": 60,
+    "token_info": 5 * 60,
+    "tx_hash": 24 * 60 * 60,
+}
 
 JSON_FILE = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -214,7 +226,31 @@ def utc_now_iso():
     )
 
 
-def run_fetcher(name, module_name, function_name, *args, **kwargs):
+def run_fetcher(
+    name,
+    module_name,
+    function_name,
+    *args,
+    cache_ttl_seconds=None,
+    **kwargs,
+):
+    cache_key = None
+    cache_info = None
+    if cache_ttl_seconds is not None:
+        cache_key = build_fetcher_cache_key(
+            name, module_name, function_name, args, kwargs
+        )
+        cached_data, cache_info = read_fetcher_cache(
+            cache_key, cache_ttl_seconds
+        )
+        if cache_info["source"] == "disk":
+            return {
+                "status": "pass",
+                "data": cached_data,
+                "error": None,
+                "cache": cache_info,
+            }
+
     try:
         module = __import__(module_name, fromlist=[function_name])
         fetcher = getattr(module, function_name)
@@ -226,6 +262,14 @@ def run_fetcher(name, module_name, function_name, *args, **kwargs):
             "data": None,
             "error": str(error),
         }
+
+    if cache_info is not None:
+        if result["status"] == "pass":
+            cache_info = write_fetcher_cache(
+                cache_key, result["data"], cache_ttl_seconds
+            )
+        result["cache"] = cache_info
+
     return result
 
 
@@ -306,9 +350,16 @@ def fetch_results(address, requested_fields=None):
                 function_name,
                 address,
                 chain_id=1,
+                cache_ttl_seconds=FETCHER_CACHE_TTLS[name],
             )
         else:
-            results[name] = run_fetcher(name, module_name, function_name, address)
+            results[name] = run_fetcher(
+                name,
+                module_name,
+                function_name,
+                address,
+                cache_ttl_seconds=FETCHER_CACHE_TTLS[name],
+            )
 
         if name == "contract":
             update_analysis_from_contract(address_analysis, results[name])
@@ -432,6 +483,9 @@ def build_fetcher_provenance(results, fetched_at):
             "fetched_at": fetched_at,
             "status": result.get("status", "skip"),
         }
+
+        if result.get("cache"):
+            entry["cache"] = result["cache"]
 
         if result.get("error"):
             entry["error"] = result["error"]
