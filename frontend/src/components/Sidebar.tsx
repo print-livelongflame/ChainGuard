@@ -3,6 +3,8 @@ import Brand from './Brand'
 
 
 type Props = {
+  authenticated: boolean
+  onSignIn: () => void
   isAdmin: boolean
   username: string
   logoutBusy: boolean
@@ -21,6 +23,8 @@ type Props = {
 
 
 export default function Sidebar({
+  authenticated,
+  onSignIn,
   isAdmin,
   username,
   logoutBusy,
@@ -164,14 +168,20 @@ export default function Sidebar({
             {username}
 
             <small>
-              {isAdmin ? 'Admin' : 'User'}
+              {isAdmin ? 'Admin' : authenticated ? 'User' : 'Guest'}
             </small>
           </div>
         </div>
 
-        <button className="settings-nav-button" onClick={onLogout} disabled={logoutBusy}>
-          {logoutBusy ? 'Signing out…' : 'Sign out'}
-        </button>
+        {authenticated ? (
+          <button className="settings-nav-button" onClick={onLogout} disabled={logoutBusy}>
+            {logoutBusy ? 'Signing out…' : 'Sign out'}
+          </button>
+        ) : (
+          <button className="settings-nav-button" onClick={onSignIn}>
+            Sign in
+          </button>
+        )}
       </aside>
     </>
   )

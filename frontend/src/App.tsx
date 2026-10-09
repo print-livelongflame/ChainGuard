@@ -16,7 +16,9 @@ function App() {
   const [logoutError, setLogoutError] = useState('')
   const [checkingAuth, setCheckingAuth] = useState(true)
   const authRevision = useRef(0)
-  const isAdmin = session.role === 'admin'
+  const [showLogin, setShowLogin] = useState(false)
+  const sessionIdentity = useRef('guest')
+  const isAdmin = session.authenticated && session.role === 'admin'
   const [page, setPage] = useState<Page>('chat')
   const [chats, setChats] = useState<Chat[]>([])
   const [selected, setSelected] = useState<string | null>(null)
@@ -45,8 +47,10 @@ function App() {
   }, [])
 
   const restore = useCallback(async () => {
+    const identity = sessionIdentity.current
     try {
       const result = await api<ChatList>('/chats')
+      if (identity !== sessionIdentity.current) return
       setChats(result.chats)
       setProvider(result.provider)
       setConfigurationError(result.configuration_error)
@@ -56,31 +60,41 @@ function App() {
       select(exists ? previous : result.chats[0]?.id ?? null)
       setReady(true)
     } catch {
+      if (identity !== sessionIdentity.current) return
       setNotice('Cannot connect to ChainGuard. Start the backend, then reconnect.')
       setReady(false)
     }
   }, [select])
 
   useEffect(() => {
-    if (!session.authenticated) return
+    if (checkingAuth) return
     // Defer startup so StrictMode's setup/cleanup probe cannot create two sessions.
     const timer = window.setTimeout(() => { void restore() }, 0)
     return () => window.clearTimeout(timer)
-  }, [restore, session.authenticated, session.username])
+  }, [restore, checkingAuth, session.authenticated, session.role, session.username])
 
-  const handleSessionChange = useCallback((session: AuthSession) => {
+  const handleSessionChange = useCallback((next: AuthSession) => {
     authRevision.current += 1
-    setSession(session)
-    setCheckingAuth(false)
-    if (!session.authenticated) {
+    const identity = next.authenticated
+      ? JSON.stringify([next.role, next.username])
+      : 'guest'
+
+    if (sessionIdentity.current !== identity) {
+      sessionIdentity.current = identity
       setChats([])
       setSelected(null)
       setDrafts({})
       setReady(false)
+      setNotice('')
+      setConfigurationError(null)
+      setProvider('Connecting…')
       localStorage.removeItem(SELECTION_KEY)
       setPage('chat')
       setSidebarOpen(false)
+      uncertain.current.clear()
     }
+    setSession(next)
+    setCheckingAuth(false)
   }, [])
 
   useEffect(() => {
@@ -218,14 +232,27 @@ function App() {
   }
 
   if (checkingAuth) return <main className="login-page" role="status">Loading…</main>
-  if (!session.authenticated) return <LoginPage onLogin={handleSessionChange} />
+  if (showLogin) return (
+    <LoginPage
+      onLogin={next => {
+        handleSessionChange(next)
+        setShowLogin(false)
+      }}
+      onBack={() => setShowLogin(false)}
+    />
+  )
 
   return (
     <AppLayout
       sidebar={
         <Sidebar
           isAdmin={isAdmin}
-          username={session.username ?? ''}
+          authenticated={session.authenticated}
+          username={session.username ?? 'Guest'}
+          onSignIn={() => {
+            setSidebarOpen(false)
+            setShowLogin(true)
+          }}
           logoutBusy={logoutBusy}
           onLogout={() => void logout()}
           chats={chats}

@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from src.api import create_app
+from src.detector_config import DetectorConfig
 
 
 class AuthTests(unittest.TestCase):
@@ -30,15 +31,58 @@ class AuthTests(unittest.TestCase):
             "username": "admin", "password": "test-password",
         })
 
-    def test_user_can_chat_but_all_settings_routes_are_blocked(self):
+    def test_guest_can_chat_and_read_settings(self):
         self.assertEqual(self.client.get("/api/auth/me").json(), {"authenticated": False, "role": None, "username": None})
         self.assertEqual(self.client.post("/api/chats").status_code, 201)
         for path in ("detector", "api-keys"):
-            for method in ("GET", "POST"):
-                response = self.client.request(method, f"/api/settings/{path}", json={})
-                self.assertEqual(response.status_code, 401)
+            self.assertEqual(self.client.get(f"/api/settings/{path}").status_code, 200)
 
-    def test_login_logout_preserves_chat_and_revokes_token(self):
+    def test_guest_and_user_can_update_normal_settings(self):
+        config = DetectorConfig(endpoint="http://127.0.0.1:9000/detect")
+        for signed_in in (False, True):
+            if signed_in:
+                self.client.post("/api/auth/login", json={
+                    "username": "user", "password": "user-password",
+                })
+            with patch("src.api.save_detector_settings", return_value=config) as save:
+                response = self.client.post("/api/settings/detector", json=config.model_dump(mode="json"))
+                self.assertEqual(response.status_code, 200)
+                save.assert_called_once()
+            with patch("src.api.save_api_keys") as save, patch("src.api.apply_api_key_updates"):
+                keys = {"ETHERSCAN_API_KEY": "test-key", "DETECTOR_API_KEY": None}
+                response = self.client.post("/api/settings/api-keys", json={"keys": keys})
+                self.assertEqual(response.status_code, 200)
+                save.assert_called_once_with(keys)
+
+    def test_ai_key_changes_require_admin_before_any_writes(self):
+        for role, expected in ((None, 401), ("user", 403), ("admin", 200)):
+            if role:
+                self.client.post("/api/auth/login", json={
+                    "username": role,
+                    "password": "test-password" if role == "admin" else "user-password",
+                })
+            for name in ("OPENAI_API_KEY", "GEMINI_API_KEY", "CLAUDE_API_KEY", "ANTHROPIC_API_KEY"):
+                for value in ("test-key", None):
+                    with self.subTest(role=role, name=name, value=value):
+                        with patch("src.api.save_api_keys") as save, patch("src.api.apply_api_key_updates") as apply:
+                            keys = {name: value, "ETHERSCAN_API_KEY": "shared-key"}
+                            response = self.client.post("/api/settings/api-keys", json={"keys": keys})
+                            self.assertEqual(response.status_code, expected)
+                            if role == "admin":
+                                save.assert_called_once_with(keys)
+                                apply.assert_called_once_with(keys)
+                            else:
+                                save.assert_not_called()
+                                apply.assert_not_called()
+
+    def test_guest_history_survives_login_and_logout(self):
+        chat = self.client.post("/api/chats").json()["id"]
+        self.login()
+        self.assertEqual(self.client.get(f"/api/chats/{chat}").status_code, 404)
+        self.client.post("/api/auth/logout")
+        self.assertEqual(self.client.get(f"/api/chats/{chat}").status_code, 200)
+
+    def test_logout_hides_account_chat_and_revokes_token(self):
         response = self.login()
         chat = self.client.post("/api/chats").json()["id"]
         self.assertEqual(response.status_code, 200)
@@ -49,7 +93,7 @@ class AuthTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/auth/logout").json(), {"authenticated": False, "role": None, "username": None})
         self.assertEqual(self.client.get(f"/api/chats/{chat}").status_code, 404)
         self.assertNotIn(token, self.app.state.auth_sessions)
-        self.assertEqual(self.client.get("/api/settings/api-keys").status_code, 401)
+        self.assertEqual(self.client.get("/api/settings/api-keys").status_code, 200)
 
     def test_wrong_password_expiry_and_session_rotation(self):
         response = self.client.post("/api/auth/login", json={
@@ -63,7 +107,7 @@ class AuthTests(unittest.TestCase):
         token = self.client.cookies.get("chainguard_auth")
         self.app.state.auth_sessions[token]["expires_at"] = 0
         self.assertEqual(self.client.get("/api/auth/me").json(), {"authenticated": False, "role": None, "username": None})
-        self.assertEqual(self.client.get("/api/settings/detector").status_code, 401)
+        self.assertEqual(self.client.get("/api/settings/detector").status_code, 200)
 
     def test_user_settings_and_account_chat_isolation(self):
         self.login()

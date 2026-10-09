@@ -12,11 +12,11 @@ from tempfile import TemporaryDirectory
 from typing import Literal
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 from starlette.concurrency import run_in_threadpool
-from src.auth import router as auth_router, require_login, get_session
+from src.auth import router as auth_router, require_admin, get_session
 
 from agents.ba import is_exit_command
 from src.chat_service import build_prompt, run_turn, validate_attachment
@@ -182,7 +182,6 @@ def create_app():
     @app.get(
         "/api/settings/detector",
         response_model=DetectorConfig,
-        dependencies=[Depends(require_login)],
     )
     async def read_detector_settings():
         try:
@@ -197,7 +196,6 @@ def create_app():
     @app.post(
         "/api/settings/detector",
         response_model=DetectorConfig,
-        dependencies=[Depends(require_login)],
     )
     async def update_detector_settings(body: DetectorConfig):
         try:
@@ -208,7 +206,7 @@ def create_app():
                 detail=str(error),
             ) from error
 
-    @app.get("/api/settings/api-keys", response_model=ApiKeyStatus, dependencies=[Depends(require_login)])
+    @app.get("/api/settings/api-keys", response_model=ApiKeyStatus)
     async def read_api_key_settings():
         try:
             return ApiKeyStatus(
@@ -219,8 +217,13 @@ def create_app():
         except ValueError as error:
             raise HTTPException(status_code=500, detail=str(error)) from error
 
-    @app.post("/api/settings/api-keys", response_model=ApiKeyStatus, dependencies=[Depends(require_login)])
-    async def update_api_key_settings(body: ApiKeyUpdate):
+    @app.post("/api/settings/api-keys", response_model=ApiKeyStatus)
+    async def update_api_key_settings(body: ApiKeyUpdate, request: Request):
+        admin_only_keys = {
+            "OPENAI_API_KEY", "GEMINI_API_KEY", "CLAUDE_API_KEY", "ANTHROPIC_API_KEY",
+        }
+        if admin_only_keys.intersection(body.keys):
+            require_admin(request)
         try:
             save_api_keys(body.keys)
             apply_api_key_updates(body.keys)

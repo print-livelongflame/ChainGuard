@@ -3,7 +3,12 @@ import type { FormEvent } from 'react'
 import { api, ApiError } from '../api'
 import type { AuthSession } from '../api'
 
-export default function LoginPage({ onLogin }: { onLogin: (session: AuthSession) => void }) {
+type Props = {
+  onLogin: (session: AuthSession) => void
+  onBack: () => void
+}
+
+export default function LoginPage({ onLogin, onBack }: Props) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -32,6 +37,9 @@ export default function LoginPage({ onLogin }: { onLogin: (session: AuthSession)
       <label>Password<input type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} maxLength={200} required disabled={busy} /></label>
       {error && <p role="alert" className="login-error">{error}</p>}
       <button className="gradient-button" disabled={busy || !username.trim() || !password}>{busy ? 'Signing in…' : 'Sign in'}</button>
+      <button type="button" className="settings-nav-button" onClick={onBack} disabled={busy}>
+        Continue without signing in
+      </button>
     </form>
   </main>
 }
