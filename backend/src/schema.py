@@ -14,6 +14,7 @@ class FetcherProvenance(BaseModel):
     fetched_at: str | None = None
     status: str = "skip"
     error: str | None = None
+    cache: dict[str, Any] = Field(default_factory=dict)
 
 
 class ContractAddressMatch(BaseModel):

@@ -296,6 +296,15 @@ The API has two key stages:
 
 The builder is important because the detector should receive consistent data, not a pile of raw fetcher results with different formats and skip/fail states.
 
+Address lookups persist successful fetcher results under
+`backend/fetchers/cache/fetcher_results/`. Cache keys include the fetcher,
+address, chain, and other request arguments. Transactions and liquidity expire
+after 60 seconds, contract and token information after 5 minutes, and
+transaction-hash lookups after 24 hours. Failed and skipped fetches are not
+cached. Each fetcher's provenance reports whether its result came from the
+network or disk, along with the fetch time, age, and TTL. Delete that cache
+folder to force fresh results.
+
 ## Why the context builder exists
 
 The fetchers do not all return the same thing:
