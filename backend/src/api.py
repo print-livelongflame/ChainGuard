@@ -121,6 +121,10 @@ class Chat:
 def create_app():
     @asynccontextmanager
     async def lifespan(app):
+        # Initialize LiteLLM on the main thread before chat workers start.
+        # Its logging imports can deadlock during a first import in a worker.
+        import litellm
+
         app.state.sessions = {}
         app.state.auth_sessions = {}
         app.state.account_chats = {}

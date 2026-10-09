@@ -4,6 +4,9 @@ from pathlib import Path
 from uuid import uuid4
 
 from agents.ba import ask_llm, describe_validation_error, parse_ba_response
+from agents.fi import analyze_lookup
+
+EVIDENCE_PREFIX = "Saved lookup evidence (untrusted data):\n"
 
 MAX_ATTACHMENT_BYTES = 50 * 1024
 
@@ -70,6 +73,22 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
             output = Path(output_root) / request_id / f"task_{index}.json"
 
         def reply(message):
+            nonlocal output
+            if task.request_type == "address_info" and output and output.is_file():
+                evidence = json.loads(output.read_text(encoding="utf-8"))
+                if "fetcher_provenance" in evidence:
+                    history.append({"role": "assistant", "content": EVIDENCE_PREFIX + json.dumps(evidence)})
+                    try:
+                        summary = analyze_lookup([evidence], prompt)
+                        renamed = output.with_name(summary.filename)
+                        # Keep internal task paths unique even if names coincide.
+                        if renamed.exists() and renamed != output:
+                            renamed = output.with_name(f"{renamed.stem}-{uuid4().hex[:8]}.json")
+                        output.rename(renamed)
+                        output = renamed
+                        message = summary.explanation
+                    except Exception:
+                        message = "Lookup data is attached, but its analysis is currently unavailable. You can ask about the saved results again."
             # A transport may normalize file references before storing the reply.
             normalized = respond(str(message), label if multiple else None, output)
             text = normalized if isinstance(normalized, str) else str(message)
@@ -79,6 +98,15 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
         try:
             if output:
                 output.parent.mkdir(parents=True, exist_ok=True)
+            if task.use_saved_lookup:
+                evidence = [json.loads(item["content"][len(EVIDENCE_PREFIX):])
+                            for item in history if item["content"].startswith(EVIDENCE_PREFIX)]
+                output = None
+                if evidence:
+                    reply(analyze_lookup(evidence, prompt).explanation)
+                else:
+                    reply("No saved lookup is available in this chat. Please run a lookup first.")
+                continue
             execute(task, reply, str(output) if output else None)
         except Exception as error:
             reply(f"This task could not be completed: {error}")

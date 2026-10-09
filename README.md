@@ -330,6 +330,29 @@ This keeps the detector logic simple and future-proof.
 
 ---
 
+## Address lookup summaries and follow-ups
+
+An `address_info` lookup calls the Business Analyser to plan the request, runs
+the selected fetchers, and passes the assembled JSON to the Forensic
+Investigator. The investigator produces a plain-text summary and a descriptive
+JSON download filename. Filenames are sanitized before use; the downloaded
+JSON retains the fetched context and provenance.
+
+Contract lookups also read `name()` and `symbol()` through Etherscan `eth_call`,
+including for unverified contracts. The assembled context stores these under
+`contract.token_metadata`, with address, chain ID, `latest` block tag, fetch time,
+and separate success/failure statuses for each field. Standard ABI strings and
+legacy bytes32 returns are supported. Wallets and delegated wallets skip these
+calls; unavailable metadata does not discard the other contract results. These
+values describe the contract's reported identity, not verified project ownership.
+
+Lookup evidence is retained privately in the current chat history. Questions
+such as "What are the notable transactions?" are routed by the BA using
+`use_saved_lookup` and answered by the investigator from the saved data without
+another fetch. Fresh lookups still run the fetchers. The investigator distinguishes
+failed or skipped fetches from successful empty results. If analysis fails, the
+JSON remains downloadable. Web chat history and evidence expire on backend restart.
+
 ## External detector registration
 
 The detection algorithm is hosted outside this repository. To register it with

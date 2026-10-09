@@ -338,6 +338,7 @@ def normalize_contract_context(results):
         "verified_source": bool(abi),
         "creation_tx": data.get("creation_tx"),
         "creator": data.get("creator"),
+        "token_metadata": data.get("token_metadata", {}),
     }
 
 
@@ -695,7 +696,7 @@ def handle_ba_request(prompt, history=None):
             prompt, history if history is not None else [],
             execute=execute_ba_task, respond=respond,
             output_root=os.path.join(os.path.dirname(JSON_FILE), "requests"),
-            unique_single_output=False,
+            unique_single_output=True,
             on_analysis=lambda payload: debug_print_json("BA task analysis", payload),
             on_task=task_heading,
         )

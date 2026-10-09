@@ -23,6 +23,7 @@ import os
 import sys
 import json
 import requests
+from datetime import datetime, timezone
 
 
 # Allow imports from project root
@@ -189,8 +190,66 @@ def get_contract_info(
         "bytecode": bytecode,
         "abi": abi,
         "creator": creator,
-        "creation_tx": creation_tx
+        "creation_tx": creation_tx,
+        "token_metadata": get_token_metadata(contract_address, bytecode, base_params),
     }
+
+
+def decode_metadata_string(value):
+    """Decode standard ABI string returns and legacy bytes32 metadata."""
+    if not isinstance(value, str) or not value.startswith("0x") or len(value) > 16386:
+        raise ValueError("Invalid metadata return data.")
+    raw = bytes.fromhex(value[2:])
+    if len(raw) == 32:
+        content = raw.rstrip(b"\x00")
+    else:
+        if len(raw) < 64 or len(raw) % 32:
+            raise ValueError("Malformed ABI string return.")
+        offset = int.from_bytes(raw[:32], "big")
+        if offset != 32:
+            raise ValueError("Invalid ABI string offset.")
+        length = int.from_bytes(raw[offset:offset + 32], "big")
+        if length > 4096 or offset + 32 + ((length + 31) // 32) * 32 > len(raw):
+            raise ValueError("Invalid ABI string length.")
+        content = raw[offset + 32:offset + 32 + length]
+    text = content.decode("utf-8")
+    if not text.strip() or any(ord(char) < 32 or ord(char) == 127 for char in text):
+        raise ValueError("Empty or invalid metadata text.")
+    return text
+
+
+def get_token_metadata(address, bytecode, base_params):
+    """Read contract-reported identity; metadata failures do not fail the lookup."""
+    metadata = {
+        "name": None, "symbol": None, "source": "etherscan_eth_call",
+        "address": address, "chain_id": base_params["chainid"], "block_tag": "latest",
+        "fetched_at": datetime.now(timezone.utc).isoformat(), "fields": {},
+    }
+    is_code = (isinstance(bytecode, str) and bytecode.startswith("0x")
+               and len(bytecode) > 2 and not (len(bytecode) == 48
+               and bytecode.lower().startswith("0xef0100")))
+    for field, selector in (("name", "0x06fdde03"), ("symbol", "0x95d89b41")):
+        if not is_code:
+            metadata["fields"][field] = {
+                "status": "skip", "error": "No ordinary contract bytecode available; token identity was not queried."
+            }
+            continue
+        try:
+            response = requests.get(ETHERSCAN_URL, params={
+                **base_params, "module": "proxy", "action": "eth_call",
+                "to": address, "data": selector, "tag": "latest",
+            }, timeout=10)
+            response.raise_for_status()
+            payload = response.json()
+            if payload.get("error") or payload.get("status") == "0":
+                raise ValueError("Metadata call failed or was rejected by Etherscan.")
+            metadata[field] = decode_metadata_string(payload.get("result"))
+            metadata["fields"][field] = {"status": "pass", "error": None}
+        except (requests.RequestException, ValueError, TypeError):
+            metadata["fields"][field] = {
+                "status": "fail", "error": "Metadata unavailable: the call failed or returned unsupported data."
+            }
+    return metadata
 
 
 def save_json(filename: str, data, folder=JSON_FOLDER):

@@ -237,6 +237,57 @@ class WebChatTests(unittest.TestCase):
         self.assertEqual(self.client.get("/api/chats").json()["chats"], [])
         self.assertEqual(self.client.get(f"/api/chats/{chat}").status_code, 404)
 
+    def test_lookup_summary_named_download_and_follow_up_use_saved_evidence(self):
+        address = "0x" + "1" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="address_info", chain="ethereum",
+            raw_input={"type": "address", "value": address},
+            required_input_type="address", requested_fields=["tx_history"],
+        ))
+        fetch_result = ({"transactions": {"status": "pass", "data": [
+            {"hash": "0xabc", "from": address, "to": address, "value_wei": "42"}
+        ], "error": None}}, {"chain_family": "evm", "address_type": "unknown"})
+        with patch("src.main.fetch_results", return_value=fetch_result) as fetcher, patch(
+            "agents.fi.complete", side_effect=[
+                json.dumps({"explanation": "Found one transaction: 0xabc.", "filename": "../../wallet-transactions.json"}),
+                json.dumps({"explanation": "The notable transaction is 0xabc, value 42.", "filename": "wallet-transactions.json"}),
+            ],
+        ) as investigator:
+            chat = self.create()
+            result = self.send(chat, "Show transaction history").json()
+            reply = result["messages"][-1]
+            self.assertEqual(reply["text"], "Found one transaction: 0xabc.")
+            file = reply["attachments"][0]
+            self.assertEqual(file["name"], "wallet-transactions.json")
+            downloaded = self.client.get(file["url"])
+            self.assertEqual(downloaded.json()["tx_history"][0]["hash"], "0xabc")
+            self.assertIn("wallet-transactions.json", downloaded.headers["content-disposition"])
+            self.complete.return_value = envelope(task(
+                None, request_type="address_info", use_saved_lookup=True,
+            ))
+            follow_up = self.send(chat, "What transactions are notable?").json()["messages"][-1]
+            self.assertIn("0xabc", follow_up["text"])
+            self.assertEqual(follow_up["attachments"], [])
+            fetcher.assert_called_once()
+            evidence = json.loads(investigator.call_args.kwargs["messages"][-1]["content"])
+            self.assertEqual(evidence["lookups"][0]["tx_history"][0]["hash"], "0xabc")
+            self.assertNotIn("Saved lookup evidence", json.dumps(result))
+
+    def test_lookup_analysis_failure_keeps_download_and_evidence(self):
+        self.complete.return_value = envelope(task(
+            None, request_type="address_info", chain="ethereum",
+            raw_input={"type": "address", "value": "0x" + "1" * 40},
+            requested_fields=["tx_history"],
+        ))
+        with patch("src.main.fetch_results", return_value=(
+            {"transactions": {"status": "fail", "data": None, "error": "API unavailable"}},
+            {"chain_family": "evm"},
+        )), patch("agents.fi.complete", side_effect=ValueError("Provider unavailable")):
+            reply = self.send(self.create()).json()["messages"][-1]
+        self.assertIn("analysis is currently unavailable", reply["text"])
+        data = self.client.get(reply["attachments"][0]["url"]).json()
+        self.assertEqual(data["fetcher_provenance"]["tx_history_fetcher"]["status"], "fail")
+
     def test_cli_uses_shared_service_and_keeps_terminal_reply(self):
         history = []
         output = io.StringIO()
