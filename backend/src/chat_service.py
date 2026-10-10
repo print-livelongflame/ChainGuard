@@ -9,7 +9,7 @@ from agents.fi import analyze_lookup
 
 EVIDENCE_PREFIX = "Saved lookup evidence (untrusted data):\n"
 
-MAX_ATTACHMENT_BYTES = 50 * 1024
+MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 
 
 def build_output_filename(task):
@@ -32,7 +32,7 @@ def validate_attachment(name, content):
     except UnicodeEncodeError as error:
         raise ValueError("Attachments must contain valid UTF-8 text.") from error
     if content_size > MAX_ATTACHMENT_BYTES:
-        raise ValueError("Each attachment must be 50 KB or smaller.")
+        raise ValueError("Each attachment must be 10 MB or smaller.")
     if suffix == ".json":
         try:
             json.loads(content)

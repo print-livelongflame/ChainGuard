@@ -12,7 +12,8 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from src.api import create_app
+from src.api import InputAttachment, create_app
+from src.chat_service import MAX_ATTACHMENT_BYTES
 from src.main import handle_ba_request
 
 
@@ -139,6 +140,12 @@ class WebChatTests(unittest.TestCase):
         self.assertEqual(self.client.get(f"/api/chats/{chat}").json()["messages"], [])
         self.complete.assert_not_called()
 
+    def test_attachment_limit_is_10_mib(self):
+        attachment = InputAttachment(name="notes.txt", content="a" * MAX_ATTACHMENT_BYTES)
+        self.assertEqual(len(attachment.content), 10 * 1024 * 1024)
+        with self.assertRaises(ValueError):
+            InputAttachment(name="notes.txt", content="a" * (MAX_ATTACHMENT_BYTES + 1))
+
     def test_commands_do_not_exit_or_change_provider(self):
         chat = self.create()
         self.assertIn("configured on the server", self.send(chat, "change ai").json()["messages"][-1]["text"])
@@ -249,6 +256,39 @@ class WebChatTests(unittest.TestCase):
 
         self.assertEqual(reply["attachments"][0]["name"], f"scam-check-{address}.json")
         self.assertNotIn("scam-check-", reply["text"])
+
+    def test_attached_json_target_can_drive_scam_check(self):
+        address = "0x" + "2" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="scam_check", chain="ethereum",
+            raw_input={"type": "address", "value": address},
+            required_input_type="address_with_context",
+            requested_fields=["contract", "tx_history", "tokens", "liquidity"],
+        ))
+
+        def execute(item, respond, output, **kwargs):
+            self.assertEqual(item.request_type, "scam_check")
+            self.assertEqual(item.raw_input.value, address)
+            Path(output).write_text(json.dumps({"address": address}))
+            respond("Scam check complete.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            response = self.client.post(
+                f"/api/chats/{self.create()}/messages",
+                json={
+                    "text": "",
+                    "attachments": [{
+                        "name": "token.json",
+                        "content": json.dumps({"address": address}),
+                    }],
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["messages"][-1]["text"], "Scam check complete.")
+        model_messages = self.complete.call_args.kwargs["messages"]
+        self.assertIn("ATTACHED JSON FILES", model_messages[0]["content"])
+        self.assertIn(address, model_messages[-1]["content"])
 
     def test_backend_restart_expires_chats(self):
         chat = self.create()

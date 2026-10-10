@@ -119,7 +119,7 @@ keep the browser on the Vite URL so session cookies and downloads use the same o
 
 Select **New Chat**, or type in the welcome screen to create a chat automatically.
 Enter sends a message; Shift+Enter adds a newline. Use the paperclip button to
-attach one UTF-8 `.txt` or `.json` file (up to 50 KB) to a message. Suggestion
+attach one UTF-8 `.txt` or `.json` file (up to 10 MB) to a message. Suggestion
 cards fill an editable prompt. Replace address placeholders with a complete
 Ethereum address. Replies can include JSON download links. The sidebar switches between conversations,
 including while another conversation is processing.
@@ -231,7 +231,7 @@ python -m src.main
 ```
 
 In the interactive CLI, enter `attach "path to file.json"` to queue a UTF-8
-`.txt` or `.json` file (up to 50 KB) for your next prompt. The file is sent as
+`.txt` or `.json` file (up to 10 MB) for your next prompt. The file is sent as
 untrusted reference data; JSON attachments must parse successfully.
 
 Use development mode to print the raw BA analysis alongside plain-text

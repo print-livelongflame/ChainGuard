@@ -19,7 +19,12 @@ from starlette.concurrency import run_in_threadpool
 from src.auth import router as auth_router, require_admin, get_session
 
 from agents.ba import is_exit_command
-from src.chat_service import build_prompt, run_turn, validate_attachment
+from src.chat_service import (
+    MAX_ATTACHMENT_BYTES,
+    build_prompt,
+    run_turn,
+    validate_attachment,
+)
 from src.llm_provider import list_providers, set_progress_enabled, set_provider
 from src.main import execute_ba_task
 from src.api_key_config import (
@@ -46,7 +51,7 @@ class Attachment(BaseModel):
 
 class InputAttachment(BaseModel):
     name: str = Field(min_length=1, max_length=255)
-    content: str = Field(max_length=50 * 1024)
+    content: str = Field(max_length=MAX_ATTACHMENT_BYTES)
 
     @model_validator(mode="after")
     def valid_file(self):

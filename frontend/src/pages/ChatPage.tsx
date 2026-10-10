@@ -30,8 +30,8 @@ export default function ChatPage({ chat, draft, disabled, onDraft, onSend }: Pro
       setFileError('Choose a .txt or .json file.')
       return
     }
-    if (file.size > 50 * 1024) {
-      setFileError('Files must be 50 KB or smaller.')
+    if (file.size > 10 * 1024 * 1024) {
+      setFileError('Files must be 10 MB or smaller.')
       return
     }
     try {
