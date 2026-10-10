@@ -1,4 +1,4 @@
-"""Turn non-LLM detector results into a concise user-facing explanation."""
+"""Turn lookup evidence and non-LLM detector results into user-facing explanations."""
 
 import json
 import re
@@ -13,6 +13,19 @@ class LookupAnalysis(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     explanation: str = Field(min_length=1)
     filename: str = Field(min_length=1)
+
+
+def remove_filename_suggestion(explanation: str) -> str:
+    """Keep a suggested download filename out of the user-facing explanation."""
+    explanation = re.sub(
+        r"\s*(?:filename suggestion|suggested filename):\s*.*$",
+        "",
+        explanation,
+        flags=re.IGNORECASE | re.DOTALL,
+    ).strip()
+    if not explanation:
+        raise ValueError("The Forensic Investigator returned no user-facing explanation.")
+    return explanation
 
 
 def analyze_lookup(evidence: list[dict], question: str) -> LookupAnalysis:
@@ -34,8 +47,9 @@ Use contract.token_metadata for the target's name and symbol, checking its field
 statuses. These are contract-reported values, not proof of an official project
 identity. Tokens in the tokens list may be other assets held by the address.
 Suggest a concise descriptive .json filename based on supported identity,
-address and requested categories. Return
-the requested JSON envelope; explanation must be user-facing plain text."""},
+address and requested categories in the filename field only. Do not include
+the filename or a filename suggestion in the explanation. Return the requested
+JSON envelope; explanation must be user-facing plain text."""},
             {"role": "user", "content": json.dumps({"question": question, "lookups": evidence})},
         ],
         response_format={"type": "json_schema", "json_schema": {
@@ -44,6 +58,7 @@ the requested JSON envelope; explanation must be user-facing plain text."""},
         }},
     )
     result = LookupAnalysis.model_validate_json(analysis)
+    result.explanation = remove_filename_suggestion(result.explanation)
     stem = re.sub(r"[^a-zA-Z0-9_-]+", "-", result.filename.removesuffix(".json"))
     result.filename = (stem.strip("-_")[:100] or "address-lookup") + ".json"
     return result

@@ -231,6 +231,25 @@ class WebChatTests(unittest.TestCase):
         self.assertEqual(self.client.get(files[0]["url"]).json(), {"stage": "resolver"})
         self.assertEqual(self.client.get(files[1]["url"]).json(), {"stage": "context"})
 
+    def test_scam_check_download_has_descriptive_filename(self):
+        address = "0x" + "1" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="scam_check", chain="ethereum",
+            raw_input={"type": "address", "value": address},
+            required_input_type="address_with_context",
+            requested_fields=["contract", "tx_history", "tokens", "liquidity"],
+        ))
+
+        def execute(item, respond, output, **kwargs):
+            Path(output).write_text(json.dumps({"address": address}))
+            respond("Scam check complete.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            reply = self.send(self.create(), "Is this token a scam?").json()["messages"][-1]
+
+        self.assertEqual(reply["attachments"][0]["name"], f"scam-check-{address}.json")
+        self.assertNotIn("scam-check-", reply["text"])
+
     def test_backend_restart_expires_chats(self):
         chat = self.create()
         self.app.state.sessions = {}
@@ -249,7 +268,11 @@ class WebChatTests(unittest.TestCase):
         ], "error": None}}, {"chain_family": "evm", "address_type": "unknown"})
         with patch("src.main.fetch_results", return_value=fetch_result) as fetcher, patch(
             "agents.fi.complete", side_effect=[
-                json.dumps({"explanation": "Found one transaction: 0xabc.", "filename": "../../wallet-transactions.json"}),
+                json.dumps({
+                    "explanation": "Found one transaction: 0xabc. "
+                    "Filename suggestion: wallet-transactions.json",
+                    "filename": "../../wallet-transactions.json",
+                }),
                 json.dumps({"explanation": "The notable transaction is 0xabc, value 42.", "filename": "wallet-transactions.json"}),
             ],
         ) as investigator:

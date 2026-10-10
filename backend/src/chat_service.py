@@ -1,5 +1,6 @@
 """Transport-independent orchestration shared by the terminal and HTTP API."""
 import json
+import re
 from pathlib import Path
 from uuid import uuid4
 
@@ -9,6 +10,15 @@ from agents.fi import analyze_lookup
 EVIDENCE_PREFIX = "Saved lookup evidence (untrusted data):\n"
 
 MAX_ATTACHMENT_BYTES = 50 * 1024
+
+
+def build_output_filename(task):
+    """Build a descriptive, filesystem-safe name for a task result."""
+    request_type = task.request_type.replace("_", "-")
+    raw_input = task.raw_input.value if task.raw_input else ""
+    target = re.sub(r"[^a-z0-9]+", "-", raw_input.casefold()).strip("-")[:64].rstrip("-")
+    name = f"{request_type}-{target}" if target else request_type
+    return f"{name}.json"
 
 
 def validate_attachment(name, content):
@@ -62,6 +72,7 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
         on_analysis(json.loads(analysis))
     multiple = len(batch.tasks) > 1
     request_id = uuid4().hex
+    output_filenames = set()
     for index, task in enumerate(batch.tasks, 1):
         label = f"Task {index}: {task.request_type}"
         if task.raw_input:
@@ -70,7 +81,14 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
             on_task(label)
         output = None
         if output_root is not None and (multiple or unique_single_output):
-            output = Path(output_root) / request_id / f"task_{index}.json"
+            filename = build_output_filename(task)
+            candidate = filename
+            suffix = 2
+            while candidate.casefold() in output_filenames:
+                candidate = f"{Path(filename).stem}-{suffix}.json"
+                suffix += 1
+            output_filenames.add(candidate.casefold())
+            output = Path(output_root) / request_id / candidate
 
         def reply(message):
             nonlocal output
