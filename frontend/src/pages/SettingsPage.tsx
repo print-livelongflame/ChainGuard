@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
 import type { ApiKeyName, ApiKeySettings, DetectorSettings } from '../api'
-
+import './SettingsPage.css'
 
 const DEFAULT_SETTINGS: DetectorSettings = {
   enabled: false,
@@ -12,19 +12,46 @@ const DEFAULT_SETTINGS: DetectorSettings = {
   is_llm_based: false,
 }
 
-const API_KEY_FIELDS: { name: ApiKeyName; label: string; help: string }[] = [
-  { name: 'OPENAI_API_KEY', label: 'OpenAI', help: 'Used by the OpenAI provider.' },
-  { name: 'GEMINI_API_KEY', label: 'Gemini', help: 'Used by the Gemini provider.' },
-  { name: 'CLAUDE_API_KEY', label: 'Claude', help: 'Used by the Claude provider.' },
-  { name: 'ETHERSCAN_API_KEY', label: 'Etherscan', help: 'Used for Ethereum address and token data.' },
-  { name: 'DETECTOR_API_KEY', label: 'External detector', help: 'Optional; sent as X-API-Key to the detector.' },
-]
+type SettingsView =
+  | 'api-wrappers'
+  | 'ai-configuration'
+  | 'external-detector'
 
-const AI_KEY_NAMES: ApiKeyName[] = [
-  'OPENAI_API_KEY', 'GEMINI_API_KEY', 'CLAUDE_API_KEY', 'ANTHROPIC_API_KEY',
+type ApiKeyField = {
+  name: ApiKeyName
+  label: string
+  help: string
+}
+
+const ETHERSCAN_FIELD: ApiKeyField = {
+  name: 'ETHERSCAN_API_KEY',
+  label: 'Etherscan API Key',
+  help: 'Used for Ethereum contract, transaction and token data.',
+}
+
+const DETECTOR_KEY_FIELD: ApiKeyField = {
+  name: 'DETECTOR_API_KEY',
+  label: 'Detector API Key',
+  help: 'Optional authentication key sent to the external detector.',
+}
+
+const AI_KEY_FIELDS: ApiKeyField[] = [
+  {
+    name: 'OPENAI_API_KEY',
+    label: 'OpenAI API Key',
+    help: 'Used when OpenAI is selected as the ChainGuard LLM provider.',
+  },
+  {
+    name: 'GEMINI_API_KEY',
+    label: 'Gemini API Key',
+    help: 'Used when Gemini is selected as the ChainGuard LLM provider.',
+  },
+  {
+    name: 'CLAUDE_API_KEY',
+    label: 'Claude API Key',
+    help: 'Used when Claude is selected as the ChainGuard LLM provider.',
+  },
 ]
-const SHARED_KEY_FIELDS = API_KEY_FIELDS.filter(field => !AI_KEY_NAMES.includes(field.name))
-const AI_KEY_FIELDS = API_KEY_FIELDS.filter(field => AI_KEY_NAMES.includes(field.name))
 
 const EMPTY_API_KEY_STATUS: Record<ApiKeyName, boolean> = {
   OPENAI_API_KEY: false,
@@ -50,13 +77,9 @@ type Props = {
   onApiKeysSaved: (settings: ApiKeySettings) => void
 }
 
-
 function normalizeEndpoint(endpoint: string) {
   const trimmed = endpoint.trim()
-
-  if (!trimmed) {
-    return trimmed
-  }
+  if (!trimmed) return trimmed
 
   if (
     trimmed.startsWith('http://') ||
@@ -68,77 +91,119 @@ function normalizeEndpoint(endpoint: string) {
   return `http://${trimmed}`
 }
 
+function providerMatches(provider: string, expected: string) {
+  return provider.toLowerCase().includes(expected.toLowerCase())
+}
 
-export default function SettingsPage({ isAdmin, provider, onApiKeysSaved }: Props) {
+export default function SettingsPage({
+  isAdmin,
+  provider,
+  onApiKeysSaved,
+}: Props) {
+  const [view, setView] =
+    useState<SettingsView>('api-wrappers')
+
   const [settings, setSettings] =
     useState<DetectorSettings>(DEFAULT_SETTINGS)
 
   const [savedSettings, setSavedSettings] =
     useState<DetectorSettings>(DEFAULT_SETTINGS)
 
+  const [apiKeyStatus, setApiKeyStatus] =
+    useState(EMPTY_API_KEY_STATUS)
+
+  const [apiKeyValues, setApiKeyValues] =
+    useState(EMPTY_API_KEY_VALUES)
+
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [loadingKeys, setLoadingKeys] = useState(true)
+
+  const [savingDetector, setSavingDetector] =
+    useState(false)
+
+  const [savingKey, setSavingKey] =
+    useState<ApiKeyName | null>(null)
 
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const [apiKeyStatus, setApiKeyStatus] = useState(EMPTY_API_KEY_STATUS)
-  const [apiKeyValues, setApiKeyValues] = useState(EMPTY_API_KEY_VALUES)
-  const [keysToRemove, setKeysToRemove] = useState<Partial<Record<ApiKeyName, boolean>>>({})
-  const [loadingKeys, setLoadingKeys] = useState(true)
-  const [savingKeys, setSavingKeys] = useState(false)
-  const [keyMessage, setKeyMessage] = useState('')
-  const [keyError, setKeyError] = useState('')
 
+  const [confirmDetector, setConfirmDetector] =
+    useState(false)
 
   useEffect(() => {
-    async function loadSettings() {
+    let active = true
+
+    async function loadDetectorSettings() {
       try {
-        const result =
+        const detector =
           await api<DetectorSettings>('/settings/detector')
 
-        setSettings(result)
-        setSavedSettings(result)
-        setError('')
+        if (!active) return
+
+        setSettings(detector)
+        setSavedSettings(detector)
       } catch (error) {
+        if (!active) return
+
         setError(
           error instanceof ApiError
-            ? error.message
+            ? `Could not load detector settings: ${error.message}`
             : 'Could not load detector settings.',
         )
       } finally {
-        setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       }
     }
 
-    void loadSettings()
+    void loadDetectorSettings()
+
+    return () => {
+      active = false
+    }
   }, [])
 
 
   useEffect(() => {
     let active = true
 
-    void api<ApiKeySettings>('/settings/api-keys')
-      .then(result => {
-        if (active) setApiKeyStatus(result.configured)
-      })
-      .catch(error => {
-        if (active) {
-          setKeyError(
-            error instanceof ApiError
-              ? error.message
-              : 'Could not load API key status.',
-          )
-        }
-      })
-      .finally(() => {
-        if (active) setLoadingKeys(false)
-      })
+    async function loadApiKeyStatus() {
+      try {
+        const keys =
+          await api<ApiKeySettings>('/settings/api-keys')
 
-    return () => { active = false }
+        if (!active) return
+
+        setApiKeyStatus(keys.configured)
+      } catch (error) {
+        if (!active) return
+
+        setError(
+          error instanceof ApiError
+            ? `Could not load API key status: ${error.message}`
+            : 'Could not load API key status.',
+        )
+      } finally {
+        if (active) {
+          setLoadingKeys(false)
+        }
+      }
+    }
+
+    void loadApiKeyStatus()
+
+    return () => {
+      active = false
+    }
   }, [])
 
+  function clearFeedback() {
+    setMessage('')
+    setError('')
+  }
 
-  function update<K extends keyof DetectorSettings>(
+  function updateDetector<K extends keyof DetectorSettings>(
     key: K,
     value: DetectorSettings[K],
   ) {
@@ -147,17 +212,24 @@ export default function SettingsPage({ isAdmin, provider, onApiKeysSaved }: Prop
       [key]: value,
     }))
 
-    setMessage('')
-    setError('')
+    clearFeedback()
   }
 
+  function resetDetector() {
+    setSettings(savedSettings)
+    clearFeedback()
+  }
 
-  async function save() {
-    setSaving(true)
-    setMessage('')
-    setError('')
+  function restoreDetectorDefaults() {
+    setSettings(DEFAULT_SETTINGS)
+    clearFeedback()
+  }
 
-    const nextSettings = {
+  async function saveDetector() {
+    setSavingDetector(true)
+    clearFeedback()
+
+    const nextSettings: DetectorSettings = {
       ...settings,
       name: settings.name.trim(),
       endpoint: normalizeEndpoint(settings.endpoint),
@@ -171,8 +243,8 @@ export default function SettingsPage({ isAdmin, provider, onApiKeysSaved }: Prop
 
       setSettings(saved)
       setSavedSettings(saved)
-
-      setMessage('Configuration saved successfully.')
+      setMessage('External detector configuration saved.')
+      setConfirmDetector(false)
     } catch (error) {
       setError(
         error instanceof ApiError
@@ -180,378 +252,938 @@ export default function SettingsPage({ isAdmin, provider, onApiKeysSaved }: Prop
           : 'Could not save detector settings.',
       )
     } finally {
-      setSaving(false)
+      setSavingDetector(false)
     }
   }
 
+  async function saveKey(field: ApiKeyField) {
+    const value = apiKeyValues[field.name].trim()
 
-  async function saveApiKeys(group: 'shared' | 'ai') {
-    if (group === 'ai' && !isAdmin) return
-    const fields = group === 'ai' ? AI_KEY_FIELDS : SHARED_KEY_FIELDS
-    const keys: Partial<Record<ApiKeyName, string | null>> = {}
-    for (const { name } of fields) {
-      const value = apiKeyValues[name].trim()
-      if (keysToRemove[name]) keys[name] = null
-      else if (value) keys[name] = value
-    }
-
-    if (!Object.keys(keys).length) {
-      setKeyError('Enter a key or choose Remove for a saved key.')
-      setKeyMessage('')
+    if (!value) {
+      setError(`Enter a value for ${field.label}.`)
+      setMessage('')
       return
     }
 
-    setSavingKeys(true)
-    setKeyMessage('')
-    setKeyError('')
+    setSavingKey(field.name)
+    clearFeedback()
+
     try {
       const result = await api<ApiKeySettings>(
         '/settings/api-keys',
-        { keys },
+        {
+          keys: {
+            [field.name]: value,
+          },
+        },
       )
+
       setApiKeyStatus(result.configured)
-      setApiKeyValues(current => {
-        const next = { ...current }
-        for (const { name } of fields) next[name] = ''
-        return next
-      })
-      setKeysToRemove(current => {
-        const next = { ...current }
-        for (const { name } of fields) delete next[name]
-        return next
-      })
-      setKeyMessage('API keys saved. The active provider status has been refreshed.')
+
+      setApiKeyValues(current => ({
+        ...current,
+        [field.name]: '',
+      }))
+
+      setMessage(`${field.label} saved.`)
       onApiKeysSaved(result)
     } catch (error) {
-      setKeyError(
+      setError(
         error instanceof ApiError
           ? error.message
-          : 'Could not save API keys.',
+          : `Could not save ${field.label}.`,
       )
     } finally {
-      setSavingKeys(false)
+      setSavingKey(null)
     }
   }
 
+  async function removeKey(field: ApiKeyField) {
+    setSavingKey(field.name)
+    clearFeedback()
 
-  function reset() {
-    setSettings(savedSettings)
-    setMessage('')
-    setError('')
+    try {
+      const result = await api<ApiKeySettings>(
+        '/settings/api-keys',
+        {
+          keys: {
+            [field.name]: null,
+          },
+        },
+      )
+
+      setApiKeyStatus(result.configured)
+
+      setApiKeyValues(current => ({
+        ...current,
+        [field.name]: '',
+      }))
+
+      setMessage(`${field.label} removed.`)
+      onApiKeysSaved(result)
+    } catch (error) {
+      setError(
+        error instanceof ApiError
+          ? error.message
+          : `Could not remove ${field.label}.`,
+      )
+    } finally {
+      setSavingKey(null)
+    }
   }
 
-
-  function restoreDefaults() {
-    setSettings(DEFAULT_SETTINGS)
-    setMessage('')
-    setError('')
+  function renderStatus(
+    configured: boolean,
+    configuredText = 'Connected',
+  ) {
+    return (
+      <span
+        className={`cg-settings-badge ${
+          configured ? 'is-good' : 'is-muted'
+        }`}
+      >
+        {configured ? configuredText : 'Not Configured'}
+      </span>
+    )
   }
 
+  function renderKeyField(field: ApiKeyField) {
+    const configured =
+      field.name === 'CLAUDE_API_KEY'
+        ? apiKeyStatus.CLAUDE_API_KEY ||
+          apiKeyStatus.ANTHROPIC_API_KEY
+        : apiKeyStatus[field.name]
+
+    const busy = savingKey === field.name
+
+    return (
+      <div className="cg-key-row" key={field.name}>
+        <div className="cg-key-main">
+          <div className="cg-key-title">
+            <strong>{field.label}</strong>
+            {renderStatus(configured)}
+          </div>
+
+          <input
+            type="password"
+            autoComplete="new-password"
+            value={apiKeyValues[field.name]}
+            placeholder={
+              configured
+                ? 'Saved — enter a new key to replace'
+                : 'Add API key…'
+            }
+            onChange={event => {
+              setApiKeyValues(current => ({
+                ...current,
+                [field.name]: event.target.value,
+              }))
+
+              clearFeedback()
+            }}
+          />
+
+          <small>{field.help}</small>
+        </div>
+
+        <div className="cg-key-actions">
+          <button
+            type="button"
+            className="cg-button ghost"
+            disabled={
+              loadingKeys ||
+              busy ||
+              !configured
+            }
+            onClick={() => void removeKey(field)}
+          >
+            Remove
+          </button>
+
+          <button
+            type="button"
+            className="cg-button cyan"
+            disabled={
+              loadingKeys ||
+              busy ||
+              !apiKeyValues[field.name].trim()
+            }
+            onClick={() => void saveKey(field)}
+          >
+            {busy ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
       <section className="settings-page">
         <p className="settings-loading">
-          Loading API Wrapper settings…
+          Loading settings…
         </p>
       </section>
     )
   }
 
+  const claudeConfigured =
+    apiKeyStatus.CLAUDE_API_KEY ||
+    apiKeyStatus.ANTHROPIC_API_KEY
 
   return (
-    <section className="settings-page">
-      <div className="settings-heading">
-        <span className="settings-eyebrow">
-          Settings / API Configuration
-        </span>
+    <section className="settings-page cg-settings-page">
+      <div className="cg-settings-shell">
 
-        <h1>ChainGuard External Detector</h1>
+        <aside className="cg-settings-nav">
+          <h2>Settings</h2>
 
-        <p>
-          Configure the external scam detector used by ChainGuard.
-          Saved settings are automatically used for future scam checks.
-        </p>
-      </div>
+          <nav aria-label="Settings sections">
+            <button type="button" disabled>
+              General Profiles
+            </button>
 
-
-      {message && (
-        <div
-          className="settings-status settings-success"
-          role="status"
-        >
-          ✓ {message}
-        </div>
-      )}
-
-
-      {error && (
-        <div
-          className="settings-status settings-error"
-          role="alert"
-        >
-          ⚠ {error}
-        </div>
-      )}
-
-
-      <div className="settings-card">
-
-        <div className="settings-toggle-row">
-          <div>
-            <strong>Enabled</strong>
-
-            <span>
-              Enable ChainGuard to use this external detector.
-            </span>
-          </div>
-
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={settings.enabled}
-              onChange={event =>
-                update('enabled', event.target.checked)
+            <button
+              type="button"
+              className={
+                view === 'api-wrappers'
+                  ? 'active'
+                  : ''
               }
-            />
-
-            <span className="switch-slider" />
-          </label>
-        </div>
-
-
-        <div className="settings-divider" />
-
-
-        <div className="settings-grid">
-
-          <label className="settings-field">
-            <span>Name</span>
-
-            <input
-              value={settings.name}
-              onChange={event =>
-                update('name', event.target.value)
-              }
-              placeholder="ChainGuard External Detector"
-            />
-          </label>
-
-
-          <label className="settings-field">
-            <span>Endpoint</span>
-
-            <input
-              value={settings.endpoint}
-              onChange={event =>
-                update('endpoint', event.target.value)
-              }
-              placeholder="http://127.0.0.1:9000/detect"
-            />
-          </label>
-
-
-          <label className="settings-field">
-            <span>Mode</span>
-
-            <select
-              value={settings.mode}
-              onChange={event =>
-                update(
-                  'mode',
-                  event.target.value as
-                    DetectorSettings['mode'],
-                )
-              }
+              onClick={() => setView('api-wrappers')}
             >
-              <option value="template">
-                Template
-              </option>
+              API Wrappers
+            </button>
 
-              <option value="generic">
-                Generic
-              </option>
-            </select>
-          </label>
+            <button type="button" disabled>
+              Notifications
+            </button>
 
+            <button type="button" disabled>
+              Security
+            </button>
+          </nav>
 
-          <label className="settings-field">
-            <span>Required Input Type</span>
+          {isAdmin && (
+            <>
+              <div className="cg-settings-nav-label">
+                Admin Settings
+              </div>
 
-            <select
-              value={settings.required_input_type}
-              onChange={event =>
-                update(
-                  'required_input_type',
-                  event.target.value as
-                    DetectorSettings['required_input_type'],
-                )
-              }
-            >
-              <option value="address_with_context">
-                Address with Context
-              </option>
-
-              <option value="address">
-                Address
-              </option>
-            </select>
-          </label>
-
-        </div>
-
-
-        <div className="settings-divider" />
-
-
-        <div className="settings-toggle-row">
-          <div>
-            <strong>LLM Based</strong>
-
-            <span>
-              Enable this if the external detector already
-              produces its result using an LLM.
-            </span>
-          </div>
-
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={settings.is_llm_based}
-              onChange={event =>
-                update(
-                  'is_llm_based',
-                  event.target.checked,
-                )
-              }
-            />
-
-            <span className="switch-slider" />
-          </label>
-        </div>
-
-      </div>
-
-
-      <div className="settings-actions">
-
-        <button
-          className="settings-default-button"
-          onClick={restoreDefaults}
-          disabled={saving}
-        >
-          Restore Defaults
-        </button>
-
-        <button
-          className="settings-reset-button"
-          onClick={reset}
-          disabled={saving}
-        >
-          Reset
-        </button>
-
-        <button
-          className="settings-save-button"
-          onClick={() => void save()}
-          disabled={saving}
-        >
-          {saving ? 'Saving…' : 'Save Changes'}
-        </button>
-
-      </div>
-      {keyMessage && <div className="settings-status settings-success" role="status">{keyMessage}</div>}
-      {keyError && <div className="settings-status settings-error" role="alert">{keyError}</div>}
-      {([
-        { id: 'shared' as const, title: 'Integration API Keys', fields: SHARED_KEY_FIELDS },
-        ...(isAdmin ? [{ id: 'ai' as const, title: 'AI Configuration — Admin', fields: AI_KEY_FIELDS }] : []),
-      ]).map(group => (
-      <section className="settings-card api-keys-card" key={group.id} aria-label={group.title}>
-        <div className="api-keys-heading">
-          <h2>{group.title}</h2>
-          {group.id === 'ai' && <>
-            <p>Admin only · Changes affect all users.</p>
-            <p>Active LLM provider: <strong>{provider}</strong></p>
-          </>}
-          <p>Enter a key to add or replace it. Saved keys are never displayed.</p>
-        </div>
-
-
-        <div className="api-key-grid">
-          {group.fields.map(({ name, label, help }) => (
-            <div className="api-key-row" key={name}>
-              <label className="settings-field">
-                <span>{label}</span>
-                <input
-                  type="password"
-                  value={apiKeyValues[name]}
-                  autoComplete="new-password"
-                  placeholder={apiKeyStatus[name] ? 'Saved; enter to replace' : 'Not configured'}
-                  onChange={event => {
-                    setApiKeyValues(current => ({ ...current, [name]: event.target.value }))
-                    setKeysToRemove(current => ({ ...current, [name]: false }))
-                    setKeyMessage('')
-                    setKeyError('')
-                  }}
-                  aria-describedby={`${name}-help ${name}-status`}
-                />
-                <small id={`${name}-help`}>{help}</small>
-              </label>
-              <div className="api-key-actions">
-                <span id={`${name}-status`} className="api-key-status">
-                  {keysToRemove[name] ? 'Will remove on save' : apiKeyStatus[name] ? 'Saved' : 'Not set'}
-                </span>
+              <nav aria-label="Administrator settings">
                 <button
-                  className="api-key-remove"
                   type="button"
-                  disabled={loadingKeys || savingKeys || !apiKeyStatus[name]}
-                  onClick={() => {
-                    setKeysToRemove(current => ({ ...current, [name]: true }))
-                    setApiKeyValues(current => ({ ...current, [name]: '' }))
-                    setKeyMessage('')
-                    setKeyError('')
-                  }}
+                  className={
+                    view === 'ai-configuration'
+                      ? 'active'
+                      : ''
+                  }
+                  onClick={() =>
+                    setView('ai-configuration')
+                  }
                 >
-                  Remove
+                  AI Configuration
                 </button>
-              </div>
+
+                <button
+                  type="button"
+                  className={
+                    view === 'external-detector'
+                      ? 'active'
+                      : ''
+                  }
+                  onClick={() =>
+                    setView('external-detector')
+                  }
+                >
+                  External Detector
+                </button>
+              </nav>
+            </>
+          )}
+        </aside>
+
+
+        <main className="cg-settings-content">
+
+          {isAdmin && view !== 'api-wrappers' && (
+            <div className="cg-system-warning">
+              ⚠ Changes to these settings will affect all users.
             </div>
-          ))}
-        </div>
+          )}
 
-        <div className="settings-actions">
-          <button
-            className="settings-save-button"
-            type="button"
-            onClick={() => void saveApiKeys(group.id)}
-            disabled={loadingKeys || savingKeys}
+          {message && (
+            <div
+              className="settings-status settings-success"
+              role="status"
+            >
+              ✓ {message}
+            </div>
+          )}
+
+          {error && (
+            <div
+              className="settings-status settings-error"
+              role="alert"
+            >
+              ⚠ {error}
+            </div>
+          )}
+
+
+          {view === 'api-wrappers' && (
+            <>
+              <header className="cg-view-heading">
+                <h1>API Wrappers / Detection Tools</h1>
+
+                <p>
+                  Configure blockchain data providers and
+                  external scam-detection integrations.
+                </p>
+              </header>
+
+
+              <section className="cg-panel">
+                <div className="cg-panel-heading">
+                  <div>
+                    <span className="cg-panel-icon">◈</span>
+
+                    <div>
+                      <h3>
+                        ChainGuard External Detector
+                      </h3>
+
+                      <p>
+                        Self-hosted templated endpoint
+                        analysis pipeline
+                      </p>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`cg-settings-badge ${
+                      savedSettings.enabled
+                        ? 'is-good'
+                        : 'is-danger'
+                    }`}
+                  >
+                    {savedSettings.enabled
+                      ? 'Enabled'
+                      : 'Disabled'}
+                  </span>
+                </div>
+
+
+                <div className="cg-summary-list">
+                  <div>
+                    <span>Endpoint</span>
+                    <strong>
+                      {savedSettings.endpoint || 'Not set'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Mode</span>
+                    <strong>
+                      {savedSettings.mode === 'template'
+                        ? 'Template'
+                        : 'Generic'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Required Input</span>
+                    <strong>
+                      {savedSettings.required_input_type ===
+                      'address_with_context'
+                        ? 'Address with Context'
+                        : 'Address'}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>LLM Based</span>
+                    <strong>
+                      {savedSettings.is_llm_based
+                        ? 'Yes'
+                        : 'No'}
+                    </strong>
+                  </div>
+                </div>
+
+
+                <div className="cg-panel-footer">
+                  <span>
+                    {savedSettings.enabled
+                      ? 'External detector is enabled for configured scam checks.'
+                      : 'Detector is currently disabled.'}
+                  </span>
+
+                  {isAdmin ? (
+                    <button
+                      type="button"
+                      className="cg-button link"
+                      onClick={() =>
+                        setView('external-detector')
+                      }
+                    >
+                      Configure Detector →
+                    </button>
+                  ) : (
+                    <span className="cg-admin-note">
+                      Admin access required to change
+                      detector settings.
+                    </span>
+                  )}
+                </div>
+              </section>
+
+
+              <section className="cg-panel">
+                <div className="cg-panel-heading">
+                  <div>
+                    <span className="cg-panel-icon">
+                      Ξ
+                    </span>
+
+                    <div>
+                      <h3>Etherscan / Ethereum Data</h3>
+
+                      <p>
+                        Ethereum blockchain data provider
+                        used by ChainGuard fetchers
+                      </p>
+                    </div>
+                  </div>
+
+                  {renderStatus(
+                    apiKeyStatus.ETHERSCAN_API_KEY,
+                  )}
+                </div>
+
+
+                <div className="cg-summary-list">
+                  <div>
+                    <span>Network</span>
+                    <strong>Ethereum Mainnet</strong>
+                  </div>
+
+                  <div>
+                    <span>Used For</span>
+                    <strong>
+                      Contracts, transactions and token data
+                    </strong>
+                  </div>
+                </div>
+
+
+                {!apiKeyStatus.ETHERSCAN_API_KEY && (
+                  <div className="cg-inline-warning">
+                    ⚠ Etherscan is not configured.
+                    Ethereum lookups may fail or return
+                    limited data.
+                  </div>
+                )}
+
+
+                <div className="cg-panel-subsection">
+                  {renderKeyField(ETHERSCAN_FIELD)}
+                </div>
+              </section>
+            </>
+          )}
+
+
+          {view === 'ai-configuration' && isAdmin && (
+            <>
+              <header className="cg-view-heading">
+                <h1>AI Model Configuration</h1>
+
+                <p>
+                  View the active language model and manage
+                  the API credentials used system-wide by
+                  ChainGuard Assistant.
+                </p>
+              </header>
+
+
+              <section className="cg-panel">
+                <div className="cg-panel-heading">
+                  <div>
+                    <div>
+                      <h3>Active LLM Provider</h3>
+
+                      <p>
+                        Provider switching is controlled by
+                        the current backend configuration.
+                      </p>
+                    </div>
+                  </div>
+
+                  <span className="cg-settings-badge is-info">
+                    System-Wide
+                  </span>
+                </div>
+
+
+                <div className="cg-provider-grid">
+                  <div
+                    className={`cg-provider-card ${
+                      providerMatches(
+                        provider,
+                        'openai',
+                      )
+                        ? 'active'
+                        : ''
+                    }`}
+                  >
+                    <div>
+                      <strong>OpenAI</strong>
+                      <span>OpenAI API</span>
+                    </div>
+
+                    {providerMatches(
+                      provider,
+                      'openai',
+                    ) ? (
+                      <span className="cg-settings-badge is-good">
+                        Currently Active
+                      </span>
+                    ) : (
+                      renderStatus(
+                        apiKeyStatus.OPENAI_API_KEY,
+                      )
+                    )}
+                  </div>
+
+
+                  <div
+                    className={`cg-provider-card ${
+                      providerMatches(
+                        provider,
+                        'gemini',
+                      )
+                        ? 'active'
+                        : ''
+                    }`}
+                  >
+                    <div>
+                      <strong>Gemini</strong>
+                      <span>Google Gemini</span>
+                    </div>
+
+                    {providerMatches(
+                      provider,
+                      'gemini',
+                    ) ? (
+                      <span className="cg-settings-badge is-good">
+                        Currently Active
+                      </span>
+                    ) : (
+                      renderStatus(
+                        apiKeyStatus.GEMINI_API_KEY,
+                      )
+                    )}
+                  </div>
+
+
+                  <div
+                    className={`cg-provider-card ${
+                      providerMatches(
+                        provider,
+                        'claude',
+                      )
+                        ? 'active'
+                        : ''
+                    }`}
+                  >
+                    <div>
+                      <strong>Claude</strong>
+                      <span>Anthropic Claude</span>
+                    </div>
+
+                    {providerMatches(
+                      provider,
+                      'claude',
+                    ) ? (
+                      <span className="cg-settings-badge is-good">
+                        Currently Active
+                      </span>
+                    ) : (
+                      renderStatus(
+                        claudeConfigured,
+                      )
+                    )}
+                  </div>
+
+
+                  <div className="cg-provider-card is-disabled">
+                    <div>
+                      <strong>Self-Hosted AI</strong>
+
+                      <span>
+                        Not supported by the current backend
+                      </span>
+                    </div>
+
+                    <span className="cg-settings-badge is-muted">
+                      Not Available
+                    </span>
+                  </div>
+                </div>
+              </section>
+
+
+              <section className="cg-panel">
+                <div className="cg-panel-heading">
+                  <div>
+                    <div>
+                      <h3>API Keys</h3>
+
+                      <p>
+                        Saved secrets are stored by the
+                        backend and are never displayed again.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cg-key-list">
+                  {AI_KEY_FIELDS.map(field =>
+                    renderKeyField(field),
+                  )}
+                </div>
+              </section>
+            </>
+          )}
+
+
+          {view === 'external-detector' && isAdmin && (
+            <>
+              <header className="cg-view-heading">
+                <h1>
+                  External Detector Configuration
+                </h1>
+
+                <p>
+                  View and configure the system-wide
+                  external detector.
+                </p>
+              </header>
+
+
+              <section className="cg-current-detector">
+                <div>
+                  <span>Current Detector</span>
+                  <strong>
+                    {savedSettings.name}
+                  </strong>
+                </div>
+
+                <span
+                  className={`cg-settings-badge ${
+                    savedSettings.enabled
+                      ? 'is-good'
+                      : 'is-danger'
+                  }`}
+                >
+                  {savedSettings.enabled
+                    ? 'Enabled'
+                    : 'Disabled'}
+                </span>
+              </section>
+
+
+              <section className="cg-panel">
+                <div className="cg-panel-heading">
+                  <div>
+                    <div>
+                      <h3>
+                        Configure / Change Detector
+                      </h3>
+
+                      <p>
+                        Update the external detector
+                        pipeline used by ChainGuard.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div className="cg-toggle-row">
+                  <div>
+                    <strong>Enabled</strong>
+
+                    <span>
+                      Instantly connect or disconnect this
+                      pipeline route globally.
+                    </span>
+                  </div>
+
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={settings.enabled}
+                      onChange={event =>
+                        updateDetector(
+                          'enabled',
+                          event.target.checked,
+                        )
+                      }
+                    />
+
+                    <span className="switch-slider" />
+                  </label>
+                </div>
+
+
+                <div className="cg-form-grid">
+                  <label>
+                    <span>Name</span>
+
+                    <input
+                      value={settings.name}
+                      onChange={event =>
+                        updateDetector(
+                          'name',
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Endpoint</span>
+
+                    <input
+                      value={settings.endpoint}
+                      onChange={event =>
+                        updateDetector(
+                          'endpoint',
+                          event.target.value,
+                        )
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Mode</span>
+
+                    <select
+                      value={settings.mode}
+                      onChange={event =>
+                        updateDetector(
+                          'mode',
+                          event.target
+                            .value as
+                            DetectorSettings['mode'],
+                        )
+                      }
+                    >
+                      <option value="template">
+                        Template
+                      </option>
+
+                      <option value="generic">
+                        Generic
+                      </option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Required Input Type</span>
+
+                    <select
+                      value={settings.required_input_type}
+                      onChange={event =>
+                        updateDetector(
+                          'required_input_type',
+                          event.target
+                            .value as
+                            DetectorSettings[
+                              'required_input_type'
+                            ],
+                        )
+                      }
+                    >
+                      <option value="address_with_context">
+                        Address with Context
+                      </option>
+
+                      <option value="address">
+                        Address
+                      </option>
+                    </select>
+                  </label>
+                </div>
+
+
+                <div className="cg-toggle-row">
+                  <div>
+                    <strong>LLM Based</strong>
+
+                    <span>
+                      Enable this if the external detector
+                      already uses an LLM to produce its
+                      result.
+                    </span>
+                  </div>
+
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={settings.is_llm_based}
+                      onChange={event =>
+                        updateDetector(
+                          'is_llm_based',
+                          event.target.checked,
+                        )
+                      }
+                    />
+
+                    <span className="switch-slider" />
+                  </label>
+                </div>
+
+
+                <div className="cg-detector-auth">
+                  <h4>Detector Authentication</h4>
+
+                  {renderKeyField(
+                    DETECTOR_KEY_FIELD,
+                  )}
+                </div>
+              </section>
+
+
+              <div className="cg-bottom-actions">
+                <button
+                  type="button"
+                  className="cg-button ghost"
+                  onClick={restoreDetectorDefaults}
+                  disabled={savingDetector}
+                >
+                  Restore Defaults
+                </button>
+
+                <div>
+                  <button
+                    type="button"
+                    className="cg-button ghost"
+                    onClick={resetDetector}
+                    disabled={savingDetector}
+                  >
+                    Reset
+                  </button>
+
+                  <button
+                    type="button"
+                    className="cg-button cyan"
+                    onClick={() =>
+                      setConfirmDetector(true)
+                    }
+                    disabled={savingDetector}
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </main>
+      </div>
+
+
+      {confirmDetector && (
+        <div
+          className="cg-modal-backdrop"
+          role="presentation"
+          onMouseDown={event => {
+            if (
+              event.currentTarget === event.target
+            ) {
+              setConfirmDetector(false)
+            }
+          }}
+        >
+          <div
+            className="cg-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-detector-title"
           >
-            {savingKeys ? 'Saving…' : group.id === 'ai' ? 'Save AI Keys' : 'Save Integration Keys'}
-          </button>
-        </div>
-      {group.id === 'ai' && (
-          <div className="ai-planned-controls">
-            <h3>AI Provider &amp; Self-hosted Model</h3>
-            <fieldset disabled>
-              <legend className="sr-only">Upcoming AI configuration</legend>
-              <div className="settings-grid">
-                <label className="settings-field"><span>AI provider</span>
-                  <select defaultValue=""><option value="">Select provider (coming soon)</option><option>OpenAI</option><option>Gemini</option><option>Claude</option><option>Self-hosted AI</option></select>
-                </label>
-                <label className="settings-field"><span>Model name</span><input placeholder="Model name (coming soon)" /></label>
-                <label className="settings-field"><span>Self-hosted endpoint</span><input placeholder="https://your-model-server" /></label>
-              </div>
-              <div className="settings-actions">
-                <button type="button" className="settings-reset-button" disabled>Test Connection</button>
-                <button type="button" className="settings-save-button" disabled>Save AI Configuration</button>
-              </div>
-            </fieldset>
+            <h2 id="confirm-detector-title">
+              Confirm Detector Change
+            </h2>
+
+            <p>
+              This action will update the system-wide
+              external detector configuration and affect
+              ChainGuard users.
+            </p>
+
+
+            <div className="cg-modal-summary">
+              <span>Current Detector</span>
+
+              <strong>
+                {savedSettings.name}
+              </strong>
+
+              <span>Proposed Change</span>
+
+              <strong>
+                {settings.enabled
+                  ? 'Enable'
+                  : 'Disable'}{' '}
+                pipeline ·{' '}
+                {normalizeEndpoint(
+                  settings.endpoint,
+                )}{' '}
+                · {settings.mode} ·{' '}
+                {settings.required_input_type ===
+                'address_with_context'
+                  ? 'Address with Context'
+                  : 'Address'}
+              </strong>
+            </div>
+
+
+            <div className="cg-system-warning">
+              ⚠ Changes to these settings will affect all
+              users.
+            </div>
+
+
+            <div className="cg-modal-actions">
+              <button
+                type="button"
+                className="cg-button ghost"
+                onClick={() =>
+                  setConfirmDetector(false)
+                }
+                disabled={savingDetector}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="cg-button cyan"
+                onClick={() =>
+                  void saveDetector()
+                }
+                disabled={savingDetector}
+              >
+                {savingDetector
+                  ? 'Saving…'
+                  : 'Confirm Change'}
+              </button>
+            </div>
           </div>
-        )}
-      </section>
-
-      ))}
-
+        </div>
+      )}
     </section>
   )
 }
