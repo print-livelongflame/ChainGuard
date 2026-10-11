@@ -175,22 +175,38 @@ to recover the result; they should not automatically resend a failed HTTP reques
 
 ### Checks
 
-```powershell
+Run the existing backend suite with the standard library:
+
+```bash
 cd backend
 python -m unittest discover -s tests -v
 ```
 
-```powershell
-cd frontend
-npm.cmd run build
-npm.cmd run lint
+For local test development and coverage reporting, install the development
+requirements once, then run pytest:
+
+```bash
+cd backend
+python -m pip install -r requirements-dev.txt
+python -m pytest -v
+python -m pytest --cov=src --cov=detector_integration --cov=fetchers --cov-report=term-missing
 ```
 
-Backend tests mock the provider and external work, so they do not need keys or
-make paid requests. To smoke-test configured integrations, ask a general blockchain
-question, then request contract information for a complete Ethereum address and
-open its JSON attachment. Check a follow-up, a second chat, refresh during processing,
-and restart the backend to verify expiry.
+The current backend tests use mocks and do not need API keys or paid calls.
+They cover chat/API behavior, authentication and role access, file handling,
+contract metadata, fetcher caching, and detector configuration. The CI workflow
+runs those tests and checks the frontend with lint and build on matching pushes.
+
+To run the full Compose integration check only when you choose, go to
+**GitHub → Actions → Manual Docker integration test → Run workflow**. It starts
+the frontend, backend, and detector, checks their health endpoints, and verifies
+the backend can call the detector. This workflow does not publish images or run
+automatically on every push.
+
+For manual end-to-end checks, try a general blockchain question, then request
+contract information for a complete Ethereum address and open its JSON attachment.
+Check a follow-up, a second chat, refresh during processing, and restart the backend
+to verify expiry.
 
 ## Backend Setup
 

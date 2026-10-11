@@ -6,11 +6,13 @@ on:
     paths:
       - "backend/**"
       - "frontend/**"
+      - "docker-compose.yml"
       - ".github/workflows/docker-images.yml"
   pull_request:
     paths:
       - "backend/**"
       - "frontend/**"
+      - "docker-compose.yml"
       - ".github/workflows/docker-images.yml"
   workflow_dispatch:
 

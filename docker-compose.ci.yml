@@ -1,0 +1,4 @@
+# CI-only adjustments; local development continues to use docker-compose.yml.
+services:
+  detector:
+    volumes: !reset []
