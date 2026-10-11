@@ -1,0 +1,8 @@
+services:
+  backend:
+    image: ghcr.io/print-livelongflame/chainguard-backend:main
+    build: null
+
+  frontend:
+    image: ghcr.io/print-livelongflame/chainguard-frontend:main
+    build: null
