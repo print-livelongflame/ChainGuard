@@ -28,12 +28,15 @@ services:
 
   backend:
     build: ./backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       CHAINGUARD_USER_USERNAME: user
       CHAINGUARD_USER_PASSWORD: ChainGuardUser123!
       CHAINGUARD_ADMIN_USERNAME: admin
       CHAINGUARD_ADMIN_PASSWORD: ChainGuard123!
       CHAINGUARD_AI_PROVIDER: ${CHAINGUARD_AI_PROVIDER:-openai}
+      CHAINGUARD_LLM_CONFIG_PATH: /data/llm_config.json
       CHAINGUARD_DETECTOR_CONFIG_PATH: /data/detector_config.json
       CHAINGUARD_DETECTOR_DEFAULT_ENABLED: "true"
       CHAINGUARD_DETECTOR_DEFAULT_NAME: ChainGuard Local Detector

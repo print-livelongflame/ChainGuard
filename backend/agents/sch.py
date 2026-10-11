@@ -107,6 +107,7 @@ def ask_scam_checker(context: AddressContext, task=None) -> ScamCheckerResponse:
 		ScamCheckerResponse.model_json_schema()
 	)
 	analysis = complete(
+		agent="scam_checker",
 		messages=[
 			{"role": "system", "content": SYSTEM_PROMPT},
 			{

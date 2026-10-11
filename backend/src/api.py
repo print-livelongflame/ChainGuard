@@ -26,6 +26,9 @@ from src.chat_service import (
     validate_attachment,
 )
 from src.llm_provider import list_providers, set_progress_enabled, set_provider
+from src.llm_provider import use_llm_settings
+from src.llm_config import get_llm_settings, settings_exist
+from src.llm_settings_api import router as llm_router, refresh_provider_status
 from src.main import execute_ba_task
 from src.api_key_config import (
     apply_api_key_updates,
@@ -146,6 +149,8 @@ def create_app():
         except ValueError as error:
             app.state.provider_error = str(error)
         set_progress_enabled(False)
+        if settings_exist():
+            refresh_provider_status(app)
         with TemporaryDirectory(prefix="chainguard-web-") as directory:
             app.state.output_root = Path(directory)
             yield
@@ -154,6 +159,7 @@ def create_app():
 
     app = FastAPI(title="ChainGuard local chat", lifespan=lifespan)
     app.include_router(auth_router)
+    app.include_router(llm_router)
 
     @app.middleware("http")
     async def browser_session(request: Request, call_next):
@@ -237,6 +243,8 @@ def create_app():
                 app.state.provider_error = None
             except ValueError as error:
                 app.state.provider_error = str(error)
+            if settings_exist():
+                refresh_provider_status(app)
             return ApiKeyStatus(
                 configured=get_api_key_status(),
                 provider=app.state.provider,
@@ -311,7 +319,8 @@ def create_app():
 
     async def finish_turn(chat, prompt):
         try:
-            messages, files, history = await run_in_threadpool(execute_turn, chat, prompt)
+            with use_llm_settings(get_llm_settings()):
+                messages, files, history = await run_in_threadpool(execute_turn, chat, prompt)
             chat.messages.extend(messages)
             chat.files.update(files)
             chat.history = history

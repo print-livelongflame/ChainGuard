@@ -31,6 +31,7 @@ def remove_filename_suggestion(explanation: str) -> str:
 def analyze_lookup(evidence: list[dict], question: str) -> LookupAnalysis:
     """Explain saved lookup evidence and suggest a safe download name."""
     analysis = complete(
+        agent="forensic_investigator",
         messages=[
             {"role": "system", "content": """You are ChainGuard's Forensic Investigator.
 Analyze the supplied lookup JSON and answer the user's question in plain text.
@@ -87,6 +88,7 @@ def explain_detector_result(result: DetectionResult) -> str:
 
 	validated_result = DetectionResult.model_validate(result)
 	explanation = complete(
+		agent="forensic_investigator",
 		messages=[
 			{"role": "system", "content": SYSTEM_PROMPT},
 			{

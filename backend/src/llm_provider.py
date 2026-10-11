@@ -1,6 +1,10 @@
 """Shared runtime provider selection for ChainGuard's LLM-backed agents."""
 
 import os
+from contextlib import contextmanager
+from contextvars import ContextVar
+
+from src.llm_config import local_request, local_content
 
 from src.api_key_config import get_api_key
 
@@ -32,6 +36,21 @@ _PROVIDERS = {
 }
 _active_provider = "openai"
 _progress_enabled = True
+_turn_settings = ContextVar("llm_turn_settings", default=None)
+
+
+@contextmanager
+def use_llm_settings(settings):
+    """Keep web assignments stable and isolated for the entire chat turn."""
+    token = _turn_settings.set(settings)
+    try:
+        yield
+    finally:
+        _turn_settings.reset(token)
+
+
+def provider_available(provider):
+    return bool(_get_api_key(provider))
 
 
 def list_providers() -> list[tuple[str, str]]:
@@ -78,9 +97,18 @@ def set_provider(provider: str) -> str:
     return _PROVIDERS[normalized]["label"]
 
 
-def complete(messages: list[dict[str, str]], response_format: dict | None = None) -> str:
+def complete(messages: list[dict[str, str]], response_format: dict | None = None, *, agent: str = "business_analyser") -> str:
     """Generate text with the selected provider and return its message content."""
-    provider = _active_provider
+    settings = _turn_settings.get()
+    provider = getattr(settings.assignments, agent) if settings else _active_provider
+    if provider == "local":
+        if not settings.local.enabled or not settings.local_verified:
+            raise ValueError("Connect and enable the local LLM in admin settings first.")
+        body = {"model": settings.local.model, "messages": messages, "stream": False,
+                "temperature": 0.2, "max_tokens": 8192}
+        if response_format is not None:
+            body["response_format"] = response_format
+        return local_content(local_request(settings.local, "chat/completions", body))
     api_key = _get_api_key(provider)
     if not api_key:
         details = _PROVIDERS[provider]

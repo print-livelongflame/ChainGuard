@@ -9,6 +9,70 @@ AI LLM which wil help users to investigate blockchain wallet address
 
 ## Quick Start (Docker)
 
+### Local LLM and separate agent providers
+
+Admins can now choose OpenAI, Claude, Gemini or **Local Hosted LLM** independently
+for the Business Analyst, Scam Checker and Forensic Investigator under
+**Settings → AI Configuration**. Changes apply to future messages for all users;
+an answer already running keeps its original settings. Cloud API keys still use
+the existing settings controls.
+
+To use the local template, keep `ChainGuard-localLLM-template` beside ChainGuard.
+From the template folder, start the server and download a model:
+
+```powershell
+docker compose up -d --build
+docker compose exec ollama ollama pull llama3.2:3b
+```
+
+Then, from the **ChainGuard** folder, rebuild and start ChainGuard with the
+included network connection file:
+
+```powershell
+docker compose -f docker-compose.yml -f ../ChainGuard-localLLM-template/chainguard-network.yaml up -d --build
+```
+
+Use the same two `-f` options for later ChainGuard Docker commands. This connects
+the two applications without editing their network configuration files. Start
+the template first so its shared network exists.
+
+Sign in as admin, open **Settings → Local LLM Connection**, and enter:
+
+| Field | Example |
+| --- | --- |
+| Connection name | My local Llama |
+| API base URL | `http://chainguard-local-llm:9010/v1` |
+| Model name | `llama3.2:3b` |
+| Optional API key | Leave empty unless set on the model server |
+| Timeout | 300 seconds |
+
+Click **Test Connection**, enable the connection and click **Save Connection**.
+Saving an enabled connection checks the installed model and generates a small
+JSON answer. A failed check leaves the previous saved settings intact. Then
+open **AI Configuration**, choose Local Hosted LLM for the desired agents, and
+click **Save Agent Providers**. You can mix local and cloud providers.
+
+The template setup uses Docker's service address. If your server runs directly
+on the host computer instead, use `http://host.docker.internal:9010/v1` from
+ChainGuard's Docker backend, and ensure the server accepts connections from
+Docker. If both programs run outside Docker, use `http://localhost:9010/v1`.
+The endpoint must provide OpenAI-compatible model listing and non-streaming chat
+completions with JSON-schema support. Connection success does not establish the
+model's accuracy on blockchain analysis.
+
+Local credentials remain server-side and are never returned to the browser.
+LLM settings persist in `/data/llm_config.json` in Docker's existing data volume.
+The API enforces admin access for connection tests, connection changes and agent
+assignment changes. Local failures do not automatically switch to a cloud model.
+The CLI's existing provider menu remains unchanged.
+
+For a scam check to use the Scam Checker, disable the external detector first.
+With a non-LLM external detector enabled, the Forensic Investigator explains the
+detector result instead. The Forensic Investigator also explains address lookup
+evidence and follow-up questions.
+
+### Start the main app
+
 Install Docker Desktop on Windows/macOS, or Docker Engine with the Compose plugin
 on Linux. Clone ChainGuard and the independent detector repository side by side:
 

@@ -6,4 +6,5 @@ __pycache__/
 !.env.example
 backend/fetchers/cache/
 backend/detector_config.json
+backend/llm_config.json
 backend/fetchers/json_files/info.json

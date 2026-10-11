@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, ApiError } from '../api'
-import type { ApiKeyName, ApiKeySettings, DetectorSettings } from '../api'
+import type { ApiKeyName, ApiKeySettings, DetectorSettings, LLMSettings } from '../api'
+import LocalLLMPage from './LocalLLMPage'
+import AgentProviderSettings from '../components/AgentProviderSettings'
 import './SettingsPage.css'
 
 const DEFAULT_SETTINGS: DetectorSettings = {
@@ -16,6 +18,7 @@ type SettingsView =
   | 'api-wrappers'
   | 'ai-configuration'
   | 'external-detector'
+  | 'local-llm'
 
 type ApiKeyField = {
   name: ApiKeyName
@@ -129,6 +132,28 @@ export default function SettingsPage({
 
   const [confirmDetector, setConfirmDetector] =
     useState(false)
+  const [llmSettings, setLLMSettings] = useState<LLMSettings | null>(null)
+  const [llmError, setLLMError] = useState('')
+
+  useEffect(() => {
+    if (!isAdmin) return
+    let active = true
+    void api<LLMSettings>('/settings/llm').then(result => {
+      if (active) setLLMSettings(result)
+    }).catch(failure => {
+      if (active) setLLMError(failure instanceof Error ? failure.message : 'Could not load LLM settings.')
+    })
+    return () => { active = false }
+  }, [isAdmin])
+
+  function llmSaved(result: LLMSettings) {
+    setLLMSettings(result)
+    setLLMError('')
+    void api<ApiKeySettings>('/settings/api-keys').then(status => {
+      setApiKeyStatus(status.configured)
+      onApiKeysSaved(status)
+    }).catch(() => setLLMError('Settings saved, but provider status could not refresh. Reopen Settings to retry.'))
+  }
 
   useEffect(() => {
     let active = true
@@ -485,6 +510,10 @@ export default function SettingsPage({
                   AI Configuration
                 </button>
 
+                <button type="button" className={view === 'local-llm' ? 'active' : ''} onClick={() => setView('local-llm')}>
+                  Local LLM Connection
+                </button>
+
                 <button
                   type="button"
                   className={
@@ -714,8 +743,7 @@ export default function SettingsPage({
                       <h3>Active LLM Provider</h3>
 
                       <p>
-                        Provider switching is controlled by
-                        the current backend configuration.
+                        Providers assigned to your agents are shown below.
                       </p>
                     </div>
                   </div>
@@ -817,21 +845,22 @@ export default function SettingsPage({
                   </div>
 
 
-                  <div className="cg-provider-card is-disabled">
+                  <div className={`cg-provider-card ${providerMatches(provider, 'local') ? 'active' : ''}`}>
                     <div>
                       <strong>Self-Hosted AI</strong>
 
                       <span>
-                        Not supported by the current backend
+                        {llmSettings?.local.connected ? `${llmSettings.local.name} · ${llmSettings.local.model}` : 'Connect your model server to enable this option'}
                       </span>
                     </div>
 
-                    <span className="cg-settings-badge is-muted">
-                      Not Available
-                    </span>
+                    {renderStatus(!!llmSettings?.local.connected)}
                   </div>
                 </div>
               </section>
+
+              {llmError && <p className="settings-status settings-error" role="alert">{llmError}</p>}
+              {llmSettings ? <AgentProviderSettings settings={llmSettings} onSaved={llmSaved} onConnect={() => setView('local-llm')} /> : <p role="status">Loading agent providers…</p>}
 
 
               <section className="cg-panel">
@@ -857,6 +886,11 @@ export default function SettingsPage({
             </>
           )}
 
+
+          {view === 'local-llm' && isAdmin && (
+            llmSettings ? <LocalLLMPage settings={llmSettings} error={llmError} onSaved={llmSaved} onBack={() => setView('ai-configuration')} />
+              : <p role={llmError ? 'alert' : 'status'}>{llmError || 'Loading local model settings…'}</p>
+          )}
 
           {view === 'external-detector' && isAdmin && (
             <>

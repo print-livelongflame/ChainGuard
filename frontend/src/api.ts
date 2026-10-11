@@ -25,6 +25,14 @@ export type ApiKeySettings = {
   configuration_error: string | null
 }
 
+export type LLMProvider = 'openai' | 'claude' | 'gemini' | 'local'
+export type AgentAssignments = Record<'business_analyser' | 'scam_checker' | 'forensic_investigator', LLMProvider>
+export type LocalLLM = {
+  enabled: boolean; name: string; base_url: string; model: string; timeout_seconds: number
+  api_key_configured: boolean; connected: boolean; connection_error: string | null
+}
+export type LLMSettings = { assignments: AgentAssignments; local: LocalLLM }
+
 export type Message = {
   id: string; role: 'user' | 'assistant'; text: string; created_at: string
   attachments: Attachment[]
@@ -53,7 +61,10 @@ export async function api<T>(path: string, body?: object): Promise<T> {
   })
   if (!response.ok) {
     const data = await response.json().catch(() => ({}))
-    throw new ApiError(typeof data.detail === 'string' ? data.detail : 'The request could not be completed.', response.status)
+    const detail = Array.isArray(data.detail)
+      ? data.detail.map((item: { loc?: string[]; msg?: string }) => `${item.loc?.slice(1).join('.') || 'Request'}: ${item.msg || 'Invalid value'}`).join('; ')
+      : typeof data.detail === 'string' ? data.detail : 'The request could not be completed.'
+    throw new ApiError(detail, response.status)
   }
   return response.json() as Promise<T>
 }

@@ -346,6 +346,7 @@ def ask_llm(prompt: str, history: list[dict[str, str]] | None = None) -> str:
     task_schema = response_schema["$defs"]["BAOutput"]
     task_schema["required"] = list(task_schema["properties"])
     analysis = complete(
+        agent="business_analyser",
         messages=[
             {
                 "role": "system",
