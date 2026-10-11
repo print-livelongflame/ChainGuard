@@ -12,7 +12,7 @@ from src.main import fetch_results, build_address_context_json
 
 
 def build_address_context(address: str) -> AddressContext:
-    """Use the same four fetchers and normalized contract as the CLI."""
+    """Build context using the shared four-fetcher pipeline and normalized contract."""
     address = (address or "").strip()
     if not address:
         raise ValueError("Address is required.")

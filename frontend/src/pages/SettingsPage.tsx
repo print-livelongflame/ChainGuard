@@ -464,10 +464,6 @@ export default function SettingsPage({
           <h2>Settings</h2>
 
           <nav aria-label="Settings sections">
-            <button type="button" disabled>
-              General Profiles
-            </button>
-
             <button
               type="button"
               className={
@@ -480,55 +476,51 @@ export default function SettingsPage({
               API Wrappers
             </button>
 
-            <button type="button" disabled>
-              Notifications
-            </button>
-
-            <button type="button" disabled>
-              Security
-            </button>
           </nav>
 
-          {isAdmin && (
-            <>
-              <div className="cg-settings-nav-label">
-                Admin Settings
-              </div>
+          <div className="cg-settings-nav-label">
+            Admin Settings
+          </div>
 
-              <nav aria-label="Administrator settings">
-                <button
-                  type="button"
-                  className={
-                    view === 'ai-configuration'
-                      ? 'active'
-                      : ''
-                  }
-                  onClick={() =>
-                    setView('ai-configuration')
-                  }
-                >
-                  AI Configuration
-                </button>
+          <nav aria-label="Administrator settings" aria-describedby={!isAdmin ? "cg-admin-access-note" : undefined}>
+            <button
+              type="button"
+              className={
+                view === 'ai-configuration'
+                  ? 'active'
+                  : ''
+              }
+              onClick={() =>
+                setView('ai-configuration')
+              }
+              disabled={!isAdmin}
+            >
+              AI Configuration
+            </button>
 
-                <button type="button" className={view === 'local-llm' ? 'active' : ''} onClick={() => setView('local-llm')}>
-                  Local LLM Connection
-                </button>
+            <button type="button" className={view === 'local-llm' ? 'active' : ''} disabled={!isAdmin} onClick={() => setView('local-llm')}>
+              Local LLM Connection
+            </button>
 
-                <button
-                  type="button"
-                  className={
-                    view === 'external-detector'
-                      ? 'active'
-                      : ''
-                  }
-                  onClick={() =>
-                    setView('external-detector')
-                  }
-                >
-                  External Detector
-                </button>
-              </nav>
-            </>
+            <button
+              type="button"
+              className={
+                view === 'external-detector'
+                  ? 'active'
+                  : ''
+              }
+              onClick={() =>
+                setView('external-detector')
+              }
+              disabled={!isAdmin}
+            >
+              External Detector
+            </button>
+          </nav>
+          {!isAdmin && (
+            <p id="cg-admin-access-note" className="cg-settings-access-note">
+              Sign in as an admin to access these settings.
+            </p>
           )}
         </aside>
 

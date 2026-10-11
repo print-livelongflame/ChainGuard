@@ -1,10 +1,13 @@
 # ChainGuard
 
-AI LLM which wil help users to investigate blockchain wallet address
+A web application that uses AI agents to answer blockchain questions, investigate
+Ethereum addresses, and assess potential scams. A CLI remains available for
+development and testing.
 
 ## Project Layout
 
-- `backend/` contains the Python CLI, chat API, fetchers, detectors, and AI integrations.
+- `backend/` contains the chat API, shared agent workflow, fetchers, detectors,
+  AI integrations, and a CLI for development and testing.
 - `frontend/` contains the React/Vite web chat.
 
 ## Quick Start (Docker)
@@ -302,7 +305,7 @@ the environment or as the matching constant in `backend/api_keys/api_keys.py`:
 
 Values such as `"Enter key here"` are treated as unset.
 
-## Run ChainGuard CLI
+## Developer testing CLI
 
 Start the interactive CLI from the `backend/` directory:
 
@@ -368,7 +371,8 @@ The API has two key stages:
 
 1. Fetcher stage
    - Existing fetchers are run against the address.
-   - The CLI already contains this logic in `backend/src/main.py` via `fetch_results()`.
+   - The web API and developer CLI share this logic in `backend/src/main.py`
+     via `fetch_results()`.
 
 2. Context-building stage
    - `backend/src/context_builder.py` takes the raw fetcher output and converts it into a single `AddressContext` object.
@@ -478,7 +482,7 @@ to `template`, `address_with_context`, and `false` for existing registrations.
 `backend/detector_config.json` must remain valid JSON, so do not add `//` comments
 inside the file. The fields mean:
 
-- `enabled`: set to `true` to allow the CLI to call the external detector; set
+- `enabled`: set to `true` to allow ChainGuard to call the external detector; set
    to `false` to disable it.
 - `name`: the display name used for the selected detector in BA task output.
 - `endpoint`: the external detector's HTTP `POST /detect` URL.
@@ -512,19 +516,49 @@ fetcher data -> AddressContext -> detect() -> DetectionResult
 ```
 
 
-## CLI Scam Checker
+## Agent design
 
-Run `python -m src.main` from `backend/`. For example, ask
-`Is 0x0000000000000000000000000000000000000000 a scam?`.
+The web chat and developer CLI use the same transport-independent workflow in
+`backend/src/chat_service.py`. Agent prompts describe ChainGuard as a web app;
+transport adapters handle presentation, downloads, and terminal diagnostics.
+The agents do not create UI controls, download URLs, or terminal menus.
+
+| Agent | Responsibility | Output |
+| --- | --- | --- |
+| BA (Business Analyser) | Classify each request, identify its target and requested data, and define lookup or scam-check tasks. Answer general questions and ask clarifications directly. | Validated JSON task envelope; user-facing answers in `message`. |
+| SCH (Scam Checker) | Assess fetched `AddressContext` when no external detector is configured. Distinguish missing evidence from evidence of safety or wrongdoing. | Validated assessment JSON with a plain-language `explanation`. |
+| FI (Forensic Investigator) | Explain initial and saved lookup evidence; explain configured non-LLM detector results. | Lookup JSON with `explanation` and a download `filename`, or a plain-text detector explanation. |
+
+The application executes BA's tasks and supplies the resulting evidence to SCH
+or FI. External detector calls are implemented in the shared execution pipeline;
+BA does not execute them. SCH is used for the no-detector fallback, FI explains
+non-LLM detector results, and LLM-based detector results use the application's
+existing response handling. Each agent treats user-supplied text and evidence
+as untrusted data and preserves its existing output schema.
+
+In the web app, users attach `.txt` or `.json` files through the chat composer,
+read explanations in the conversation, and download attached JSON results.
+Conversation context belongs to the current chat. The developer CLI retains
+its attachment command, provider menu, exit commands, local output paths, and
+diagnostic output for testing.
+
+## Scam Checker workflow
+
+Ask a scam-assessment question in the web chat, supplying an Ethereum address,
+token name, or transaction hash. The same workflow is available through
+`python -m src.main` from `backend/` for development and testing.
 
 For an in-scope `scam_check` with no configured detector, BA resolves the target
 and fetches contract, transaction, token and liquidity context. SCH receives
 that BA task and its saved `AddressContext`, then produces an assessment and
 explanation in one LLM call. The Forensic
-Investigator is not called, as the Scam Checker creates it's own LLM plain text response. Fetcher failures remain visible in provenance;
+Investigator is not called for this fallback assessment, because the Scam Checker
+creates its own plain-language response. Fetcher failures remain visible in provenance;
 missing evidence must not be interpreted as safety.
 
-The CLI's **Scam Checker output** section identifies the LLM source and prints
+The web chat displays SCH's explanation and attaches the fetched context JSON.
+The developer CLI additionally has a **Scam Checker output** section that
+identifies the LLM source and prints
 the validated flat JSON contract: `label` (`scam`, `not_scam`, or
 `insufficient_evidence`), `risk_type`, `confidence` (0 to 1), `evidence` (objects
 with `description` and `weight`, 0 to 1), and `explanation`. The optional

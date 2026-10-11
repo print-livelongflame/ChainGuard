@@ -1,9 +1,9 @@
-'''
-This file is for the main cli of the program. 
+"""Shared task execution for the web chat and developer testing CLI.
 
-Current cli implementation:
-As according to sprint 1 w2; The cli lets users input address and from calls all the different fetchers and returns 1 json file containing all accepted results
-'''
+Resolvers, fetchers, context persistence, and scam-assessment routing are used
+by both interfaces. Terminal presentation and the interactive CLI entry point
+remain here for development and testing.
+"""
 import argparse
 import json
 import os
