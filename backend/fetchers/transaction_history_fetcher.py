@@ -76,14 +76,17 @@ def get_transactions(
 
     data = response.json()
 
-    # Etherscan returns status 0 when there are no transactions
+    # Only a genuine no-transactions response means an empty history.
+    if not isinstance(data, dict):
+        raise ValueError("Etherscan returned an invalid transaction response.")
     if data.get("status") != "1":
-        message = data.get("message", "")
-
-        if "No transactions found" in str(message):
+        message = str(data.get("message", ""))
+        result = str(data.get("result", ""))
+        if "No transactions found" in message or "No transactions found" in result:
             return []
-
-        return []
+        raise ValueError(f"Etherscan transaction request failed: {result or message or 'unknown error'}")
+    if not isinstance(data.get("result"), list):
+        raise ValueError("Etherscan returned an invalid transaction list.")
 
     transactions = []
 

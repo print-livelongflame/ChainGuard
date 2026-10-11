@@ -1,0 +1,45 @@
+name: Manual Docker integration test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-integration:
+    name: Start and check the full Docker stack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out ChainGuard
+        uses: actions/checkout@v4
+
+      - name: Check out detector
+        uses: actions/checkout@v4
+        with:
+          repository: Mossata/ChainGuard-detector-template
+          path: .ci-detector
+
+      - name: Start Docker Compose services
+        env:
+          DETECTOR_PATH: ./.ci-detector
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml up --build --detach --wait --wait-timeout 180
+
+      - name: Check frontend and service health
+        run: |
+          curl --fail --retry 10 --retry-connrefused --retry-delay 2 http://127.0.0.1:5173/
+          curl --fail http://127.0.0.1:8000/health
+          curl --fail http://127.0.0.1:9000/health
+
+      - name: Check backend-to-detector request and response
+        run: >-
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T backend
+          python -c 'from src.detector_config import DetectorConfig, save_detector_settings; from src.schema import AddressContext; from detector_integration.client import call_detector; save_detector_settings(DetectorConfig(enabled=True, endpoint="http://detector:9000/detect")); result = call_detector(AddressContext(address="0x0000000000000000000000000000000000000001", chain="ethereum")); assert result.label == "insufficient_evidence", result.model_dump(); print("Backend called detector and validated its response")'
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml logs
+
+      - name: Stop Docker Compose services
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down --volumes

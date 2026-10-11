@@ -1,6 +1,7 @@
 .vscode/
 api_keys/
 __pycache__/
+.coverage
 .env
 .env.*
 !.env.example
