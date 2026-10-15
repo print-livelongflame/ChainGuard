@@ -13,7 +13,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from src.api import InputAttachment, create_app
-from src.chat_service import MAX_ATTACHMENT_BYTES
+from src.chat_service import MAX_ATTACHMENT_BYTES, build_prompt, _json_target_addresses
 from src.main import handle_ba_request
 
 
@@ -145,6 +145,40 @@ class WebChatTests(unittest.TestCase):
         self.assertEqual(len(attachment.content), 10 * 1024 * 1024)
         with self.assertRaises(ValueError):
             InputAttachment(name="notes.txt", content="a" * (MAX_ATTACHMENT_BYTES + 1))
+
+    def test_json_target_extraction_ignores_transaction_and_holder_addresses(self):
+        target = "0x" + "2" * 40
+        wallet = "0x" + "3" * 40
+        data = {
+            "token": {"contractAddress": target},
+            "transactions": [{"from": wallet, "to": wallet}],
+            "holders": [{"address": wallet}],
+        }
+
+        self.assertEqual(
+            _json_target_addresses(data),
+            [(("token", "contractAddress"), target)],
+        )
+
+    def test_json_prompt_explains_target_and_ambiguity(self):
+        first = "0x" + "2" * 40
+        second = "0x" + "3" * 40
+        prompt = build_prompt(
+            "Please check the attached file.",
+            [{
+                "name": "token.json",
+                "content": json.dumps({
+                    "token_address": first,
+                    "contract_address": second,
+                }),
+            }],
+        )
+
+        self.assertIn("Target address candidates extracted", prompt)
+        self.assertIn("if there are multiple candidates, ask which one", prompt)
+        self.assertIn(f"token_address: {first}", prompt)
+        self.assertIn(f"contract_address: {second}", prompt)
+        self.assertIn('"token_address":', prompt)
 
     def test_commands_do_not_exit_or_change_provider(self):
         chat = self.create()
@@ -279,7 +313,10 @@ class WebChatTests(unittest.TestCase):
                     "text": "",
                     "attachments": [{
                         "name": "token.json",
-                        "content": json.dumps({"address": address}),
+                        "content": json.dumps({
+                            "token": {"contract_address": address},
+                            "transactions": [{"from": "0x" + "3" * 40}],
+                        }),
                     }],
                 },
             )
@@ -289,6 +326,12 @@ class WebChatTests(unittest.TestCase):
         model_messages = self.complete.call_args.kwargs["messages"]
         self.assertIn("ATTACHED JSON FILES", model_messages[0]["content"])
         self.assertIn(address, model_messages[-1]["content"])
+        self.assertIn("Target address candidates extracted", model_messages[-1]["content"])
+        self.assertIn("token.contract_address", model_messages[-1]["content"])
+        self.assertIn(
+            "Please investigate the blockchain target in the attached JSON",
+            model_messages[-1]["content"],
+        )
 
     def test_backend_restart_expires_chats(self):
         chat = self.create()

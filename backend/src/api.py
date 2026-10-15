@@ -341,7 +341,16 @@ def create_app():
         chat.processing = True
         chat.error = None
         attachments = [validate_attachment(item.name, item.content) for item in body.attachments]
-        prompt = build_prompt(body.text or "Please analyze the attached file.", attachments)
+        default_prompt = "Please analyze the attached file."
+        if attachments and attachments[0]["name"].casefold().endswith(".json"):
+            default_prompt = (
+                "Please investigate the blockchain target in the attached JSON "
+                "for a potential scam."
+            )
+        prompt = build_prompt(
+            body.text or default_prompt,
+            attachments,
+        )
         if not chat.messages:
             chat.title = (body.text or attachments[0]["name"])[:60]
         chat.messages.append(Message(

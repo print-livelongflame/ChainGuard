@@ -191,6 +191,13 @@ cards fill an editable prompt. Replace address placeholders with a complete
 Ethereum address. Replies can include JSON download links. The sidebar switches between conversations,
 including while another conversation is processing.
 
+When a JSON attachment contains a target field such as `token_address`,
+`contract_address`, or `token.address`, ChainGuard identifies that address in
+the model prompt and asks the model to investigate it when no separate request
+is provided. Transaction participant and holder addresses are not treated as
+the target. If multiple target addresses are found, the assistant asks which
+one to assess rather than choosing one.
+
 The web API uses OpenAI by default. To select another configured provider, set
 `$env:CHAINGUARD_AI_PROVIDER = "gemini"` (or `"claude"` / `"openai"`) in the API
 terminal before starting it. Restart the API after changing the selected
