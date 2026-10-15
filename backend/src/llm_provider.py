@@ -23,7 +23,7 @@ _PROVIDERS = {
     },
     "gemini": {
         "label": "Gemini",
-        "model": "gemini/gemini-2.5-flash",
+        "model": "gemini/gemini-3.6-flash",
         "environment_keys": ("GEMINI_API_KEY",),
         "config_key": "GEMINI_API_KEY",
     },
