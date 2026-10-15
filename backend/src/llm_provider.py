@@ -34,6 +34,12 @@ _PROVIDERS = {
         "config_key": "CLAUDE_API_KEY",
     },
 }
+OUTPUT_TOKEN_BUDGETS = {
+    "identity_basic_faq": 80,
+    "general_explanation": 180,
+    "address_summary": 250,
+    "scam_investigation": 350,
+}
 _active_provider = "openai"
 _progress_enabled = True
 _turn_settings = ContextVar("llm_turn_settings", default=None)
@@ -97,18 +103,44 @@ def set_provider(provider: str) -> str:
     return _PROVIDERS[normalized]["label"]
 
 
-def complete(messages: list[dict[str, str]], response_format: dict | None = None, *, agent: str = "business_analyser") -> str:
+def complete(
+    messages: list[dict[str, str]],
+    response_format: dict | None = None,
+    *,
+    agent: str = "business_analyser",
+    max_tokens: int = 8192,
+) -> str:
     """Generate text with the selected provider and return its message content."""
+    content, _ = complete_with_usage(
+        messages, response_format, agent=agent, max_tokens=max_tokens
+    )
+    return content
+
+
+def complete_with_usage(
+    messages: list[dict[str, str]],
+    response_format: dict | None = None,
+    *,
+    agent: str = "business_analyser",
+    temperature: float | None = None,
+    max_tokens: int = 8192,
+) -> tuple[str, dict[str, int] | None]:
+    """Generate text and return provider-reported token counts when available."""
+    if not isinstance(max_tokens, int) or isinstance(max_tokens, bool) or max_tokens < 1:
+        raise ValueError("max_tokens must be a positive integer.")
+
     settings = _turn_settings.get()
     provider = getattr(settings.assignments, agent) if settings else _active_provider
     if provider == "local":
         if not settings.local.enabled or not settings.local_verified:
             raise ValueError("Connect and enable the local LLM in admin settings first.")
         body = {"model": settings.local.model, "messages": messages, "stream": False,
-                "temperature": 0.2, "max_tokens": 8192}
+                "temperature": 0.2 if temperature is None else temperature,
+                "max_tokens": max_tokens}
         if response_format is not None:
             body["response_format"] = response_format
-        return local_content(local_request(settings.local, "chat/completions", body))
+        response = local_request(settings.local, "chat/completions", body)
+        return local_content(response), _usage_counts(response.get("usage"))
     api_key = _get_api_key(provider)
     if not api_key:
         details = _PROVIDERS[provider]
@@ -125,13 +157,16 @@ def complete(messages: list[dict[str, str]], response_format: dict | None = None
 
     try:
         def send_request():
-            return completion(
-                model=_PROVIDERS[provider]["model"],
-                messages=messages,
-                api_key=api_key,
-                max_tokens=8192,
-                response_format=response_format,
-            )
+            options = {
+                "model": _PROVIDERS[provider]["model"],
+                "messages": messages,
+                "api_key": api_key,
+                "max_tokens": max_tokens,
+                "response_format": response_format,
+            }
+            if temperature is not None:
+                options["temperature"] = temperature
+            return completion(**options)
 
         if _progress_enabled:
             with Progress(
@@ -166,4 +201,22 @@ def complete(messages: list[dict[str, str]], response_format: dict | None = None
         )
     if not isinstance(content, str) or not content.strip():
         raise ValueError(f"The {_PROVIDERS[provider]['label']} returned an empty response.")
-    return content
+    return content, _usage_counts(getattr(response, "usage", None))
+
+
+def _usage_counts(usage: object | None) -> dict[str, int] | None:
+    """Normalize LiteLLM/OpenAI-compatible usage metadata without guessing."""
+    if usage is None:
+        return None
+
+    counts = {}
+    for source, target in (
+        ("prompt_tokens", "input_tokens"),
+        ("completion_tokens", "output_tokens"),
+        ("total_tokens", "total_tokens"),
+    ):
+        value = usage.get(source) if isinstance(usage, dict) else getattr(usage, source, None)
+        if not isinstance(value, int) or isinstance(value, bool):
+            return None
+        counts[target] = value
+    return counts

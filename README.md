@@ -259,6 +259,47 @@ python -m pytest -v
 python -m pytest --cov=src --cov=detector_integration --cov=fetchers --cov-report=term-missing
 ```
 
+To compare token use for the OpenAI, Gemini and Claude models using the same
+three prompts, configure all three cloud API keys and run this opt-in live
+benchmark from `backend/`:
+
+```powershell
+$env:CHAINGUARD_RUN_LLM_TOKEN_BENCHMARK = "1"
+python -m pytest -s -q tests/test_llm_token_usage.py
+```
+
+The benchmark makes three real, potentially billable API calls per included
+provider and sends the prompts to each one. It reports input, output and total
+tokens, latency, and average tokens per prompt. Exclude providers with
+`--exclude`; repeat the option or give it a comma-separated list:
+
+```powershell
+python -m pytest -s -q tests/test_llm_token_usage.py --exclude=gemini
+python -m pytest -s -q tests/test_llm_token_usage.py --exclude=gemini,openai
+python -m pytest -s -q tests/test_llm_token_usage.py --exclude=gemini --exclude=openai
+```
+
+The benchmark is skipped during ordinary test runs unless the environment
+variable is set. Token usage is reported only when the provider returns it;
+responses are never token-counted by an estimate.
+
+### Initial response token budgets
+
+Every configured cloud provider and the local OpenAI-compatible model receive
+the same `max_tokens` cap for each ChainGuard agent request:
+
+| Task | Output token cap |
+| --- | ---: |
+| Identity / basic FAQ | 80 |
+| General explanation | 180 |
+| Address summary | 250 |
+| Scam investigation | 350 |
+
+The Business Analyser chooses the first-response budget from the user's prompt.
+Address summaries use the Forensic Investigator budget; scam assessments and
+their detector-result explanations use the Scam Investigation budget. The cap
+limits generated output tokens, not prompt/input tokens.
+
 The current backend tests use mocks and do not need API keys or paid calls.
 They cover chat/API behavior, authentication and role access, file handling,
 contract metadata, fetcher caching, and detector configuration. The CI workflow

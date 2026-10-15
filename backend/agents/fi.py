@@ -5,7 +5,7 @@ import re
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.detector_config import load_detector_config
-from src.llm_provider import complete
+from src.llm_provider import OUTPUT_TOKEN_BUDGETS, complete
 from src.schema import DetectionResult
 
 
@@ -71,6 +71,7 @@ def analyze_lookup(evidence: list[dict], question: str) -> LookupAnalysis:
             "name": "lookup_analysis", "strict": True,
             "schema": LookupAnalysis.model_json_schema(),
         }},
+        max_tokens=OUTPUT_TOKEN_BUDGETS["address_summary"],
     )
     result = LookupAnalysis.model_validate_json(analysis)
     result.explanation = remove_filename_suggestion(result.explanation)
@@ -124,6 +125,7 @@ def explain_detector_result(result: DetectionResult) -> str:
 				),
 			},
 		],
+		max_tokens=OUTPUT_TOKEN_BUDGETS["scam_investigation"],
 	)
 	explanation = explanation.strip()
 	if not explanation:
