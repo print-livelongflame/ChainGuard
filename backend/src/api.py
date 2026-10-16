@@ -21,6 +21,7 @@ from src.auth import router as auth_router, require_admin, get_session
 
 from agents.ba import is_exit_command
 from src.chat_service import (
+    ASSESSMENT_PREFIX,
     MAX_ATTACHMENT_BYTES,
     build_prompt,
     run_turn,
@@ -315,6 +316,8 @@ def create_app():
                 **result.model_dump(include=set(DetectionResult.model_fields)),
                 source=source, address=address,
             )
+            history.append({"role": "assistant", "content":
+                            ASSESSMENT_PREFIX + pending_assessment.model_dump_json()})
 
         def respond(text, label, output):
             nonlocal pending_assessment, pending_lookup

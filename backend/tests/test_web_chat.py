@@ -93,6 +93,62 @@ class WebChatTests(unittest.TestCase):
             callback.assert_called_once_with(result, "ChainGuard Scam Checker", None)
             respond.assert_called_once_with("Detector explanation")
 
+    def test_scam_check_keeps_context_and_assessment_for_followups(self):
+        from agents.sch import ScamCheckerResponse
+        address = "0x" + "1" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="scam_check", chain="ethereum",
+            raw_input={"type": "address", "value": address},
+        ))
+        result = ScamCheckerResponse(label="not_scam", risk_type="unknown", confidence=0.9,
+                                     evidence=[{"description": "Contract is verified.", "weight": 0.7}],
+                                     explanation="No scam indicators detected.")
+        fetched = ({"contract": {"status": "pass", "data": {"abi": [{}], "bytecode": "0x1234"}},
+                    "transactions": {"status": "pass", "data": [{"hash": "0xabc", "value_wei": "1000000000000000000"}]}},
+                   {"chain_family": "evm", "address_type": "contract"})
+        with patch("src.main.fetch_results", return_value=fetched) as fetcher, patch(
+            "src.main.assess_saved_context", return_value=result
+        ), patch("agents.fi.complete", return_value=json.dumps({
+            "explanation": "The original result was not_scam; missing fields do not establish risk.",
+            "filename": "saved-evidence.json",
+        })) as investigator:
+            chat = self.create()
+            initial = self.send(chat, "Check this address for scams").json()["messages"][-1]
+            self.assertEqual(initial["assessment"]["label"], "not_scam")
+            self.assertIsNone(initial["lookup"])
+            self.complete.return_value = envelope(task(None, request_type="address_info", use_saved_lookup=True))
+            follow_up = self.send(chat, "Show me the suspicious transactions").json()["messages"][-1]
+            self.assertEqual(follow_up["lookup"]["kind"], "transactions")
+            self.assertEqual(follow_up["lookup"]["provenance"]["status"], "pass")
+            self.assertEqual(follow_up["lookup"]["transactions"][0]["value"], "1")
+            self.assertEqual(follow_up["assessment"]["label"], "not_scam")
+            evidence = json.loads(investigator.call_args.kwargs["messages"][-1]["content"])
+            self.assertEqual(evidence["lookups"][0]["detector_assessment"]["label"], "not_scam")
+            why = self.send(chat, "Why is this risky?").json()["messages"][-1]
+            self.assertEqual(why["lookup"]["kind"], "evidence")
+            self.assertEqual(why["assessment"]["evidence"][0]["description"], "Contract is verified.")
+            fetcher.assert_called_once()
+
+    def test_saved_evidence_merges_only_requested_fields_and_isolates_targets(self):
+        from types import SimpleNamespace
+        from src.chat_service import EVIDENCE_PREFIX, select_saved_evidence
+        first, second = "0x" + "1" * 40, "0x" + "2" * 40
+        def saved(data):
+            return {"role": "assistant", "content": EVIDENCE_PREFIX + json.dumps(data)}
+        history = [saved({"address": first, "contract": {"verified_source": True},
+                          "fetcher_provenance": {"contract_fetcher": {"fields": ["contract"], "status": "pass"}}}),
+                   saved({"address": first, "contract": {}, "tx_history": [{"hash": "0xabc"}],
+                          "fetcher_provenance": {"contract_fetcher": {"fields": ["contract"], "status": "skip"},
+                                                 "tx_history_fetcher": {"fields": ["tx_history"], "status": "pass"}}}),
+                   saved({"address": second, "contract": {"verified_source": False}})]
+        item = SimpleNamespace(raw_input=None)
+        self.assertEqual(len(select_saved_evidence(history, item, "Why?")), 2)
+        selected = select_saved_evidence(history, item, "Why " + first)
+        self.assertEqual(len(selected), 1)
+        self.assertTrue(selected[0]["contract"]["verified_source"])
+        self.assertEqual(selected[0]["tx_history"][0]["hash"], "0xabc")
+        self.assertEqual(select_saved_evidence(history, item, "Why 0x" + "3" * 40), [])
+
     def test_health_route(self):
         self.assertEqual(self.client.get("/health").json(), {"status": "ok"})
 
