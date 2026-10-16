@@ -141,7 +141,7 @@ def build_prompt(prompt, attachments=()):
 
 
 def run_turn(prompt, history, *, execute, respond, output_root=None,
-             on_analysis=None, on_task=None, unique_single_output=True):
+             on_analysis=None, on_task=None, unique_single_output=True, on_lookup=None):
     """Keep private BA context and emit only user-facing answers and files."""
     working_history = list(history)
     try:
@@ -178,6 +178,8 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
                 evidence = json.loads(output.read_text(encoding="utf-8"))
                 if "fetcher_provenance" in evidence:
                     history.append({"role": "assistant", "content": EVIDENCE_PREFIX + json.dumps(evidence)})
+                    if on_lookup:
+                        on_lookup([evidence], task, False)
                     try:
                         summary = analyze_lookup([evidence], prompt)
                         renamed = output.with_name(summary.filename)
@@ -203,6 +205,8 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
                             for item in history if item["content"].startswith(EVIDENCE_PREFIX)]
                 output = None
                 if evidence:
+                    if on_lookup:
+                        on_lookup(evidence, task, True)
                     reply(analyze_lookup(evidence, prompt).explanation)
                 else:
                     reply("No saved lookup is available in this chat. Please run a lookup first.")

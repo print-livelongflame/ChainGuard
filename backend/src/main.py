@@ -9,6 +9,7 @@ import json
 import os
 import re
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -393,6 +394,18 @@ def normalize_contract_context(results):
     }
 
 
+def transaction_native_value(tx):
+    """Expose an exact native amount; a wei fallback must not be labelled ETH."""
+    try:
+        if tx.get("value_native") is not None:
+            return str(Decimal(str(tx["value_native"])))
+        if tx.get("value_wei") is not None:
+            return format(Decimal(str(tx["value_wei"])) / Decimal(10 ** 18), "f")
+    except (InvalidOperation, ValueError):
+        pass
+    return None
+
+
 def normalize_tx_history_context(results):
     transactions = _passed_data(results, "transactions", [])
     if not isinstance(transactions, list):
@@ -403,7 +416,9 @@ def normalize_tx_history_context(results):
             "hash": tx.get("hash"),
             "from": tx.get("from"),
             "to": tx.get("to"),
-            "value": str(tx.get("value_native", tx.get("value_wei", ""))),
+            "value": transaction_native_value(tx),
+            "execution_status": ("failed" if str(tx.get("is_error")) == "1" else
+                                 "success" if str(tx.get("is_error")) == "0" else "unknown"),
             "timestamp": tx.get("timestamp"),
             "method": tx.get("function_name") or tx.get("method_id"),
         }
@@ -655,7 +670,7 @@ def resolve_ba_target(task, respond, output_file=None):
     return addresses[0] if task.requested_fields and len(addresses) == 1 else None
 
 
-def run_scam_check(task, context_file, respond, diagnostics=True):
+def run_scam_check(task, context_file, respond, diagnostics=True, on_assessment=None):
     """Read saved context with SCH for the local fallback assessment."""
     if not task.in_scope or task.request_type != "scam_check":
         return
@@ -675,11 +690,13 @@ def run_scam_check(task, context_file, respond, diagnostics=True):
             f"{assessment.model_dump_json(indent=2, exclude_none=True)}\n"
             f"Context saved to {context_file}"
         )
+    if on_assessment:
+        on_assessment(assessment, "ChainGuard Scam Checker", None)
     respond(assessment.explanation)
     return assessment
 
 
-def run_external_detector(task, address, respond, output_file=None, diagnostics=True):
+def run_external_detector(task, address, respond, output_file=None, diagnostics=True, on_assessment=None):
     """Fetch the required context and call the configured detector service."""
     try:
         if task.required_input_type == "address_with_context":
@@ -707,6 +724,8 @@ def run_external_detector(task, address, respond, output_file=None, diagnostics=
             f"Source: {task.selected_detector}\n"
             f"{assessment.model_dump_json(indent=2, exclude_none=True)}"
         )
+    if on_assessment:
+        on_assessment(assessment, task.selected_detector or "External detector", address)
     config = load_detector_config()
     if config is not None and not config.is_llm_based:
         try:
@@ -758,7 +777,7 @@ def handle_ba_request(prompt, history=None):
         print(f"\nUnable to process request: {error}")
 
 
-def execute_ba_task(task, respond, output_file=None, diagnostics=True):
+def execute_ba_task(task, respond, output_file=None, diagnostics=True, on_assessment=None):
     """Run one task; returning here does not stop other tasks in the prompt."""
     analysis = task.model_dump_json()
     action_response = perform_next_action(analysis)
@@ -804,7 +823,7 @@ def execute_ba_task(task, respond, output_file=None, diagnostics=True):
     if task.request_type == "scam_check" and (
         task.detector_configured or task.selected_detector is not None
     ):
-        run_external_detector(task, raw_input, respond, output_file, diagnostics=diagnostics)
+        run_external_detector(task, raw_input, respond, output_file, diagnostics=diagnostics, on_assessment=on_assessment)
         return
 
     if not task.requested_fields:
@@ -826,7 +845,9 @@ def execute_ba_task(task, respond, output_file=None, diagnostics=True):
     else:
         save_info(raw_input, fetcher_results, address_analysis, output_file=output_file)
     if task.request_type == "scam_check":
-        run_scam_check(task, output_file or JSON_FILE, respond, diagnostics=diagnostics)
+        run_scam_check(task, output_file or JSON_FILE, respond, diagnostics=diagnostics,
+                       on_assessment=(lambda result, source, _: on_assessment(result, source, raw_input))
+                       if on_assessment else None)
         return
     respond(f"Requested information saved to {output_file or JSON_FILE}")
 

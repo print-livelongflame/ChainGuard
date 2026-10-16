@@ -1,6 +1,7 @@
 """Local, single-worker web API. Run: uvicorn src.api:app --host 127.0.0.1."""
 import asyncio
 import hashlib
+import re
 import logging
 import os
 import secrets
@@ -30,6 +31,7 @@ from src.llm_provider import use_llm_settings
 from src.llm_config import get_llm_settings, settings_exist
 from src.llm_settings_api import router as llm_router, refresh_provider_status
 from src.main import execute_ba_task
+from src.schema import DetectionResult
 from src.api_key_config import (
     apply_api_key_updates,
     get_api_key_status,
@@ -62,12 +64,19 @@ class InputAttachment(BaseModel):
         return self
 
 
+class AnalysisResult(DetectionResult):
+    source: str
+    address: str | None = None
+
+
 class Message(BaseModel):
     id: str = Field(default_factory=lambda: uuid4().hex)
     role: Literal["user", "assistant"]
     text: str
     created_at: str = Field(default_factory=now)
     attachments: list[Attachment] = Field(default_factory=list)
+    assessment: AnalysisResult | None = None
+    lookup: dict | None = None
 
 
 class ChatView(BaseModel):
@@ -276,8 +285,39 @@ def create_app():
         files = {}
         history = list(chat.history)
         seen_files = set()
+        pending_assessment = None
+        pending_lookup = None
+
+        def capture_lookup(evidence, task, follow_up):
+            nonlocal pending_lookup, pending_assessment
+            if len(evidence) != 1:
+                return
+            context = evidence[0]
+            wants_transactions = task.request_type == "address_info" and (
+                "tx_history" in task.requested_fields or bool(
+                    re.search(r"\btransactions?\b", prompt, re.IGNORECASE)))
+            if follow_up and context.get("detector_assessment"):
+                pending_assessment = AnalysisResult.model_validate(context["detector_assessment"])
+            if wants_transactions or (follow_up and pending_assessment):
+                pending_lookup = {
+                    "kind": "transactions" if wants_transactions else "evidence",
+                    "address": context.get("address"),
+                    "chain": context.get("chain", "unknown"),
+                    "queried_at": context.get("queried_at"),
+                    "transactions": context.get("tx_history") or [],
+                    "provenance": next((value for value in context.get("fetcher_provenance", {}).values()
+                                        if "tx_history" in value.get("fields", [])), {}),
+                }
+
+        def capture_assessment(result, source, address):
+            nonlocal pending_assessment
+            pending_assessment = AnalysisResult(
+                **result.model_dump(include=set(DetectionResult.model_fields)),
+                source=source, address=address,
+            )
 
         def respond(text, label, output):
+            nonlocal pending_assessment, pending_lookup
             attachments = []
             if output:
                 text = text.replace(str(output), "the attached JSON result")
@@ -298,8 +338,10 @@ def create_app():
                     ))
             messages.append(Message(
                 role="assistant", text=f"{label}\n{text}" if label else text,
-                attachments=attachments,
+                attachments=attachments, assessment=pending_assessment, lookup=pending_lookup,
             ))
+            pending_assessment = None
+            pending_lookup = None
             return text
 
         if prompt.casefold() == "change ai":
@@ -310,8 +352,9 @@ def create_app():
             run_turn(
                 prompt, history,
                 execute=lambda task, reply, output: execute_ba_task(
-                    task, reply, output, diagnostics=False),
+                    task, reply, output, diagnostics=False, on_assessment=capture_assessment),
                 respond=respond, output_root=app.state.output_root / chat.id,
+                on_lookup=capture_lookup,
             )
         if not messages:
             respond("No answer was produced. Please rephrase your request.", None, None)

@@ -56,6 +56,43 @@ class WebChatTests(unittest.TestCase):
     def send(self, chat, text="What is a blockchain?"):
         return self.client.post(f"/api/chats/{chat}/messages", json={"text": text})
 
+    def test_assessment_metadata_stays_with_its_reply(self):
+        from agents.sch import ScamCheckerResponse
+        result = ScamCheckerResponse(reasoning_trace="Private reasoning must stay internal",
+                                 label="insufficient_evidence", risk_type="unknown",
+                                 confidence=0.3, evidence=[], explanation="Not enough evidence.")
+
+        def execute(task, respond, output, diagnostics=False, on_assessment=None):
+            on_assessment(result, "Test detector", "0x" + "1" * 40)
+            respond(result.explanation)
+            respond("Additional information.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            response = self.send(self.create()).json()
+        self.assertNotIn("Private reasoning", json.dumps(response))
+        assessment, plain = response["messages"][1:]
+        self.assertEqual(assessment["assessment"]["label"], "insufficient_evidence")
+        self.assertEqual(assessment["assessment"]["confidence"], 0.3)
+        self.assertEqual(assessment["assessment"]["source"], "Test detector")
+        self.assertEqual(assessment["assessment"]["address"], "0x" + "1" * 40)
+        self.assertIsNone(plain["assessment"])
+
+    def test_builtin_assessment_callback_preserves_detector_fields(self):
+        from src.main import run_scam_check
+        from types import SimpleNamespace
+        from src.schema import DetectionResult
+        from unittest.mock import Mock
+        for label in ("scam", "not_scam", "insufficient_evidence"):
+            result = DetectionResult(label=label, risk_type="unknown", confidence=0.42,
+                                     evidence=[], explanation="Detector explanation")
+            callback, respond = Mock(), Mock()
+            with patch("src.main.assess_saved_context", return_value=result):
+                run_scam_check(SimpleNamespace(in_scope=True, request_type="scam_check"),
+                               "unused.json", respond, diagnostics=False,
+                               on_assessment=callback)
+            callback.assert_called_once_with(result, "ChainGuard Scam Checker", None)
+            respond.assert_called_once_with("Detector explanation")
+
     def test_health_route(self):
         self.assertEqual(self.client.get("/health").json(), {"status": "ok"})
 
