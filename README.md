@@ -1,89 +1,37 @@
-# ChainGuard
+﻿# ChainGuard
 
-A web application that uses AI agents to answer blockchain questions, investigate
-Ethereum addresses, and assess potential scams. A CLI remains available for
-development and testing.
+ChainGuard is a local web application for asking blockchain questions, looking up Ethereum addresses, and investigating possible scams. It combines blockchain data with AI explanations and can optionally send evidence to your own external detector. Findings depend on the available evidence and model; they are not guarantees that a token is safe or fraudulent.
 
-## Project Layout
+## Choose your setup
 
-- `backend/` contains the chat API, shared agent workflow, fetchers, detectors,
-  AI integrations, and a CLI for development and testing.
-- `frontend/` contains the React/Vite web chat.
+1. **[Start the main app](#1-start-the-main-app)** with a cloud AI provider. This covers the browser interface, backend, login, and keys.
+2. **[Add the local LLM template](#2-use-the-local-llm-template)** to run the AI model on your computer instead of using a cloud provider.
+3. **[Connect the external detector template](#3-connect-the-external-detector-template)** to use your own detection algorithm.
 
-## Quick Start (Docker)
+The two templates serve different purposes and can be used together. A **local LLM** (large language model) generates the agents' answers. An **external detector** accepts an address and evidence and returns a structured risk assessment.
 
-### Local LLM and separate agent providers
+A few terms used below:
 
-Admins can now choose OpenAI, Claude, Gemini or **Local Hosted LLM** independently
-for the Business Analyst, Scam Checker and Forensic Investigator under
-**Settings → AI Configuration**. Changes apply to future messages for all users;
-an answer already running keeps its original settings. Cloud API keys still use
-the existing settings controls.
-
-To use the local template, keep `ChainGuard-localLLM-template` beside ChainGuard.
-From the template folder, start the server and download a model:
-
-```powershell
-docker compose up -d --build
-docker compose exec ollama ollama pull llama3.2:3b
-```
-
-Then, from the **ChainGuard** folder, rebuild and start ChainGuard with the
-included network connection file:
-
-```powershell
-docker compose -f docker-compose.yml -f ../ChainGuard-localLLM-template/chainguard-network.yaml up -d --build
-```
-
-Use the same two `-f` options for later ChainGuard Docker commands. This connects
-the two applications without editing their network configuration files. Start
-the template first so its shared network exists.
-
-Sign in as admin, open **Settings → Local LLM Connection**, and enter:
-
-| Field | Example |
+| Term | Meaning |
 | --- | --- |
-| Connection name | My local Llama |
-| API base URL | `http://chainguard-local-llm:9010/v1` |
-| Model name | `llama3.2:3b` |
-| Optional API key | Leave empty unless set on the model server |
-| Timeout | 300 seconds |
+| Frontend | The web interface you open in your browser. |
+| Backend | The Python service that handles chats, calls AI providers, and retrieves blockchain data. |
+| API | An interface through which programs send requests to one another. |
+| API key | A secret issued by a service to authorize requests. Obtain your own keys from the providers you use. |
+| Endpoint / base URL | A service's network address. Use the exact path shown in each guide. |
+| Docker Compose | A tool that builds and starts the app's services in isolated containers with one command. |
 
-Click **Test Connection**, enable the connection and click **Save Connection**.
-Saving an enabled connection checks the installed model and generates a small
-JSON answer. A failed check leaves the previous saved settings intact. Then
-open **AI Configuration**, choose Local Hosted LLM for the desired agents, and
-click **Save Agent Providers**. You can mix local and cloud providers.
+Commands below use Windows PowerShell. Run each block from the folder specified. On macOS/Linux, use `cp` instead of `Copy-Item`, and `npm` instead of `npm.cmd`. Paths such as `../ChainGuard-detector-template` mean a folder beside ChainGuard.
 
-The template setup uses Docker's service address. If your server runs directly
-on the host computer instead, use `http://host.docker.internal:9010/v1` from
-ChainGuard's Docker backend, and ensure the server accepts connections from
-Docker. If both programs run outside Docker, use `http://localhost:9010/v1`.
-The endpoint must provide OpenAI-compatible model listing and non-streaming chat
-completions with JSON-schema support. Connection success does not establish the
-model's accuracy on blockchain analysis.
+## 1. Start the main app
 
-Local credentials remain server-side and are never returned to the browser.
-LLM settings persist in `/data/llm_config.json` in Docker's existing data volume.
-The API enforces admin access for connection tests, connection changes and agent
-assignment changes. Local failures do not automatically switch to a cloud model.
-The CLI's existing provider menu remains unchanged.
+### Option A: Docker (recommended)
 
-For a scam check to use the Scam Checker, disable the external detector first.
-With a non-LLM external detector enabled, the Forensic Investigator explains the
-detector result instead. The Forensic Investigator also explains address lookup
-evidence and follow-up questions.
+Install Git and Docker Desktop, start Docker Desktop, and wait for its engine to run. On Windows, use Linux containers. Linux users can use Docker Engine with the Compose plugin. Python and Node.js run inside Docker, so separate installations are unnecessary for this option.
 
-### Start the main app
+#### Download the repositories
 
-Install Docker Desktop on Windows/macOS, or Docker Engine with the Compose plugin
-on Linux. Clone ChainGuard and the independent detector repository side by side:
-
-```text
-Projects/
-├── ChainGuard/
-└── ChainGuard-detector-template/
-```
+Open a terminal in the folder where you want to keep the project:
 
 ```powershell
 git clone https://github.com/print-livelongflame/ChainGuard.git
@@ -92,532 +40,333 @@ cd ChainGuard
 Copy-Item .env.example .env
 ```
 
-On macOS/Linux, use `cp .env.example .env` in place of `Copy-Item`. Edit `.env`
-if you use a custom detector path or prefer to configure keys before startup.
-Otherwise, the default sibling detector path works without `.env`. You can also
-enter keys after startup under **Settings → API Keys**; chat stays unavailable
-until the selected LLM provider key is configured. Etherscan is needed for
-Ethereum fetcher data. `.env` is ignored by Git and secrets are passed only to
-backend/detector containers, never to the frontend.
-
-Then start the app from the ChainGuard directory:
-
-```powershell
-docker compose up
-```
-
-Open <http://localhost:5173>. Compose builds dependencies automatically. The
-detector path defaults to `../ChainGuard-detector-template`, relative to this
-project directory. For a fork or custom detector next to ChainGuard, set the
-path in `.env`, for example `DETECTOR_PATH=../my-custom-detector`. The chosen
-detector repository must have a root `Dockerfile`, `requirements.txt`, and the
-template-compatible `app.py`/`/health` and `/detect` API. A missing detector
-directory or Dockerfile makes Compose stop with a build/mount error; clone the
-detector next to ChainGuard or correct `DETECTOR_PATH` before retrying. The
-detector does not silently fall back to an empty folder.
-
-```powershell
-docker compose down
-docker compose up --build
-docker compose restart detector
-```
-
-The first command stops the stack; the second rebuilds local images after
-ChainGuard source or dependency changes; the third restarts the detector after
-editing mounted detector code. Editing detector dependencies requires rebuilding
-its image with `docker compose up --build detector`.
-
-### Docker architecture
+If you already have these repositories, use the existing copies. Keep this layout:
 
 ```text
-Browser
-   │ http://localhost:5173
-   ▼
-ChainGuard frontend (Vite)
-   │ /api → http://backend:8000
-   ▼
-ChainGuard backend (FastAPI)
-   │ POST /detect → http://detector:9000
-   ▼
-Detector service container
-   │ /app is a bind mount, not code copied into the ChainGuard image
-   ▼
-User's separate detector repository (DETECTOR_PATH)
+ProjectFiles/
+  ChainGuard/
+  ChainGuard-detector-template/
+  ChainGuard-localLLM-template/   (see guide 2 for installation + setup)
 ```
 
-The host ports are `5173` (web app), `8000` (backend API), and `9000` (detector
-health/docs/debug access); all are bound to localhost only. Container-to-container
-traffic uses Compose service names. Docker builds the frontend/backend from this
-checkout, and builds the detector runtime from the detector repository's own
-Dockerfile. The detector source remains in the mounted repository; edit it on
-the host and restart the detector container to load changes. The detector
-settings page writes settings to a named Docker volume, so they persist across
-container restarts.
+The supplied Compose file starts the frontend, backend, **and detector service**. It therefore requires the detector repository even if you later disable detector use in Settings. Its initial algorithm is a stub, not a working scam detector.
 
-The official template starts with a stub response. Replace its `detector.py`
-implementation with your algorithm before treating results as meaningful. No
-Docker setup can provide LLM or blockchain API credentials automatically; valid
-provider keys must be supplied in `.env`.
+#### Configure initial values
 
-## Development setup without Docker
+Open the new `ChainGuard/.env` file in a text editor. This is a local configuration file, not a terminal command. For the default OpenAI setup, fill in:
 
-Configure backend keys as described below, then use two terminals from the
-repository root.
+```dotenv
+DETECTOR_PATH=../ChainGuard-detector-template
+CHAINGUARD_AI_PROVIDER=openai
+OPENAI_API_KEY=replace-with-your-openai-api-key
+ETHERSCAN_API_KEY=replace-with-your-etherscan-api-key
+```
 
-**Terminal 1 — API:**
+Replace the example key values with real keys. Keep the remaining entries from `.env.example`; unused keys can stay empty.
+
+| Value | When you need it |
+| --- | --- |
+| `CHAINGUARD_AI_PROVIDER` | Initial cloud provider: `openai`, `gemini`, or `claude`. Defaults to OpenAI. |
+| `OPENAI_API_KEY` | When using OpenAI. |
+| `GEMINI_API_KEY` | When using Gemini. |
+| `ANTHROPIC_API_KEY` or `CLAUDE_API_KEY` | When using Claude; configure one of these. |
+| `ETHERSCAN_API_KEY` | For Ethereum data lookups. A general blockchain question can work without it. |
+| `DETECTOR_PATH` | Path to the detector repository, relative to ChainGuard. Keep the default for the layout above. |
+| `DETECTOR_API_KEY` | Optional shared secret for detector authentication; leave empty for initial setup. |
+
+You can leave the keys empty and enter them in the web settings after startup. Chat needs a configured provider before it can answer. If you intend to use only a local model, skip the cloud key and complete guide 2 before sending a message.
+
+#### Start frontend and backend
+
+From `ChainGuard/`:
 
 ```powershell
-cd backend
-python -m pip install -r requirements.txt
-python -m uvicorn src.api:app --host 127.0.0.1 --port 8000 --workers 1
+docker compose up -d --build
+docker compose ps
 ```
 
-**Terminal 2 — frontend:**
+The first run downloads dependencies and builds the services. `-d` keeps them running after the terminal closes. Wait for the backend and detector to become healthy and the frontend to start.
+
+Open **http://localhost:5173**. The backend health check is **http://localhost:8000/health** and its interactive API documentation is **http://localhost:8000/docs**. A healthy backend confirms the service is running, not that your keys or model are valid.
+
+### Option B: Run frontend and backend without Docker
+
+Use Python **3.12** and Node.js **22.12 or newer in the Node 22 series** (the Docker/CI setup uses Node 22). Install Git if you need to clone the repository. This option does not require either template for the main app.
+
+In a terminal in `ChainGuard/`, create an isolated Python environment and start the backend:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r backend/requirements.txt
+$env:CHAINGUARD_ADMIN_USERNAME = "admin"
+$env:CHAINGUARD_ADMIN_PASSWORD = "ChainGuard123!"
+$env:CHAINGUARD_USER_USERNAME = "user"
+$env:CHAINGUARD_USER_PASSWORD = "ChainGuardUser123!"
+$env:CHAINGUARD_AI_PROVIDER = "openai"
+cd backend
+..\.venv\Scripts\python -m uvicorn src.api:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+These account values are local demo credentials. You can choose different values, then use those when signing in. Set them in the backend terminal each time you start it. On macOS/Linux, use `.venv/bin/python` (or `../.venv/bin/python` from `backend/`) and `export NAME='value'` instead of PowerShell's `$env:NAME = "value"`.
+
+Leave this terminal running. Open a **second terminal** in `ChainGuard/`:
 
 ```powershell
 cd frontend
-npm.cmd install
+npm.cmd ci
 npm.cmd run dev
 ```
 
-Open the local URL printed by Vite (normally `http://localhost:5173`). On other
-shells, `npm` can be used instead of `npm.cmd`. Vite proxies `/api` to port 8000;
-keep the browser on the Vite URL so session cookies and downloads use the same origin.
+Open **http://localhost:5173**, or the URL Vite prints if that port is occupied. Keep both terminals running. The frontend forwards `/api` requests to the backend on port 8000; use the frontend URL for the app.
 
-Select **New Chat**, or type in the welcome screen to create a chat automatically.
-Enter sends a message; Shift+Enter adds a newline. Use the paperclip button to
-attach one UTF-8 `.txt` or `.json` file (up to 10 MB) to a message. Suggestion
-cards fill an editable prompt. Replace address placeholders with a complete
-Ethereum address. Replies can include JSON download links. The sidebar switches between conversations,
-including while another conversation is processing.
+For this setup, enter API keys through Settings as described next, or set the variables in the table above in the backend terminal before starting it. **The root `.env` file is used by Docker Compose; the native backend does not automatically load it.**
 
-When a JSON attachment contains a target field such as `token_address`,
-`contract_address`, or `token.address`, ChainGuard identifies that address in
-the model prompt and asks the model to investigate it when no separate request
-is provided. Transaction participant and holder addresses are not treated as
-the target. If multiple target addresses are found, the assistant asks which
-one to assess rather than choosing one.
+### Sign in and finish configuration (both options)
 
-The web API uses OpenAI by default. To select another configured provider, set
-`$env:CHAINGUARD_AI_PROVIDER = "gemini"` (or `"claude"` / `"openai"`) in the API
-terminal before starting it. Restart the API after changing the selected
-provider; API keys saved through Settings apply without a restart. Keys stay on
-the backend; do not put them in frontend environment variables.
+The supplied Docker configuration uses these accounts; native setup uses the values you set above:
 
-In the web app, open **Settings → API Keys** to enter or remove provider,
-Etherscan, and detector keys. Save keys to apply them immediately. The page
-shows only whether a key is configured; it never reads a saved secret back into
-the browser. The backend writes the values as plaintext constants in
-`backend/api_keys/api_keys.py`. This folder is ignored by Git and, in Docker,
-bind-mounted from the host so the file is created/updated in the local checkout.
-Anyone with access to that file can read its keys; use this local-only page only
-on a trusted machine, never commit the file, and rotate credentials if it was
-ever shared. If a provider key is already supplied by `.env`, update/remove it
-there too so the environment does not override the saved file after restart.
+| Role | Username | Password |
+| --- | --- | --- |
+| Administrator | `admin` | `ChainGuard123!` |
+| User | `user` | `ChainGuardUser123!` |
 
-This is a local demo with no accounts. An HTTP-only cookie identifies each browser
-session; the selected chat ID is kept in local storage. Chat transcripts and internal
-model history remain in server memory. Refreshing the page restores the chats and
-checks any pending reply. Restarting the API expires all chats. JSON downloads are
-temporary files removed on normal server shutdown. Run **one worker**; additional
-workers would have independent session stores. Do not expose this development
-configuration as a public service.
+Sign in as **admin** for initial setup. The admin-only settings affect all users. Docker's account values are defined directly in `docker-compose.yml`; changing them requires editing its backend environment entries and recreating the backend. This configuration is for local use on a trusted machine.
 
-### Web API
+1. Open **Settings > AI Configuration**. If you did not supply a cloud key earlier, enter the key for your chosen provider and click its **Save** button.
+2. In the agent provider controls on that page, select the configured provider for the Business Analyser, Scam Checker, and Forensic Investigator, then click **Save Agent Providers**. These are the three AI roles explained at the end of this README. You may select different providers for each role if their keys are configured.
+3. Open **Settings > API Wrappers**. Enter your **Etherscan API Key** and click **Save** if you did not set it earlier. A configured badge indicates a key is stored; it does not verify that the service accepts it.
+4. For the main app's built-in AI assessment, open **Settings > External Detector**, turn **Enabled** off, click **Save Changes**, then **Confirm Change**. Docker enables its detector by default when there is no saved configuration; disabling it prevents the template stub from handling scam checks. Native setup defaults to disabled unless a saved configuration says otherwise.
 
-| Method and path | Behavior |
+Saved agent assignments take precedence over the initial `CHAINGUARD_AI_PROVIDER` value. Changes apply to future messages; a running response keeps its original AI settings.
+
+### Try your first chat
+
+Return to chat and ask **"What is a smart contract?"**. A response confirms that your selected AI provider can answer. Next, try:
+
+```text
+Look up the Ethereum contract at 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 and summarize the available evidence.
+```
+
+This also exercises blockchain fetching. Inspect the explanation and JSON download, including failed or skipped data sources. You can then ask a follow-up about the saved evidence or request a scam assessment of an address.
+
+Use **New Chat** for a separate conversation. Enter sends; Shift+Enter adds a line. The paperclip attaches one UTF-8 `.txt` or valid `.json` file, up to 10 MB. Replace example address placeholders with a full Ethereum address. ChainGuard asks for clarification when an attachment identifies multiple possible targets.
+
+### Stop, restart, and retain settings
+
+For Docker, run from `ChainGuard/`:
+
+```powershell
+docker compose down
+docker compose up -d
+docker compose up -d --build
+```
+
+These commands respectively stop the stack, start it again, and rebuild/start it after source or dependency changes. For a native run, press Ctrl+C in each terminal, then repeat the startup commands with the existing environment and installed dependencies.
+
+Chat transcripts, saved lookup evidence, and login sessions are held in backend memory and are lost on backend restart. Login sessions expire after one hour. JSON result downloads are temporary and removed on normal shutdown.
+
+Docker stores detector and AI connection settings in the `chainguard_data` volume (`/data/detector_config.json` and `/data/llm_config.json`). Native runs use `backend/detector_config.json` and `backend/llm_config.json` unless their configuration path variables override them. Saved API keys live in the ignored **`backend/api_keys/api_keys.py`**, also mounted into Docker. These are plaintext secrets on disk; keep that file and `.env` private and out of commits. Nonempty environment keys take precedence at startup, so update/remove them there too when changing saved keys. Never put secrets in frontend environment variables.
+
+## 2. Use the local LLM template
+
+Complete the main app setup first; a cloud key is optional for this guide. This template runs **Ollama**, which loads a downloaded model, and a hosting service that translates ChainGuard's requests into Ollama requests. Blockchain lookups still use external services such as Etherscan.
+
+### Start the model server and download a model
+
+From the parent folder containing `ChainGuard/`:
+
+```powershell
+git clone https://github.com/Mossata/ChainGuard-localLLM-template.git
+cd ChainGuard-localLLM-template
+docker compose up -d --build
+docker compose exec ollama ollama pull llama3.2:3b
+docker compose exec ollama ollama list
+```
+
+Skip cloning if the folder already exists. Wait for the model download to finish and confirm its exact name appears in the list. This example can run on a CPU; allow disk space for the model plus memory for Docker and inference. CPU generation can be slow, and this small model may struggle with ChainGuard's structured answers. See the [hosting template README](../ChainGuard-localLLM-template/README.md) for optional NVIDIA GPU configuration and server settings.
+
+Open **http://localhost:9010/ready**. With default settings it should report `"status":"ready"` and list the model. Readiness checks availability; ChainGuard's connection test also checks generation.
+
+### Connect Docker networks
+
+If ChainGuard runs in Docker, start the template **first**, then run from `ChainGuard/`:
+
+```powershell
+docker compose -f docker-compose.yml -f ../ChainGuard-localLLM-template/chainguard-network.yaml up -d --build
+```
+
+The extra file joins the backend to the model server's Docker network. Use these same two `-f` options for subsequent ChainGuard Compose commands, including `ps`, `logs`, `up`, and `down`. Keep the model template running. If ChainGuard runs natively, skip this network step.
+
+### Configure ChainGuard
+
+Sign in as admin and open **Settings > Local LLM Connection**:
+
+| Field | Value for the setup above |
 | --- | --- |
-| `GET /api/chats` | Session chats, configured provider, and configuration errors |
-| `POST /api/chats` | Create an empty chat |
-| `GET /api/chats/{id}` | Transcript and processing state |
-| `POST /api/chats/{id}/messages` | Send `{ "text": "your question", "attachments": [{ "name": "notes.txt", "content": "..." }] }`; return completed chat |
-| `GET /api/chats/{id}/files/{file_id}` | Download an attached JSON result |
-| `GET /api/settings/detector` | Read the saved external detector configuration |
-| `POST /api/settings/detector` | Validate and save external detector settings to `backend/detector_config.json` |
-| `GET /api/settings/api-keys` | Return configured/not-configured status only; never returns key values |
-| `POST /api/settings/api-keys` | Create, update, or remove local API-key constants |
+| Connection name | `My local Llama` (any descriptive name) |
+| API base URL | `http://chainguard-local-llm:9010/v1` for Docker ChainGuard; `http://localhost:9010/v1` for native ChainGuard |
+| Model name | `llama3.2:3b` (must match the installed name) |
+| Optional API key | Empty with the template defaults |
+| Timeout (seconds) | `300` to start with |
 
-Chats expose `id`, `title`, `created_at`, `messages`, `processing`, and `error`.
-Messages contain `id`, `role`, `text`, `created_at`, and `attachments`; attachments
-contain `id`, `name`, and an optional `url`. Uploaded file contents are provided
-to the model as untrusted reference data and are not stored as downloads. Internal BA task JSON is never included in the
-visible transcript. Only one turn may run per chat (`409` for overlapping sends).
-Messages must contain 1–12,000 characters after trimming. Unknown chats or files
-return `404`; unavailable provider configuration returns `503` before accepting a turn.
-An accepted turn continues after a browser disconnect. Clients can query its chat
-to recover the result; they should not automatically resend a failed HTTP request.
+Click **Test Connection**, turn on **Enable local LLM**, and click **Save Connection**. Saving an enabled connection verifies model listing and a small structured JSON response. A failed verification leaves the previous saved settings intact.
 
-### Checks
+Then open **Settings > AI Configuration**, select **Local Hosted LLM** for all three agents, and click **Save Agent Providers**. To keep some agents on cloud services, configure their keys and leave those roles on their cloud providers. Starting the model server or testing the connection alone does not change the agents.
 
-Run the existing backend suite with the standard library:
+Try the general question from guide 1. Disable the external detector to exercise the local Scam Checker; an enabled external detector handles that assessment instead. Local model failures do not automatically fall back to a cloud provider.
 
-```bash
-cd backend
-python -m unittest discover -s tests -v
+For an optional model-server password, copy the template's `.env.example` to `.env`, set `LLM_API_KEY`, and reapply `docker compose up -d` in the template folder. Enter the same secret in ChainGuard's **Optional API key** field. Its `/ready` endpoint then needs bearer authentication; `/health` remains public. This key is separate from cloud and detector keys.
+
+If your model server runs directly on the host while ChainGuard runs in Docker, use `http://host.docker.internal:9010/v1` and ensure the server accepts Docker connections. Inside a container, `localhost` refers to that container itself.
+
+Stop the hosting stack with `docker compose down` from its own folder. Downloaded models persist in its volume. **Adding `-v` to `down` deletes that stack's saved volume data**; this also applies to ChainGuard's saved settings volume.
+
+## 3. Connect the external detector template
+
+An external detector is a separate HTTP service implementing your algorithm. ChainGuard sends it an address, optionally with fetched evidence, and validates the result. It does not replace the AI provider used to understand questions and explain evidence.
+
+### Start and verify the service
+
+With guide 1's Docker setup, the detector is already running from `ChainGuard-detector-template/`. Check **http://localhost:9000/health** and open **http://localhost:9000/docs**.
+
+For a native setup, open a separate terminal in `ChainGuard-detector-template/`:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python app.py
 ```
 
-For local test development and coverage reporting, install the development
-requirements once, then run pytest:
+Keep this terminal running. On macOS/Linux, use `.venv/bin/python`. The template does not automatically load `.env` files for native runs; set any needed variables in this terminal before starting it.
 
-```bash
-cd backend
-python -m pip install -r requirements-dev.txt
-python -m pytest -v
-python -m pytest --cov=src --cov=detector_integration --cov=fetchers --cov-report=term-missing
+Test the interface from another terminal in the template folder:
+
+```powershell
+curl.exe -X POST http://127.0.0.1:9000/detect -H "Content-Type: application/json" --data-binary "@examples/context.json"
 ```
 
-To compare token use for the OpenAI, Gemini and Claude models using the same
-three prompts, configure all three cloud API keys and run this opt-in live
-benchmark from `backend/`:
+Use `curl` on macOS/Linux. The unmodified stub returns **`insufficient_evidence` with confidence `0.0`**. This confirms the interface works; it has not assessed scam risk. `/detect` requires POST; opening it directly in a browser sends GET and can return 405.
+
+### Add your algorithm
+
+Implement `detect_custom()` in the template's `detector.py`, mapping your algorithm's output to `DetectionResult`. Add dependencies to its `requirements.txt`. For an illustrative demonstration, the template also includes `examples/heuristic.py`; follow its [implementation guide](../ChainGuard-detector-template/README.md#implement-your-detector). That example is not a validated detection model.
+
+For Docker ChainGuard, apply code edits from `ChainGuard/` with:
+
+```powershell
+docker compose restart detector
+```
+
+The repository is mounted at `/app` in the detector container; Python code is loaded at startup. After dependency changes, use `docker compose up -d --build detector`. If using guide 2's shared network, include both `-f` options here too. For native use, stop and restart `python app.py`, reinstalling requirements when changed.
+
+### Register it in ChainGuard
+
+As admin, open **Settings > External Detector**:
+
+| Field | Value |
+| --- | --- |
+| Enabled | On |
+| Name | A descriptive name, such as `My template detector` |
+| Endpoint | `http://detector:9000/detect` when using ChainGuard's Compose detector service |
+| Mode | `template` |
+| Required Input Type | `address_with_context` for the template with fetched blockchain evidence |
+| LLM Based | Off for a normal custom algorithm |
+
+For a native backend and detector on the same computer, use **`http://127.0.0.1:9000/detect`**. For a Docker backend reaching a detector running on the host, use **`http://host.docker.internal:9000/detect`** and configure the detector to accept connections from Docker. For a remote deployment, use its reachable HTTPS `/detect` URL.
+
+Click **Save Changes**, then **Confirm Change**. Saving records configuration; it does not start the service or test connectivity. Ask ChainGuard to assess a complete Ethereum address and check both backend/detector logs if the call fails. An unchanged stub will still report insufficient evidence.
+
+Use `required_input_type: address` only when your implementation does its own lookups. Set **LLM Based** on only when the detector supplies its own LLM explanation; the template's separate LLM adapter instructions explain that setup. Leave **Mode** on `template`: generic response mapping is not implemented.
+
+For optional authentication, Docker's root `.env` `DETECTOR_API_KEY` is passed to both services. After changing it, recreate them with `docker compose up -d`. For native runs, set the same `DETECTOR_API_KEY` in both backend and detector terminals before startup (or save the caller's key under **Settings > API Wrappers**). Requests use the `X-API-Key` header. Do not store secrets in detector registration JSON.
+
+To return to ChainGuard's AI Scam Checker, disable the external detector and save/confirm the change. Stopping the detector service alone leaves it configured and produces request errors.
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| Docker cannot start | Start Docker Desktop and wait for the engine; on Windows select Linux containers. |
+| Missing detector directory / Dockerfile | Clone the detector beside ChainGuard or correct `DETECTOR_PATH` in `.env`. Compose needs the whole template repository. |
+| Port already in use | Stop the conflicting process. Defaults are 5173 (frontend), 8000 (backend), 9000 (detector), and 9010 (local model hosting). |
+| Native login fails | Set the account variables in the terminal that starts the backend; the root `.env` is not loaded automatically. |
+| Admin controls unavailable | Sign in as admin, rather than the user account. |
+| Provider unavailable / key missing | Save the selected provider's key and check all three agent assignments. For local AI, enable/save the connection first. |
+| Lookup data missing | Check the Etherscan key and fetcher provenance; some data may be unavailable for the address. |
+| Local model cannot connect | Start its stack first, download the exact model name, apply the shared network file, and use the URL for your backend's location. |
+| Local generation times out / invalid JSON | Try a more capable model or increase timeouts in both ChainGuard and the hosting template. Connection success does not guarantee every analysis will work. |
+| Detector unavailable / 401 | Check the backend-visible endpoint, running service, and matching detector keys. |
+| Detector always returns insufficient evidence | Replace the template stub with your implementation. |
+| Chats disappear after restart | Chat storage is in memory; download any results you need to retain. |
+
+For Docker logs, run `docker compose logs --tail 100 backend detector frontend` from `ChainGuard/`; include guide 2's two `-f` options when using its network setup. For native runs, read the backend and frontend terminal output.
+
+## Testing and developer tools
+
+From `ChainGuard/`, using the Python environment created in the native guide:
+
+```powershell
+.venv\Scripts\python -m pip install -r backend/requirements-dev.txt
+cd backend
+..\.venv\Scripts\python -m pytest tests -q
+..\.venv\Scripts\python -m pytest --cov=src --cov=detector_integration --cov=fetchers --cov-report=term-missing
+```
+
+The normal backend suite uses mocks and does not need paid API calls. It covers chat/API behavior, role access, attachments, fetchers, caching, model configuration, and detector integration. Frontend checks, from `ChainGuard/frontend/`:
+
+```powershell
+npm.cmd ci
+npm.cmd run lint
+npm.cmd run build
+```
+
+GitHub Actions runs backend tests and frontend lint/build for matching application changes. **Actions > Manual Docker integration test > Run workflow** separately starts the full stack and checks frontend/service health and a backend-to-detector request. It does not test a real AI response.
+
+An optional live token benchmark is available from `backend/` with configured cloud keys:
 
 ```powershell
 $env:CHAINGUARD_RUN_LLM_TOKEN_BENCHMARK = "1"
-python -m pytest -s -q tests/test_llm_token_usage.py
+..\.venv\Scripts\python -m pytest -s -q tests/test_llm_token_usage.py
 ```
 
-The benchmark makes three real, potentially billable API calls per included
-provider and sends the prompts to each one. It reports input, output and total
-tokens, latency, and average tokens per prompt. Exclude providers with
-`--exclude`; repeat the option or give it a comma-separated list:
+It makes real, potentially billable calls (three per included cloud provider). Add `--exclude=gemini,openai`, for example, to exclude providers. Remove the opt-in variable afterwards with `Remove-Item Env:CHAINGUARD_RUN_LLM_TOKEN_BENCHMARK`. Ordinary test runs skip the benchmark unless opted in.
 
-```powershell
-python -m pytest -s -q tests/test_llm_token_usage.py --exclude=gemini
-python -m pytest -s -q tests/test_llm_token_usage.py --exclude=gemini,openai
-python -m pytest -s -q tests/test_llm_token_usage.py --exclude=gemini --exclude=openai
-```
+The development CLI shares the chat workflow. From `backend/`, run `..\.venv\Scripts\python -m src.main` (add `-dev` for diagnostics). Use `change ai` for its cloud-provider menu and `attach "path to file.json"` to queue an attachment. The CLI provider menu is separate from web agent assignments. Individual fetcher modules support their existing `-test` commands, for example `..\.venv\Scripts\python -m fetchers.contract_fetcher -test`; these can call live data services.
 
-The benchmark is skipped during ordinary test runs unless the environment
-variable is set. Token usage is reported only when the provider returns it;
-responses are never token-counted by an estimate.
+For a manual app check, test a general question, an address lookup and JSON download, a saved-evidence follow-up, a second chat, and refresh during a pending response. Test both the configured detector path and the disabled-detector AI path when changing integrations.
 
-### Initial response token budgets
-
-Every configured cloud provider and the local OpenAI-compatible model receive
-the same `max_tokens` cap for each ChainGuard agent request:
-
-| Task | Output token cap |
-| --- | ---: |
-| Identity / basic FAQ | 80 |
-| General explanation | 180 |
-| Address summary | 250 |
-| Scam investigation | 350 |
-
-The Business Analyser chooses the first-response budget from the user's prompt.
-Address summaries use the Forensic Investigator budget; scam assessments and
-their detector-result explanations use the Scam Investigation budget. The cap
-limits generated output tokens, not prompt/input tokens.
-
-The current backend tests use mocks and do not need API keys or paid calls.
-They cover chat/API behavior, authentication and role access, file handling,
-contract metadata, fetcher caching, and detector configuration. The CI workflow
-runs those tests and checks the frontend with lint and build on matching pushes.
-
-To run the full Compose integration check only when you choose, go to
-**GitHub → Actions → Manual Docker integration test → Run workflow**. It starts
-the frontend, backend, and detector, checks their health endpoints, and verifies
-the backend can call the detector. This workflow does not publish images or run
-automatically on every push.
-
-For manual end-to-end checks, try a general blockchain question, then request
-contract information for a complete Ethereum address and open its JSON attachment.
-Check a follow-up, a second chat, refresh during processing, and restart the backend
-to verify expiry.
-
-## Backend Setup
-
-Run the following commands from the repository root unless a command says to
-enter `backend/`.
-
-For Docker, put secrets in the ignored root `.env` file. The Compose service
-passes them only to the backend and detector. For a native/manual run, set the
-same variables in the shell or use the locally ignored
-`backend/api_keys/api_keys.py`. Never commit real credentials or place them in
-frontend settings.
-
-Install the LLM provider and terminal UI dependencies from the backend folder:
-
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-The CLI starts with OpenAI. Type `change ai` to select OpenAI, Gemini, or
-Claude for all LLM-backed agents in the current session. Configure a key in
-the environment or as the matching constant in `backend/api_keys/api_keys.py`:
-
-| Provider | Environment variable | `api_keys.py` constant |
-| --- | --- | --- |
-| OpenAI | `OPENAI_API_KEY` | `OPENAI_API_KEY` |
-| Gemini | `GEMINI_API_KEY` | `GEMINI_API_KEY` |
-| Claude | `ANTHROPIC_API_KEY` or `CLAUDE_API_KEY` | `CLAUDE_API_KEY` |
-
-Values such as `"Enter key here"` are treated as unset.
-
-## Developer testing CLI
-
-Start the interactive CLI from the `backend/` directory:
-
-```bash
-python -m src.main
-```
-
-In the interactive CLI, enter `attach "path to file.json"` to queue a UTF-8
-`.txt` or `.json` file (up to 10 MB) for your next prompt. The file is sent as
-untrusted reference data; JSON attachments must parse successfully.
-
-Use development mode to print the raw BA analysis alongside plain-text
-responses. Raw fetcher results are saved to JSON without being printed.
-Saved context and contract-address lookup files are
-reported with a confirmation and file path instead of printing their contents:
-
-```bash
-python -m src.main -dev
-```
-
-## Test Individual Fetchers
-
-Run a fetcher with `-test` from `backend/` to enter an address, check whether
-JSON is returned, and save the response in `fetchers/json_files_test/`:
-
-```bash
-python -m fetchers.contract_fetcher -test
-python -m fetchers.etherscan -test
-python -m fetchers.honeypot -test
-python -m fetchers.rugcheck -test
-python -m fetchers.liquidty_pairedPool_fetcher -test
-python -m fetchers.transaction_history_fetcher -test
-```
-
-The transaction resolver uses a transaction hash instead:
-
-```bash
-python -m fetchers.tx_hash_resolver_fetcher -test
-```
-
-The contract-address resolver uses a token name and symbol instead:
-
-```bash
-python -m fetchers.contract_address_fetcher -test
-```
-
-## Explaining Data Fetcher Components
-
-| Data Fetcher      | Purpose           | Project File(s)   |
-| ----------------- | ----------------- | ----------------- |
-| Contract Fetcher | Bytecode, ABI (if verified), creator, creation tx | `backend/fetchers/contract_fetcher.py` |
-| Transaction History Fetcher | Recent transactions in/out | `backend/fetchers/transaction_history_fetcher.py` |
-| Token Info Fetcher | Token balances and metadata held by the address | `backend/fetchers/token_info_fetcher.py` |
-| Liquidity / paired-pool Fetcher | DEX pool pairing, liquidity depth, recent add/remove events | `backend/fetchers/liquidty_pairedPool_fetcher.py` |
-| Tx-hash Resolver Fetcher | Given a tx hash, look up the transaction and extract the address(es) involved | `backend/fetchers/tx_hash_fetcher.py` |
-| Contract Address Resolver Fetcher | Given a token name/symbol, resolve possible contract addresses (best-effort, flag ambiguous matches rather than guessing) | `backend/fetchers/contract_address_fetcher.py` |
-
----
-
-# API and detector architecture
-
-The API has two key stages:
-
-1. Fetcher stage
-   - Existing fetchers are run against the address.
-   - The web API and developer CLI share this logic in `backend/src/main.py`
-     via `fetch_results()`.
-
-2. Context-building stage
-   - `backend/src/context_builder.py` takes the raw fetcher output and converts it into a single `AddressContext` object.
-   - This normalises the data into a structure that the detector can use without needing to know the internal details of every fetcher.
-
-The builder is important because the detector should receive consistent data, not a pile of raw fetcher results with different formats and skip/fail states.
-
-Address lookups persist successful fetcher results under
-`backend/fetchers/cache/fetcher_results/`. Cache keys include the fetcher,
-address, chain, and other request arguments. Transactions and liquidity expire
-after 60 seconds, contract and token information after 5 minutes, and
-transaction-hash lookups after 24 hours. Failed and skipped fetches are not
-cached. Each fetcher's provenance reports whether its result came from the
-network or disk, along with the fetch time, age, and TTL. Delete that cache
-folder to force fresh results.
-
-## Why the context builder exists
-
-The fetchers do not all return the same thing:
-- some return a list of transactions
-- some return a single contract object
-- some return token transfer data
-- some return a list of liquidity pools
-- some are skipped or fail
-
-The context builder does this:
-
-```python
-results, address_analysis = fetch_results(address)
-```
-
-Then it turns that into:
-
-```python
-AddressContext(
-    address=address,
-    address_analysis=address_analysis,
-    contract=...,
-    tx_history=...,
-    tokens=...,
-    liquidity=...,
-    queried_at=...,
-    fetcher_provenance=...,
-)
-```
-
-This keeps the detector logic simple and future-proof.
-
----
-
-## Address lookup summaries and follow-ups
-
-An `address_info` lookup calls the Business Analyser to plan the request, runs
-the selected fetchers, and passes the assembled JSON to the Forensic
-Investigator. The investigator produces a plain-text summary and a descriptive
-JSON download filename. Filenames are sanitized before use; the downloaded
-JSON retains the fetched context and provenance.
-
-Contract lookups also read `name()` and `symbol()` through Etherscan `eth_call`,
-including for unverified contracts. The assembled context stores these under
-`contract.token_metadata`, with address, chain ID, `latest` block tag, fetch time,
-and separate success/failure statuses for each field. Standard ABI strings and
-legacy bytes32 returns are supported. Wallets and delegated wallets skip these
-calls; unavailable metadata does not discard the other contract results. These
-values describe the contract's reported identity, not verified project ownership.
-
-Lookup evidence is retained privately in the current chat history. Questions
-such as "What are the notable transactions?" are routed by the BA using
-`use_saved_lookup` and answered by the investigator from the saved data without
-another fetch. Fresh lookups still run the fetchers. The investigator distinguishes
-failed or skipped fetches from successful empty results. If analysis fails, the
-JSON remains downloadable. Web chat history and evidence expire on backend restart.
-
-## External detector registration
-
-The detection algorithm is hosted outside this repository. To register it with
-the BA, edit `backend/detector_config.json` and set `enabled` to
-`true`, `name` to the detector name, and `endpoint` to the detector service's
-HTTP endpoint.
-
-The BA reads `backend/detector_config.json` on every request. Its task output, including
-`address_info`, will contain:
-
-```json
-"selected_detector": "my_custom_scam_detector",
-"detector_configured": true
-```
-
-Set `enabled` to `false` or remove `backend/detector_config.json` to return to
-`null` / `false`. Invalid configuration produces an error instead of silently
-reporting no detector. Registration describes setup; it does not check endpoint
-availability.
-
-In the web app, open **Settings**, edit the detector fields, then select **Save
-Changes**. The Enabled toggle is only a draft until saved. Enabling the detector
-does not start or install it; the service at `endpoint` must already be running
-and reachable from the backend. The backend sends an HTTP `POST` with an
-`AddressContext` JSON body and validates a `DetectionResult` response. Opening
-the endpoint in a browser sends `GET`, so a `405 Method Not Allowed` response
-can be expected; test it with a `POST` or the detector's `/docs` page.
-
-The optional `mode`, `required_input_type`, and `is_llm_based` settings default
-to `template`, `address_with_context`, and `false` for existing registrations.
-
-### Detector configuration fields
-
-`backend/detector_config.json` must remain valid JSON, so do not add `//` comments
-inside the file. The fields mean:
-
-- `enabled`: set to `true` to allow ChainGuard to call the external detector; set
-   to `false` to disable it.
-- `name`: the display name used for the selected detector in BA task output.
-- `endpoint`: the external detector's HTTP `POST /detect` URL.
-- `mode`: use `template` for the standard `AddressContext` and
-   `DetectionResult` contract. `generic` is reserved for future custom mapping.
-- `required_input_type`: use `address_with_context` when the detector needs
-   fetched blockchain data, or `address` when it only needs the address.
-- `is_llm_based`: set to `true` only when the external detector itself uses an
-   LLM; this is metadata and does not change how the request is sent.
-
-If the detector requires authentication, set `DETECTOR_API_KEY` in the shell
-where ChainGuard runs. The key is sent as the `X-API-Key` header and should not
-be stored in `backend/detector_config.json`.
-
-The intended architecture is:
+## Architecture
 
 ```text
-address
-   â†“
-existing fetchers
-   â†“
-AddressContext
-   â†“
-detect(context)
+Browser frontend (React/Vite, :5173)
+  -> /api proxy -> Python backend (FastAPI, :8000)
+      -> Business Analyser: interpret question and plan work
+      -> Ethereum fetchers -> AddressContext (evidence + source status)
+      -> Address lookup: Forensic Investigator explains evidence
+      -> Scam check:
+           detector disabled -> Scam Checker assesses evidence
+           detector enabled  -> external POST /detect (:9000 by default)
+                                -> Forensic Investigator explains non-LLM results
+                                -> LLM detectors supply their own explanation
+      -> Chat response + downloadable context JSON
+
+Each AI agent -> configured cloud provider OR local model host (:9010) -> Ollama
 ```
 
-The shared detector contract is:
+| Location | Responsibility |
+| --- | --- |
+| `frontend/` | Chat, login, settings, and downloads. |
+| `backend/src/api.py`, `auth.py`, `llm_settings_api.py` | Web API, local login sessions, and AI configuration endpoints. |
+| `backend/src/chat_service.py`, `main.py` | Shared web/CLI workflow and fetcher execution. |
+| `backend/src/context_builder.py`, `schema.py` | Assemble and validate shared evidence structures. |
+| `backend/fetchers/` | Contract/identity, transaction history, token, liquidity, and address/transaction resolution data. |
+| `backend/detector_integration/` | External detector HTTP client and result handling. |
+| Separate template repositories | Independently hosted detector algorithm and local model server. |
 
-```text
-fetcher data -> AddressContext -> detect() -> DetectionResult
-```
+The **Business Analyser (BA)** routes requests and answers general questions. The **Scam Checker (SCH)** provides the built-in AI risk assessment when no detector is enabled. The **Forensic Investigator (FI)** summarizes fetched or saved evidence and explains non-LLM detector results. Follow-ups can reuse evidence from the current chat instead of fetching again.
 
+`AddressContext` contains the address/chain, contract, `tx_history`, `tokens`, liquidity, timestamp, and fetcher provenance. Missing or failed fetches remain distinguishable from successful empty results. A detector returns `DetectionResult`: `label` (`scam`, `not_scam`, or `insufficient_evidence`), `risk_type`, `confidence` (0–1), structured `evidence`, and optional `explanation`. Failures and invalid results produce errors rather than safe verdicts.
 
-## Agent design
+The backend exposes chats/messages/downloads under `/api/chats`, login under `/api/auth`, and configuration under `/api/settings`; see `/docs` for the current request schemas. One turn runs at a time per chat. An accepted turn continues after browser disconnection, so refresh to recover its result rather than immediately resending.
 
-The web chat and developer CLI use the same transport-independent workflow in
-`backend/src/chat_service.py`. Agent prompts describe ChainGuard as a web app;
-transport adapters handle presentation, downloads, and terminal diagnostics.
-The agents do not create UI controls, download URLs, or terminal menus.
-
-| Agent | Responsibility | Output |
-| --- | --- | --- |
-| BA (Business Analyser) | Classify each request, identify its target and requested data, and define lookup or scam-check tasks. Answer general questions and ask clarifications directly. | Validated JSON task envelope; user-facing answers in `message`. |
-| SCH (Scam Checker) | Assess fetched `AddressContext` when no external detector is configured. Distinguish missing evidence from evidence of safety or wrongdoing. | Validated assessment JSON with a plain-language `explanation`. |
-| FI (Forensic Investigator) | Explain initial and saved lookup evidence; explain configured non-LLM detector results. | Lookup JSON with `explanation` and a download `filename`, or a plain-text detector explanation. |
-
-The application executes BA's tasks and supplies the resulting evidence to SCH
-or FI. External detector calls are implemented in the shared execution pipeline;
-BA does not execute them. SCH is used for the no-detector fallback, FI explains
-non-LLM detector results, and LLM-based detector results use the application's
-existing response handling. Each agent treats user-supplied text and evidence
-as untrusted data and preserves its existing output schema.
-
-In the web app, users attach `.txt` or `.json` files through the chat composer,
-read explanations in the conversation, and download attached JSON results.
-Conversation context belongs to the current chat. The developer CLI retains
-its attachment command, provider menu, exit commands, local output paths, and
-diagnostic output for testing.
-
-## Scam Checker workflow
-
-Ask a scam-assessment question in the web chat, supplying an Ethereum address,
-token name, or transaction hash. The same workflow is available through
-`python -m src.main` from `backend/` for development and testing.
-
-For an in-scope `scam_check` with no configured detector, BA resolves the target
-and fetches contract, transaction, token and liquidity context. SCH receives
-that BA task and its saved `AddressContext`, then produces an assessment and
-explanation in one LLM call. The Forensic
-Investigator is not called for this fallback assessment, because the Scam Checker
-creates its own plain-language response. Fetcher failures remain visible in provenance;
-missing evidence must not be interpreted as safety.
-
-The web chat displays SCH's explanation and attaches the fetched context JSON.
-The developer CLI additionally has a **Scam Checker output** section that
-identifies the LLM source and prints
-the validated flat JSON contract: `label` (`scam`, `not_scam`, or
-`insufficient_evidence`), `risk_type`, `confidence` (0 to 1), `evidence` (objects
-with `description` and `weight`, 0 to 1), and `explanation`. The optional
-`reasoning_trace` is null in the current zero-shot strategy and omitted from
-CLI output. The context file remains separate from this result. Invalid model
-responses or API failures show an assessment-unavailable message, never a verdict.
-
-After the structured diagnostic output, the normal `Response:` section shows
-SCH's plain-language `explanation`, and the CLI returns to the next `You:` prompt.
-Only that explanation is added as the assistant reply in conversation history;
-the structured result stays in the Scam Checker output area.
-
-Shared consumers now use `tx_history` and `tokens`, rather than the old
-`transactions`/`token` aliases, and structured evidence rather than strings.
+Run the backend with **one worker** because chat and login stores are in memory. The supplied Docker ports bind to localhost. This is a local development/demo deployment with fixed demo accounts; the frontend's admin controls do not make every backend endpoint admin-protected. Public hosting requires a separate authentication, authorization, and deployment review.
