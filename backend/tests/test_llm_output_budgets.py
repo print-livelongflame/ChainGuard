@@ -1,43 +1,13 @@
-"""Tests for task-specific initial LLM output budgets."""
+"""Tests that agent requests do not impose output token caps."""
 import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pytest
-
 from agents import ba, fi, sch
-from src.llm_provider import OUTPUT_TOKEN_BUDGETS
 from src.schema import AddressContext, DetectionResult
 
 
-@pytest.mark.parametrize(
-    ("prompt", "budget"),
-    [
-        ("Who are you?", "identity_basic_faq"),
-        ("What is ChainGuard?", "identity_basic_faq"),
-        ("what is rug pull?", "general_explanation"),
-        (
-            "can u check if this token is a scam "
-            "0x906CC2Ad139eb6637e28605F908903C8aDCe566A?",
-            "scam_investigation",
-        ),
-        (
-            "Summarize this address "
-            "0x906CC2Ad139eb6637e28605F908903C8aDCe566A",
-            "address_summary",
-        ),
-        ("What is a rug pull in tokens?", "general_explanation"),
-        (
-            "Explain why this token is a rug pull.",
-            "scam_investigation",
-        ),
-    ],
-)
-def test_business_analyser_selects_task_budget(prompt, budget):
-    assert ba.initial_output_budget(prompt) == OUTPUT_TOKEN_BUDGETS[budget]
-
-
-def test_business_analyser_passes_selected_budget_to_provider(monkeypatch):
+def test_business_analyser_does_not_set_an_output_token_cap(monkeypatch):
     analysis = {
         "tasks": [
             {
@@ -70,10 +40,11 @@ def test_business_analyser_passes_selected_budget_to_provider(monkeypatch):
 
     ba.ask_llm("Who are you?")
 
-    assert completion.call_args.kwargs["max_tokens"] == 80
+    assert "max_tokens" not in completion.call_args.kwargs
+    assert "budget" not in completion.call_args.kwargs["messages"][0]["content"]
 
 
-def test_scam_checker_uses_scam_investigation_budget(monkeypatch):
+def test_scam_checker_does_not_set_an_output_token_cap(monkeypatch):
     completion = MagicMock(
         return_value=json.dumps(
             {
@@ -89,10 +60,10 @@ def test_scam_checker_uses_scam_investigation_budget(monkeypatch):
 
     sch.ask_scam_checker(AddressContext(address="0x906CC2Ad139eb6637e28605F908903C8aDCe566A"))
 
-    assert completion.call_args.kwargs["max_tokens"] == 350
+    assert "max_tokens" not in completion.call_args.kwargs
 
 
-def test_forensic_lookup_uses_address_summary_budget(monkeypatch):
+def test_forensic_lookup_does_not_set_an_output_token_cap(monkeypatch):
     completion = MagicMock(
         return_value=json.dumps(
             {"explanation": "Lookup summary.", "filename": "address-summary.json"}
@@ -102,10 +73,10 @@ def test_forensic_lookup_uses_address_summary_budget(monkeypatch):
 
     fi.analyze_lookup([], "Summarize this address.")
 
-    assert completion.call_args.kwargs["max_tokens"] == 250
+    assert "max_tokens" not in completion.call_args.kwargs
 
 
-def test_forensic_detector_explanation_uses_scam_budget(monkeypatch):
+def test_forensic_detector_explanation_does_not_set_an_output_token_cap(monkeypatch):
     completion = MagicMock(return_value="The detector found limited evidence.")
     monkeypatch.setattr(fi, "complete", completion)
     monkeypatch.setattr(
@@ -122,4 +93,4 @@ def test_forensic_detector_explanation_uses_scam_budget(monkeypatch):
 
     fi.explain_detector_result(result)
 
-    assert completion.call_args.kwargs["max_tokens"] == 350
+    assert "max_tokens" not in completion.call_args.kwargs

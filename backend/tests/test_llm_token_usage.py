@@ -7,7 +7,6 @@ import pytest
 from rich.console import Console
 from rich.table import Table
 
-from agents.ba import initial_output_budget
 from src.llm_config import Assignments, LLMConfig
 from src.llm_provider import (
     _PROVIDERS,
@@ -70,7 +69,6 @@ def test_compare_cloud_model_token_usage(pytestconfig):
                 content, usage = complete_with_usage(
                     [{"role": "user", "content": prompt}],
                     temperature=0,
-                    max_tokens=initial_output_budget(prompt),
                 )
             elapsed = perf_counter() - started
             if usage is None:

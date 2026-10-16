@@ -281,7 +281,7 @@ def create_app():
     async def get_chat(chat_id: str, request: Request):
         return find_chat(request, chat_id).view()
 
-    def execute_turn(chat, prompt):
+    def execute_turn(chat, prompt, attachments=()):
         messages = []
         files = {}
         history = list(chat.history)
@@ -358,15 +358,18 @@ def create_app():
                     task, reply, output, diagnostics=False, on_assessment=capture_assessment),
                 respond=respond, output_root=app.state.output_root / chat.id,
                 on_lookup=capture_lookup,
+                attachments=attachments,
             )
         if not messages:
             respond("No answer was produced. Please rephrase your request.", None, None)
         return messages, files, history
 
-    async def finish_turn(chat, prompt):
+    async def finish_turn(chat, prompt, attachments=()):
         try:
             with use_llm_settings(get_llm_settings()):
-                messages, files, history = await run_in_threadpool(execute_turn, chat, prompt)
+                messages, files, history = await run_in_threadpool(
+                    execute_turn, chat, prompt, attachments
+                )
             chat.messages.extend(messages)
             chat.files.update(files)
             chat.history = history

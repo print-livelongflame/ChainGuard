@@ -426,6 +426,65 @@ class WebChatTests(unittest.TestCase):
             model_messages[-1]["content"],
         )
 
+    def test_attached_json_scam_check_does_not_require_saved_lookup(self):
+        address = "0x" + "4" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="address_info",
+            raw_input={"type": "address", "value": address},
+            required_input_type="address", requested_fields=["contract"],
+            use_saved_lookup=True,
+        ))
+
+        def execute(item, respond, output, **kwargs):
+            self.assertEqual(item.request_type, "scam_check")
+            self.assertEqual(item.raw_input.value, address)
+            Path(output).write_text(json.dumps({"address": address}))
+            respond("Scam check complete.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            response = self.client.post(
+                f"/api/chats/{self.create()}/messages",
+                json={
+                    "text": "Please scam check this token.",
+                    "attachments": [{
+                        "name": "token.json",
+                        "content": json.dumps({"token": {"address": address}}),
+                    }],
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["messages"][-1]["text"], "Scam check complete.")
+
+    def test_uploaded_json_stays_in_context_for_later_scam_check(self):
+        address = "0x" + "5" * 40
+        chat = self.create()
+        self.complete.return_value = envelope(task("I have read the attached file."))
+        self.client.post(
+            f"/api/chats/{chat}/messages",
+            json={"text": "", "attachments": [{
+                "name": "token.json",
+                "content": json.dumps({"token_address": address}),
+            }]},
+        )
+        self.complete.return_value = envelope(task(
+            None, request_type="address_info", use_saved_lookup=True,
+        ))
+
+        def execute(item, respond, output, **kwargs):
+            self.assertEqual(item.request_type, "scam_check")
+            self.assertEqual(item.raw_input.value, address)
+            Path(output).write_text(json.dumps({"address": address}))
+            respond("Scam check complete.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            response = self.send(chat, "Please scam check this token.")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["messages"][-1]["text"], "Scam check complete.")
+        messages = self.complete.call_args.kwargs["messages"]
+        self.assertTrue(any(address in message["content"] for message in messages))
+
     def test_backend_restart_expires_chats(self):
         chat = self.create()
         self.app.state.sessions = {}
