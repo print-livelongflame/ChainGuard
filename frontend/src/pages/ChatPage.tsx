@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Chat, InputAttachment } from '../api'
 import Brand from '../components/Brand'
 import AnalysisCard from '../components/AnalysisCard'
+import LookupResult from '../components/LookupResult'
 import MessageText from '../components/MessageText'
 import './ChatPage.css'
 
@@ -63,7 +64,8 @@ export default function ChatPage({ chat, draft, disabled, onDraft, onSend }: Pro
       </section> : <div className="messages" role="log" aria-label="Conversation" aria-live="polite">
         {chat.messages.map(message => <article className={`message ${message.role}`} key={message.id}>
           <div className="message-avatar">{message.role === 'assistant' ? <Brand /> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6 20v-3a6 6 0 0 1 12 0v3"/></svg>}</div>
-          <div className="message-content"><h2>{message.role === 'user' ? 'You' : 'ChainGuard AI'}</h2>{message.role === 'assistant' && message.assessment && <AnalysisCard result={message.assessment} />}<MessageText text={message.text} />
+          <div className="message-content"><h2>{message.role === 'user' ? 'You' : 'ChainGuard AI'}</h2>{message.role === 'assistant' && message.lookup?.kind === 'transactions' ? <LookupResult lookup={message.lookup} assessment={message.assessment} /> : message.role === 'assistant' && message.assessment ? <AnalysisCard result={message.assessment} /> : null}
+            {message.role === 'assistant' && message.lookup?.kind === 'transactions' ? <details className="full-explanation"><summary>Full explanation</summary><MessageText text={message.text} /></details> : <MessageText text={message.text} />}
             {message.attachments.map(file => file.url
               ? <a className="attachment" key={file.id} href={file.url} download={file.name}><span aria-hidden="true">↓</span> Download {file.name}</a>
               : <span className="attachment" key={file.id}><span aria-hidden="true">▤</span> {file.name} included</span>)}
