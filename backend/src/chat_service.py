@@ -220,19 +220,8 @@ def _recover_attached_scam_check(batch, prompt, attachments, history):
     )
 
 
-def run_turn(
-    prompt,
-    history,
-    *,
-    execute,
-    respond,
-    output_root=None,
-    on_analysis=None,
-    on_task=None,
-    unique_single_output=True,
-    on_lookup=None,
-    attachments=(),
-):
+def run_turn(prompt, history, *, execute, respond, output_root=None,
+             on_analysis=None, on_task=None, unique_single_output=True, on_lookup=None):
     """Keep private BA context and emit only user-facing answers and files."""
     working_history = list(history)
     try:

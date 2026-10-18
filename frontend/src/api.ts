@@ -34,7 +34,8 @@ export type LocalLLM = {
 export type PromptStrategy = 'zero_shot' | 'chain_of_thought' | 'few_shot'
 export type AgentTuning = { prompt_strategy: PromptStrategy; temperature: number }
 export type AgentSettings = Record<keyof AgentAssignments, AgentTuning>
-export type LLMSettings = { assignments: AgentAssignments; agents: AgentSettings; local: LocalLLM }
+export type AgentTokenLimits = Record<keyof AgentAssignments, number | null>
+export type LLMSettings = { assignments: AgentAssignments; agents: AgentSettings; token_limits: AgentTokenLimits; local: LocalLLM }
 
 export type AnalysisResult = {
   label: 'scam' | 'not_scam' | 'insufficient_evidence'

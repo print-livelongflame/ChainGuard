@@ -55,7 +55,7 @@ class LLMSettingsTests(unittest.TestCase):
             if username:
                 self.login(username)
             with patch("src.llm_settings_api.test_local") as probe:
-                for path, body in [("", None), ("/local/test", {}), ("/local", {}), ("/assignments", {}), ("/agents", {})]:
+                for path, body in [("", None), ("/local/test", {}), ("/local", {}), ("/assignments", {}), ("/agents", {}), ("/token-limits", {})]:
                     response = self.client.get("/api/settings/llm" + path) if body is None else self.client.post("/api/settings/llm" + path, json=body)
                     self.assertEqual(response.status_code, status)
                 probe.assert_not_called()
@@ -78,6 +78,38 @@ class LLMSettingsTests(unittest.TestCase):
         restored = get_llm_settings()
         self.assertEqual(restored.assignments.business_analyser, "claude")
         self.assertEqual(restored.agents.scam_checker.prompt_strategy, "chain_of_thought")
+
+    def test_admin_token_limits_default_unlimited_persist_and_validate(self):
+        self.login()
+        unlimited = {
+            "business_analyser": None,
+            "scam_checker": None,
+            "forensic_investigator": None,
+        }
+        self.assertEqual(
+            self.client.get("/api/settings/llm").json()["token_limits"],
+            unlimited,
+        )
+        limits = {
+            "business_analyser": 1200,
+            "scam_checker": 1800,
+            "forensic_investigator": None,
+        }
+        response = self.client.post("/api/settings/llm/token-limits", json=limits)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["token_limits"], limits)
+        self.assertEqual(get_llm_settings().token_limits.model_dump(), limits)
+        self.assertEqual(self.client.get("/api/settings/llm").json()["token_limits"], limits)
+
+        for invalid in [
+            {"business_analyser": 0, "scam_checker": None, "forensic_investigator": None},
+            {"business_analyser": -1, "scam_checker": None, "forensic_investigator": None},
+            {"business_analyser": "unlimited", "scam_checker": None, "forensic_investigator": None},
+        ]:
+            self.assertEqual(
+                self.client.post("/api/settings/llm/token-limits", json=invalid).status_code,
+                422,
+            )
 
     def test_prompt_strategy_and_temperature_reach_each_provider_without_mutation(self):
         config = LLMConfig(local=LocalConfig(enabled=True), local_verified=True)

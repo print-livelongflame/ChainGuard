@@ -35,6 +35,13 @@ class AgentSettings(BaseModel):
     forensic_investigator: AgentTuning = Field(default_factory=AgentTuning)
 
 
+class AgentTokenLimits(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    business_analyser: int | None = Field(default=None, ge=1)
+    scam_checker: int | None = Field(default=None, ge=1)
+    forensic_investigator: int | None = Field(default=None, ge=1)
+
+
 class LocalConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     enabled: bool = False
@@ -69,6 +76,7 @@ class LLMConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     assignments: Assignments = Field(default_factory=Assignments)
     agents: AgentSettings = Field(default_factory=AgentSettings)
+    token_limits: AgentTokenLimits = Field(default_factory=AgentTokenLimits)
     local: LocalConfig = Field(default_factory=LocalConfig)
     local_verified: bool = False
 
@@ -177,4 +185,9 @@ def public_settings(config, *, probe=True):
             error = str(failure)
     local = config.local.model_dump(exclude={"api_key"})
     local.update(api_key_configured=bool(config.local.api_key), connected=connected, connection_error=error)
-    return {"assignments": config.assignments.model_dump(), "agents": config.agents.model_dump(), "local": local}
+    return {
+        "assignments": config.assignments.model_dump(),
+        "agents": config.agents.model_dump(),
+        "token_limits": config.token_limits.model_dump(),
+        "local": local,
+    }

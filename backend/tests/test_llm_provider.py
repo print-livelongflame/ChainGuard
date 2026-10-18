@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src import llm_provider
+from src.llm_config import AgentTokenLimits, LLMConfig
 from src.prompt_strategies import apply_strategy
 
 
@@ -66,6 +67,39 @@ def test_complete_with_usage_returns_provider_token_counts(monkeypatch):
         response_format=None,
         temperature=0,
     )
+
+
+@pytest.mark.parametrize(
+    "agent",
+    ["business_analyser", "scam_checker", "forensic_investigator"],
+)
+def test_configured_output_token_limit_is_sent_to_cloud_provider(monkeypatch, agent):
+    completion = MagicMock(return_value=model_response("Limited response"))
+    monkeypatch.setattr("litellm.completion", completion)
+    settings = LLMConfig(token_limits=AgentTokenLimits(**{agent: 321}))
+
+    with llm_provider.use_llm_settings(settings):
+        llm_provider.complete([{"role": "user", "content": "Hello"}], agent=agent)
+
+    assert completion.call_args.kwargs["max_tokens"] == 321
+
+
+def test_configured_output_token_limit_is_sent_to_local_provider(monkeypatch):
+    from src.llm_config import Assignments, LocalConfig
+
+    settings = LLMConfig(
+        assignments=Assignments(business_analyser="local"),
+        token_limits=AgentTokenLimits(business_analyser=654),
+        local=LocalConfig(enabled=True),
+        local_verified=True,
+    )
+    request = MagicMock(return_value={"choices": [{"finish_reason": "stop", "message": {"content": "Limited response"}}]})
+    monkeypatch.setattr(llm_provider, "local_request", request)
+
+    with llm_provider.use_llm_settings(settings):
+        llm_provider.complete([{"role": "user", "content": "Hello"}])
+
+    assert request.call_args.args[2]["max_tokens"] == 654
 
 
 def test_complete_with_usage_reports_missing_usage_without_estimation(monkeypatch):

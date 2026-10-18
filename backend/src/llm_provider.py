@@ -4,7 +4,7 @@ import os
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from src.llm_config import AgentSettings, local_request, local_content
+from src.llm_config import AgentSettings, AgentTokenLimits, local_request, local_content
 from src.prompt_strategies import apply_strategy
 
 from src.api_key_config import get_api_key
@@ -121,6 +121,9 @@ def complete_with_usage(
     """Generate text and return provider-reported token counts when available."""
     settings = _turn_settings.get()
     tuning = getattr(settings.agents if settings else AgentSettings(), agent)
+    max_output_tokens = getattr(
+        settings.token_limits if settings else AgentTokenLimits(), agent
+    )
     messages = apply_strategy(messages, agent, tuning.prompt_strategy)
     if temperature is None:
         temperature = tuning.temperature
@@ -130,6 +133,8 @@ def complete_with_usage(
             raise ValueError("Connect and enable the local LLM in admin settings first.")
         body = {"model": settings.local.model, "messages": messages, "stream": False,
                 "temperature": 0.2 if temperature is None else temperature}
+        if max_output_tokens is not None:
+            body["max_tokens"] = max_output_tokens
         if response_format is not None:
             body["response_format"] = response_format
         response = local_request(settings.local, "chat/completions", body)
@@ -158,6 +163,8 @@ def complete_with_usage(
             }
             if temperature is not None:
                 options["temperature"] = temperature
+            if max_output_tokens is not None:
+                options["max_tokens"] = max_output_tokens
             return completion(**options)
 
         if _progress_enabled:

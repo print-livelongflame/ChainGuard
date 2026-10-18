@@ -191,6 +191,10 @@ Under **Agent prompt settings**, select a strategy and temperature independently
 
 Click **Save Prompt Settings** to apply changes. **Restore Defaults** fills the form; save to apply them. Provider and prompt changes apply to new messages; a running response keeps its original settings. Settings persist server-side, and older configuration files automatically receive default prompt settings.
 
+### Set per-request output token limits
+
+As an admin, open **Settings > Token Limits** to set a maximum output-token count independently for the Business Analyser, Scam Checker, and Forensic Investigator. Leave a field empty to keep that agent unlimited (the default). Limits apply to each new request across its configured cloud or local provider; they cap generated output, not prompt/input tokens or total usage. A low limit may truncate a response and cause structured output to fail. Settings persist server-side.
+
 To compare strategies with fixed inputs, evidence, provider and temperature, see the [prompt evaluation guide](backend/evaluation/README.md). It includes repeatable live tests, saved results, and an explanation-review rubric. The defaults are starting points for evaluation; they do not guarantee the best results for every model.
 
 ## 2. Use the local LLM template

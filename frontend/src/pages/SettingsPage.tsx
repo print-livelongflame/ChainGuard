@@ -4,6 +4,7 @@ import type { ApiKeyName, ApiKeySettings, DetectorSettings, LLMSettings } from '
 import LocalLLMPage from './LocalLLMPage'
 import AgentProviderSettings from '../components/AgentProviderSettings'
 import AgentPromptSettings from '../components/AgentPromptSettings'
+import AgentTokenSettings from '../components/AgentTokenSettings'
 import './SettingsPage.css'
 
 const DEFAULT_SETTINGS: DetectorSettings = {
@@ -18,6 +19,7 @@ const DEFAULT_SETTINGS: DetectorSettings = {
 type SettingsView =
   | 'api-wrappers'
   | 'ai-configuration'
+  | 'token-limits'
   | 'external-detector'
   | 'local-llm'
 
@@ -505,6 +507,15 @@ export default function SettingsPage({
 
             <button
               type="button"
+              className={view === 'token-limits' ? 'active' : ''}
+              onClick={() => setView('token-limits')}
+              disabled={!isAdmin}
+            >
+              Token Limits
+            </button>
+
+            <button
+              type="button"
               className={
                 view === 'external-detector'
                   ? 'active'
@@ -884,6 +895,12 @@ export default function SettingsPage({
           {view === 'local-llm' && isAdmin && (
             llmSettings ? <LocalLLMPage settings={llmSettings} error={llmError} onSaved={llmSaved} onBack={() => setView('ai-configuration')} />
               : <p role={llmError ? 'alert' : 'status'}>{llmError || 'Loading local model settings…'}</p>
+          )}
+
+          {view === 'token-limits' && isAdmin && (
+            llmSettings
+              ? <AgentTokenSettings settings={llmSettings} onSaved={llmSaved} />
+              : <p role={llmError ? 'alert' : 'status'}>{llmError || 'Loading token limits…'}</p>
           )}
 
           {view === 'external-detector' && isAdmin && (
