@@ -9,7 +9,7 @@ python -m evaluation.run --output evaluation/results/my-run
 
 The default run makes **180 live model calls**: 20 synthetic cases × 3 strategies
 × 3 repetitions. It uses the configured SCH provider for every agent, the actual
-production agent functions and output budgets, and temperature 0.2 for every
+production agent functions and saved per-agent token limits, and temperature 0.2 for every
 strategy. It does not modify saved admin settings or call blockchain fetchers.
 Each request has fresh conversation state. Request order is shuffled with a saved
 seed. Provider-internal retries can result in more HTTP attempts than model calls.
@@ -27,9 +27,9 @@ Outputs:
 
 - `REPORT.md` and `summary.csv`: validity, all-or-nothing objective task pass,
   repeated decision consistency, latency, and provider-reported token totals.
-- `trials.jsonl`: every final answer, exact composed messages, schema, budget,
+- `trials.jsonl`: every final answer, exact composed messages, schema, configured token limit,
   timing, usage when available, and task checks. Failures remain in denominators.
-- `manifest.json`: provider/model, time, seed, temperature, budgets and hashes.
+- `manifest.json`: provider/model, time, seed, temperature, token limits and hashes.
 - `cases.json`: frozen test inputs, expected decisions and review rubrics.
 - `blind-review.csv`: answers in shuffled order without strategy names.
 - `review-key.json`: mapping for analysis **after** blind scoring.

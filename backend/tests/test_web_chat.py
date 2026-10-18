@@ -81,25 +81,24 @@ class WebChatTests(unittest.TestCase):
         from types import SimpleNamespace
 
         self.model.stop()
-        completion = patch(
-            "litellm.completion",
-            return_value=SimpleNamespace(
-                choices=[SimpleNamespace(
-                    message=SimpleNamespace(
-                        content=envelope(task(message="A blockchain answer")),
-                        refusal=None,
+        with patch("src.llm_provider._get_api_key", return_value="test-api-key"), \
+             patch("src.llm_provider._progress_enabled", False), \
+             patch(
+                 "litellm.completion",
+                 return_value=SimpleNamespace(
+                     choices=[SimpleNamespace(
+                         message=SimpleNamespace(
+                             content=envelope(task(message="A blockchain answer")),
+                             refusal=None,
+                         ),
+                         finish_reason="stop",
+                     )],
+                     usage=SimpleNamespace(
+                         prompt_tokens=5, completion_tokens=6, total_tokens=11,
                     ),
-                    finish_reason="stop",
-                )],
-                usage=SimpleNamespace(
-                    prompt_tokens=5, completion_tokens=6, total_tokens=11,
-                ),
-            ),
-        )
-        completion.start()
-        self.addCleanup(completion.stop)
-
-        response = self.send(self.create()).json()
+                 ),
+             ):
+            response = self.send(self.create()).json()
         assistant = response["messages"][-1]
 
         self.assertEqual(

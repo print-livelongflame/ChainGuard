@@ -129,7 +129,8 @@ def main():
         "temperature": args.temperature, "repeats": args.repeats, "seed": args.seed,
         "cases_sha256": hashlib.sha256(json.dumps(cases, sort_keys=True).encode()).hexdigest(),
         "prompt_sha256": hashlib.sha256((ba.SYSTEM_PROMPT + sch.SYSTEM_PROMPT + fi.SYSTEM_PROMPT + json.dumps({a: [apply_strategy([], a, s) for s in STRATEGIES] for a in args.agents}, sort_keys=True)).encode()).hexdigest(),
-        "budgets": llm_provider.OUTPUT_TOKEN_BUDGETS, "agents": args.agents, "planned_trials": len(jobs)}
+        "token_limits": settings.token_limits.model_dump(), "agents": args.agents,
+        "planned_trials": len(jobs)}
     (args.output / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     (args.output / "cases.json").write_text(json.dumps(cases, indent=2), encoding="utf-8")
     llm_provider.set_progress_enabled(False)
@@ -144,7 +145,7 @@ def main():
             messages = kwargs.get("messages", positional[0] if positional else [])
             row["messages"] = apply_strategy(messages, agent, strategy)
             row["response_format"] = kwargs.get("response_format")
-            row["max_tokens"] = kwargs.get("max_tokens", 8192)
+            row["max_tokens"] = getattr(settings.token_limits, agent)
             text, usage = llm_provider.complete_with_usage(*positional, **kwargs)
             row["output"], row["usage"] = text, usage
             return text

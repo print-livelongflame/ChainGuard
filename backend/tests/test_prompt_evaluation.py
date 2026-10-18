@@ -5,7 +5,7 @@ from evaluation.cases import CASES
 from evaluation.run import score, write_reports
 from src.schema import AddressContext, DetectionResult
 from evaluation import run
-from src.llm_config import LLMConfig
+from src.llm_config import AgentTokenLimits, LLMConfig
 
 
 def test_cases_are_unique_and_evidence_validates():
@@ -41,7 +41,7 @@ def test_failed_trials_remain_in_denominator_and_review_is_blind(tmp_path):
 
 
 def test_live_runner_uses_all_strategies_without_modifying_saved_settings(tmp_path, monkeypatch):
-    settings = LLMConfig()
+    settings = LLMConfig(token_limits=AgentTokenLimits(scam_checker=321))
     before = settings.model_dump()
     monkeypatch.setattr(run, 'get_llm_settings', lambda: settings)
     monkeypatch.setattr(run, 'CASES', [next(c for c in CASES if c['id'] == 'sch-empty')])
@@ -51,7 +51,7 @@ def test_live_runner_uses_all_strategies_without_modifying_saved_settings(tmp_pa
     def completion(*args, **kwargs):
         active = run.llm_provider._turn_settings.get()
         observed.append(active.agents.scam_checker.prompt_strategy)
-        assert kwargs['max_tokens'] == run.llm_provider.OUTPUT_TOKEN_BUDGETS['scam_investigation']
+        assert active.token_limits.scam_checker == 321
         assert active.agents.scam_checker.temperature == 0.2
         return output, {'input_tokens': 10, 'output_tokens': 10, 'total_tokens': 20}
     monkeypatch.setattr(run.llm_provider, 'complete_with_usage', completion)
@@ -62,4 +62,5 @@ def test_live_runner_uses_all_strategies_without_modifying_saved_settings(tmp_pa
     assert settings.model_dump() == before
     rows = [json.loads(line) for line in (directory / 'trials.jsonl').read_text().splitlines()]
     assert len(rows) == 3 and all(row['valid'] for row in rows)
+    assert all(row['max_tokens'] == 321 for row in rows)
     assert all('Prompt strategy: ' + row['strategy'] in row['messages'][0]['content'] for row in rows)
