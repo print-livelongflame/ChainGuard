@@ -35,12 +35,6 @@ _PROVIDERS = {
         "config_key": "CLAUDE_API_KEY",
     },
 }
-OUTPUT_TOKEN_BUDGETS = {
-    "identity_basic_faq": 80,
-    "general_explanation": 180,
-    "address_summary": 250,
-    "scam_investigation": 350,
-}
 _active_provider = "openai"
 _progress_enabled = True
 _turn_settings = ContextVar("llm_turn_settings", default=None)
@@ -109,11 +103,10 @@ def complete(
     response_format: dict | None = None,
     *,
     agent: str = "business_analyser",
-    max_tokens: int = 8192,
 ) -> str:
     """Generate text with the selected provider and return its message content."""
     content, _ = complete_with_usage(
-        messages, response_format, agent=agent, max_tokens=max_tokens
+        messages, response_format, agent=agent
     )
     return content
 
@@ -124,12 +117,8 @@ def complete_with_usage(
     *,
     agent: str = "business_analyser",
     temperature: float | None = None,
-    max_tokens: int = 8192,
 ) -> tuple[str, dict[str, int] | None]:
     """Generate text and return provider-reported token counts when available."""
-    if not isinstance(max_tokens, int) or isinstance(max_tokens, bool) or max_tokens < 1:
-        raise ValueError("max_tokens must be a positive integer.")
-
     settings = _turn_settings.get()
     tuning = getattr(settings.agents if settings else AgentSettings(), agent)
     messages = apply_strategy(messages, agent, tuning.prompt_strategy)
@@ -140,8 +129,7 @@ def complete_with_usage(
         if not settings.local.enabled or not settings.local_verified:
             raise ValueError("Connect and enable the local LLM in admin settings first.")
         body = {"model": settings.local.model, "messages": messages, "stream": False,
-                "temperature": 0.2 if temperature is None else temperature,
-                "max_tokens": max_tokens}
+                "temperature": 0.2 if temperature is None else temperature}
         if response_format is not None:
             body["response_format"] = response_format
         response = local_request(settings.local, "chat/completions", body)
@@ -166,7 +154,6 @@ def complete_with_usage(
                 "model": _PROVIDERS[provider]["model"],
                 "messages": messages,
                 "api_key": api_key,
-                "max_tokens": max_tokens,
                 "response_format": response_format,
             }
             if temperature is not None:

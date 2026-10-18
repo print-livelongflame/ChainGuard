@@ -1,6 +1,7 @@
 """Local, single-worker web API. Run: uvicorn src.api:app --host 127.0.0.1."""
 import asyncio
 import hashlib
+import re
 import logging
 import os
 import secrets
@@ -20,6 +21,7 @@ from src.auth import router as auth_router, require_admin, get_session
 
 from agents.ba import is_exit_command
 from src.chat_service import (
+    ASSESSMENT_PREFIX,
     MAX_ATTACHMENT_BYTES,
     build_prompt,
     run_turn,
@@ -30,6 +32,7 @@ from src.llm_provider import use_llm_settings
 from src.llm_config import get_llm_settings, settings_exist
 from src.llm_settings_api import router as llm_router, refresh_provider_status
 from src.main import execute_ba_task
+from src.schema import DetectionResult
 from src.api_key_config import (
     apply_api_key_updates,
     get_api_key_status,
@@ -62,12 +65,19 @@ class InputAttachment(BaseModel):
         return self
 
 
+class AnalysisResult(DetectionResult):
+    source: str
+    address: str | None = None
+
+
 class Message(BaseModel):
     id: str = Field(default_factory=lambda: uuid4().hex)
     role: Literal["user", "assistant"]
     text: str
     created_at: str = Field(default_factory=now)
     attachments: list[Attachment] = Field(default_factory=list)
+    assessment: AnalysisResult | None = None
+    lookup: dict | None = None
 
 
 class ChatView(BaseModel):
@@ -271,13 +281,46 @@ def create_app():
     async def get_chat(chat_id: str, request: Request):
         return find_chat(request, chat_id).view()
 
-    def execute_turn(chat, prompt):
+    def execute_turn(chat, prompt, attachments=()):
         messages = []
         files = {}
         history = list(chat.history)
         seen_files = set()
+        pending_assessment = None
+        pending_lookup = None
+
+        def capture_lookup(evidence, task, follow_up):
+            nonlocal pending_lookup, pending_assessment
+            if len(evidence) != 1:
+                return
+            context = evidence[0]
+            wants_transactions = task.request_type == "address_info" and (
+                "tx_history" in task.requested_fields or bool(
+                    re.search(r"\btransactions?\b", prompt, re.IGNORECASE)))
+            if follow_up and context.get("detector_assessment"):
+                pending_assessment = AnalysisResult.model_validate(context["detector_assessment"])
+            if wants_transactions or (follow_up and pending_assessment):
+                pending_lookup = {
+                    "kind": "transactions" if wants_transactions else "evidence",
+                    "address": context.get("address"),
+                    "chain": context.get("chain", "unknown"),
+                    "queried_at": context.get("queried_at"),
+                    "transactions": context.get("tx_history") or [],
+                    "provenance": next((value for value in context.get("fetcher_provenance", {}).values()
+                                        if "tx_history" in value.get("fields", [])), {}),
+                }
+
+        def capture_assessment(result, source, address):
+            nonlocal pending_assessment
+            pending_assessment = AnalysisResult(
+                **result.model_dump(include=set(DetectionResult.model_fields)),
+                source=source, address=address,
+            )
+            history.append({"role": "assistant", "content":
+                            ASSESSMENT_PREFIX + pending_assessment.model_dump_json()})
 
         def respond(text, label, output):
+            nonlocal pending_assessment, pending_lookup
             attachments = []
             if output:
                 text = text.replace(str(output), "the attached JSON result")
@@ -298,8 +341,10 @@ def create_app():
                     ))
             messages.append(Message(
                 role="assistant", text=f"{label}\n{text}" if label else text,
-                attachments=attachments,
+                attachments=attachments, assessment=pending_assessment, lookup=pending_lookup,
             ))
+            pending_assessment = None
+            pending_lookup = None
             return text
 
         if prompt.casefold() == "change ai":
@@ -310,17 +355,21 @@ def create_app():
             run_turn(
                 prompt, history,
                 execute=lambda task, reply, output: execute_ba_task(
-                    task, reply, output, diagnostics=False),
+                    task, reply, output, diagnostics=False, on_assessment=capture_assessment),
                 respond=respond, output_root=app.state.output_root / chat.id,
+                on_lookup=capture_lookup,
+                attachments=attachments,
             )
         if not messages:
             respond("No answer was produced. Please rephrase your request.", None, None)
         return messages, files, history
 
-    async def finish_turn(chat, prompt):
+    async def finish_turn(chat, prompt, attachments=()):
         try:
             with use_llm_settings(get_llm_settings()):
-                messages, files, history = await run_in_threadpool(execute_turn, chat, prompt)
+                messages, files, history = await run_in_threadpool(
+                    execute_turn, chat, prompt, attachments
+                )
             chat.messages.extend(messages)
             chat.files.update(files)
             chat.history = history

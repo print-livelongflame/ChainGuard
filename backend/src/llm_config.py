@@ -155,7 +155,7 @@ def test_local(config):
     schema = {"type": "object", "properties": {"connected": {"type": "boolean", "enum": [True]}}, "required": ["connected"], "additionalProperties": False}
     data = local_request(config, "chat/completions", {
         "model": config.model, "messages": [{"role": "system", "content": 'Return only {"connected": true} as JSON.'}, {"role": "user", "content": "Test connection."}],
-        "stream": False, "temperature": 0, "max_tokens": 100,
+        "stream": False, "temperature": 0,
         "response_format": {"type": "json_schema", "json_schema": {"name": "connection_test", "strict": True, "schema": schema}},
     })
     try:

@@ -6,7 +6,7 @@ from pathlib import Path
 from pydantic import Field, ValidationError
 
 from src.schema import AddressContext, DetectionResult
-from src.llm_provider import OUTPUT_TOKEN_BUDGETS, complete
+from src.llm_provider import complete
 
 
 class ScamCheckerResponse(DetectionResult):
@@ -136,7 +136,6 @@ def ask_scam_checker(context: AddressContext, task=None) -> ScamCheckerResponse:
 				"schema": response_schema,
 			},
 		},
-		max_tokens=OUTPUT_TOKEN_BUDGETS["scam_investigation"],
 	)
 	return parse_scam_checker_response(analysis)
 

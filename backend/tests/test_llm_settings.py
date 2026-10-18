@@ -168,11 +168,11 @@ class LLMSettingsTests(unittest.TestCase):
         with patch("src.llm_provider._get_api_key", return_value="key"), patch("litellm.completion", return_value=cloud_response) as cloud, patch("src.llm_provider.local_request", return_value=reply("local")) as local, patch("src.llm_provider._progress_enabled", False):
             with use_llm_settings(config):
                 self.assertEqual(complete([], agent="business_analyser"), "cloud")
-                self.assertEqual(complete([], {"type": "json_object"}, agent="scam_checker", max_tokens=350), "local")
+                self.assertEqual(complete([], {"type": "json_object"}, agent="scam_checker"), "local")
                 self.assertEqual(complete([], agent="forensic_investigator"), "cloud")
             self.assertEqual([call.kwargs["model"] for call in cloud.call_args_list], ["openai/gpt-4.1-mini", "anthropic/claude-sonnet-4-5"])
             self.assertEqual(local.call_args.args[2]["response_format"], {"type": "json_object"})
-            self.assertEqual(local.call_args.args[2]["max_tokens"], 350)
+            self.assertNotIn("max_tokens", local.call_args.args[2])
             def turn(settings):
                 with use_llm_settings(settings):
                     return complete([], agent="business_analyser")

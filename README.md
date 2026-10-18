@@ -188,6 +188,96 @@ Complete the main app setup first; a cloud key is optional for this guide. This 
 ### Start the model server and download a model
 
 From the parent folder containing `ChainGuard/`:
+Open the local URL printed by Vite (normally `http://localhost:5173`). On other
+shells, `npm` can be used instead of `npm.cmd`. Vite proxies `/api` to port 8000;
+keep the browser on the Vite URL so session cookies and downloads use the same origin.
+
+Select **New Chat**, or type in the welcome screen to create a chat automatically.
+Enter sends a message; Shift+Enter adds a newline. Use the paperclip button to
+attach one UTF-8 `.txt` or `.json` file (up to 10 MB) to a message. Suggestion
+cards fill an editable prompt. Replace address placeholders with a complete
+Ethereum address. Replies can include JSON download links. The sidebar switches between conversations,
+including while another conversation is processing.
+
+When a JSON attachment contains a target field such as `token_address`,
+`contract_address`, or `token.address`, ChainGuard identifies that address in
+the model prompt and asks the model to investigate it when no separate request
+is provided. Transaction participant and holder addresses are not treated as
+the target. If multiple target addresses are found, the assistant asks which
+one to assess rather than choosing one. Text and JSON attachments remain part
+of the private chat context for follow-up messages in the same chat.
+
+The web API uses OpenAI by default. To select another configured provider, set
+`$env:CHAINGUARD_AI_PROVIDER = "gemini"` (or `"claude"` / `"openai"`) in the API
+terminal before starting it. Restart the API after changing the selected
+provider; API keys saved through Settings apply without a restart. Keys stay on
+the backend; do not put them in frontend environment variables.
+
+In the web app, open **Settings → API Keys** to enter or remove provider,
+Etherscan, and detector keys. Save keys to apply them immediately. The page
+shows only whether a key is configured; it never reads a saved secret back into
+the browser. The backend writes the values as plaintext constants in
+`backend/api_keys/api_keys.py`. This folder is ignored by Git and, in Docker,
+bind-mounted from the host so the file is created/updated in the local checkout.
+Anyone with access to that file can read its keys; use this local-only page only
+on a trusted machine, never commit the file, and rotate credentials if it was
+ever shared. If a provider key is already supplied by `.env`, update/remove it
+there too so the environment does not override the saved file after restart.
+
+This is a local demo with no accounts. An HTTP-only cookie identifies each browser
+session; the selected chat ID is kept in local storage. Chat transcripts and internal
+model history remain in server memory. Refreshing the page restores the chats and
+checks any pending reply. Restarting the API expires all chats. JSON downloads are
+temporary files removed on normal server shutdown. Run **one worker**; additional
+workers would have independent session stores. Do not expose this development
+configuration as a public service.
+
+### Web API
+
+| Method and path | Behavior |
+| --- | --- |
+| `GET /api/chats` | Session chats, configured provider, and configuration errors |
+| `POST /api/chats` | Create an empty chat |
+| `GET /api/chats/{id}` | Transcript and processing state |
+| `POST /api/chats/{id}/messages` | Send `{ "text": "your question", "attachments": [{ "name": "notes.txt", "content": "..." }] }`; return completed chat |
+| `GET /api/chats/{id}/files/{file_id}` | Download an attached JSON result |
+| `GET /api/settings/detector` | Read the saved external detector configuration |
+| `POST /api/settings/detector` | Validate and save external detector settings to `backend/detector_config.json` |
+| `GET /api/settings/api-keys` | Return configured/not-configured status only; never returns key values |
+| `POST /api/settings/api-keys` | Create, update, or remove local API-key constants |
+
+Chats expose `id`, `title`, `created_at`, `messages`, `processing`, and `error`.
+Messages contain `id`, `role`, `text`, `created_at`, and `attachments`; attachments
+contain `id`, `name`, and an optional `url`. Uploaded file contents are provided
+to the model as untrusted reference data and are not stored as downloads. Internal BA task JSON is never included in the
+visible transcript. Only one turn may run per chat (`409` for overlapping sends).
+Messages must contain 1–12,000 characters after trimming. Unknown chats or files
+return `404`; unavailable provider configuration returns `503` before accepting a turn.
+An accepted turn continues after a browser disconnect. Clients can query its chat
+to recover the result; they should not automatically resend a failed HTTP request.
+
+### Checks
+
+Run the existing backend suite with the standard library:
+
+```bash
+cd backend
+python -m unittest discover -s tests -v
+```
+
+For local test development and coverage reporting, install the development
+requirements once, then run pytest:
+
+```bash
+cd backend
+python -m pip install -r requirements-dev.txt
+python -m pytest -v
+python -m pytest --cov=src --cov=detector_integration --cov=fetchers --cov-report=term-missing
+```
+
+To compare token use for the OpenAI, Gemini and Claude models using the same
+three prompts, configure all three cloud API keys and run this opt-in live
+benchmark from `backend/`:
 
 ```powershell
 git clone https://github.com/Mossata/ChainGuard-localLLM-template.git
@@ -228,6 +318,23 @@ Click **Test Connection**, turn on **Enable local LLM**, and click **Save Connec
 Then open **Settings > AI Configuration**, select **Local Hosted LLM** for all three agents, and click **Save Agent Providers**. To keep some agents on cloud services, configure their keys and leave those roles on their cloud providers. Starting the model server or testing the connection alone does not change the agents.
 
 Try the general question from guide 1. Disable the external detector to exercise the local Scam Checker; an enabled external detector handles that assessment instead. Local model failures do not automatically fall back to a cloud provider.
+The benchmark is skipped during ordinary test runs unless the environment
+variable is set. Token usage is reported only when the provider returns it;
+responses are never token-counted by an estimate.
+
+ChainGuard does not set a per-request output-token cap. Providers and models may
+still enforce their own maximum output or context limits.
+
+The current backend tests use mocks and do not need API keys or paid calls.
+They cover chat/API behavior, authentication and role access, file handling,
+contract metadata, fetcher caching, and detector configuration. The CI workflow
+runs those tests and checks the frontend with lint and build on matching pushes.
+
+To run the full Compose integration check only when you choose, go to
+**GitHub → Actions → Manual Docker integration test → Run workflow**. It starts
+the frontend, backend, and detector, checks their health endpoints, and verifies
+the backend can call the detector. This workflow does not publish images or run
+automatically on every push.
 
 For an optional model-server password, copy the template's `.env.example` to `.env`, set `LLM_API_KEY`, and reapply `docker compose up -d` in the template folder. Enter the same secret in ChainGuard's **Optional API key** field. Its `/ready` endpoint then needs bearer authentication; `/health` remains public. This key is separate from cloud and detector keys.
 

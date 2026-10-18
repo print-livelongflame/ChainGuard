@@ -39,7 +39,6 @@ def test_complete_returns_content_and_sends_provider_options(monkeypatch):
         model="openai/gpt-4.1-mini",
         messages=apply_strategy(messages, "business_analyser", "zero_shot"),
         api_key="test-api-key",
-        max_tokens=8192,
         response_format=response_format,
         temperature=0.1,
     )
@@ -55,7 +54,7 @@ def test_complete_with_usage_returns_provider_token_counts(monkeypatch):
     monkeypatch.setattr("litellm.completion", completion)
 
     content, usage = llm_provider.complete_with_usage(
-        messages, temperature=0, max_tokens=80
+        messages, temperature=0
     )
 
     assert content == "I am an AI assistant."
@@ -64,16 +63,9 @@ def test_complete_with_usage_returns_provider_token_counts(monkeypatch):
         model="openai/gpt-4.1-mini",
         messages=apply_strategy(messages, "business_analyser", "zero_shot"),
         api_key="test-api-key",
-        max_tokens=80,
         response_format=None,
         temperature=0,
     )
-
-
-@pytest.mark.parametrize("max_tokens", [0, -1, True, 1.5])
-def test_complete_with_usage_rejects_invalid_output_budgets(max_tokens):
-    with pytest.raises(ValueError, match="max_tokens must be a positive integer"):
-        llm_provider.complete_with_usage([], max_tokens=max_tokens)
 
 
 def test_complete_with_usage_reports_missing_usage_without_estimation(monkeypatch):

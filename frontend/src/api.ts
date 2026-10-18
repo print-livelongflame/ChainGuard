@@ -36,9 +36,25 @@ export type AgentTuning = { prompt_strategy: PromptStrategy; temperature: number
 export type AgentSettings = Record<keyof AgentAssignments, AgentTuning>
 export type LLMSettings = { assignments: AgentAssignments; agents: AgentSettings; local: LocalLLM }
 
+export type AnalysisResult = {
+  label: 'scam' | 'not_scam' | 'insufficient_evidence'
+  risk_type: string; confidence: number; source: string; address: string | null
+  evidence: { description: string; weight: number }[]
+  explanation?: string | null
+}
+
+export type LookupView = {
+  kind: 'transactions' | 'evidence'
+  address: string | null; chain: string; queried_at: string | null
+  transactions: { hash?: string | null; method?: string | null; value?: string | null; timestamp?: string | number | null; execution_status?: string }[]
+  provenance: { status?: string; error?: string; fetched_at?: string }
+}
+
 export type Message = {
   id: string; role: 'user' | 'assistant'; text: string; created_at: string
   attachments: Attachment[]
+  assessment?: AnalysisResult | null
+  lookup?: LookupView | null
 }
 
 export type Chat = {

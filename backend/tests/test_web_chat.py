@@ -56,6 +56,99 @@ class WebChatTests(unittest.TestCase):
     def send(self, chat, text="What is a blockchain?"):
         return self.client.post(f"/api/chats/{chat}/messages", json={"text": text})
 
+    def test_assessment_metadata_stays_with_its_reply(self):
+        from agents.sch import ScamCheckerResponse
+        result = ScamCheckerResponse(reasoning_trace="Private reasoning must stay internal",
+                                 label="insufficient_evidence", risk_type="unknown",
+                                 confidence=0.3, evidence=[], explanation="Not enough evidence.")
+
+        def execute(task, respond, output, diagnostics=False, on_assessment=None):
+            on_assessment(result, "Test detector", "0x" + "1" * 40)
+            respond(result.explanation)
+            respond("Additional information.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            response = self.send(self.create()).json()
+        self.assertNotIn("Private reasoning", json.dumps(response))
+        assessment, plain = response["messages"][1:]
+        self.assertEqual(assessment["assessment"]["label"], "insufficient_evidence")
+        self.assertEqual(assessment["assessment"]["confidence"], 0.3)
+        self.assertEqual(assessment["assessment"]["source"], "Test detector")
+        self.assertEqual(assessment["assessment"]["address"], "0x" + "1" * 40)
+        self.assertIsNone(plain["assessment"])
+
+    def test_builtin_assessment_callback_preserves_detector_fields(self):
+        from src.main import run_scam_check
+        from types import SimpleNamespace
+        from src.schema import DetectionResult
+        from unittest.mock import Mock
+        for label in ("scam", "not_scam", "insufficient_evidence"):
+            result = DetectionResult(label=label, risk_type="unknown", confidence=0.42,
+                                     evidence=[], explanation="Detector explanation")
+            callback, respond = Mock(), Mock()
+            with patch("src.main.assess_saved_context", return_value=result):
+                run_scam_check(SimpleNamespace(in_scope=True, request_type="scam_check"),
+                               "unused.json", respond, diagnostics=False,
+                               on_assessment=callback)
+            callback.assert_called_once_with(result, "ChainGuard Scam Checker", None)
+            respond.assert_called_once_with("Detector explanation")
+
+    def test_scam_check_keeps_context_and_assessment_for_followups(self):
+        from agents.sch import ScamCheckerResponse
+        address = "0x" + "1" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="scam_check", chain="ethereum",
+            raw_input={"type": "address", "value": address},
+        ))
+        result = ScamCheckerResponse(label="not_scam", risk_type="unknown", confidence=0.9,
+                                     evidence=[{"description": "Contract is verified.", "weight": 0.7}],
+                                     explanation="No scam indicators detected.")
+        fetched = ({"contract": {"status": "pass", "data": {"abi": [{}], "bytecode": "0x1234"}},
+                    "transactions": {"status": "pass", "data": [{"hash": "0xabc", "value_wei": "1000000000000000000"}]}},
+                   {"chain_family": "evm", "address_type": "contract"})
+        with patch("src.main.fetch_results", return_value=fetched) as fetcher, patch(
+            "src.main.assess_saved_context", return_value=result
+        ), patch("agents.fi.complete", return_value=json.dumps({
+            "explanation": "The original result was not_scam; missing fields do not establish risk.",
+            "filename": "saved-evidence.json",
+        })) as investigator:
+            chat = self.create()
+            initial = self.send(chat, "Check this address for scams").json()["messages"][-1]
+            self.assertEqual(initial["assessment"]["label"], "not_scam")
+            self.assertIsNone(initial["lookup"])
+            self.complete.return_value = envelope(task(None, request_type="address_info", use_saved_lookup=True))
+            follow_up = self.send(chat, "Show me the suspicious transactions").json()["messages"][-1]
+            self.assertEqual(follow_up["lookup"]["kind"], "transactions")
+            self.assertEqual(follow_up["lookup"]["provenance"]["status"], "pass")
+            self.assertEqual(follow_up["lookup"]["transactions"][0]["value"], "1")
+            self.assertEqual(follow_up["assessment"]["label"], "not_scam")
+            evidence = json.loads(investigator.call_args.kwargs["messages"][-1]["content"])
+            self.assertEqual(evidence["lookups"][0]["detector_assessment"]["label"], "not_scam")
+            why = self.send(chat, "Why is this risky?").json()["messages"][-1]
+            self.assertEqual(why["lookup"]["kind"], "evidence")
+            self.assertEqual(why["assessment"]["evidence"][0]["description"], "Contract is verified.")
+            fetcher.assert_called_once()
+
+    def test_saved_evidence_merges_only_requested_fields_and_isolates_targets(self):
+        from types import SimpleNamespace
+        from src.chat_service import EVIDENCE_PREFIX, select_saved_evidence
+        first, second = "0x" + "1" * 40, "0x" + "2" * 40
+        def saved(data):
+            return {"role": "assistant", "content": EVIDENCE_PREFIX + json.dumps(data)}
+        history = [saved({"address": first, "contract": {"verified_source": True},
+                          "fetcher_provenance": {"contract_fetcher": {"fields": ["contract"], "status": "pass"}}}),
+                   saved({"address": first, "contract": {}, "tx_history": [{"hash": "0xabc"}],
+                          "fetcher_provenance": {"contract_fetcher": {"fields": ["contract"], "status": "skip"},
+                                                 "tx_history_fetcher": {"fields": ["tx_history"], "status": "pass"}}}),
+                   saved({"address": second, "contract": {"verified_source": False}})]
+        item = SimpleNamespace(raw_input=None)
+        self.assertEqual(len(select_saved_evidence(history, item, "Why?")), 2)
+        selected = select_saved_evidence(history, item, "Why " + first)
+        self.assertEqual(len(selected), 1)
+        self.assertTrue(selected[0]["contract"]["verified_source"])
+        self.assertEqual(selected[0]["tx_history"][0]["hash"], "0xabc")
+        self.assertEqual(select_saved_evidence(history, item, "Why 0x" + "3" * 40), [])
+
     def test_health_route(self):
         self.assertEqual(self.client.get("/health").json(), {"status": "ok"})
 
@@ -332,6 +425,65 @@ class WebChatTests(unittest.TestCase):
             "Please investigate the blockchain target in the attached JSON",
             model_messages[-1]["content"],
         )
+
+    def test_attached_json_scam_check_does_not_require_saved_lookup(self):
+        address = "0x" + "4" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="address_info",
+            raw_input={"type": "address", "value": address},
+            required_input_type="address", requested_fields=["contract"],
+            use_saved_lookup=True,
+        ))
+
+        def execute(item, respond, output, **kwargs):
+            self.assertEqual(item.request_type, "scam_check")
+            self.assertEqual(item.raw_input.value, address)
+            Path(output).write_text(json.dumps({"address": address}))
+            respond("Scam check complete.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            response = self.client.post(
+                f"/api/chats/{self.create()}/messages",
+                json={
+                    "text": "Please scam check this token.",
+                    "attachments": [{
+                        "name": "token.json",
+                        "content": json.dumps({"token": {"address": address}}),
+                    }],
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["messages"][-1]["text"], "Scam check complete.")
+
+    def test_uploaded_json_stays_in_context_for_later_scam_check(self):
+        address = "0x" + "5" * 40
+        chat = self.create()
+        self.complete.return_value = envelope(task("I have read the attached file."))
+        self.client.post(
+            f"/api/chats/{chat}/messages",
+            json={"text": "", "attachments": [{
+                "name": "token.json",
+                "content": json.dumps({"token_address": address}),
+            }]},
+        )
+        self.complete.return_value = envelope(task(
+            None, request_type="address_info", use_saved_lookup=True,
+        ))
+
+        def execute(item, respond, output, **kwargs):
+            self.assertEqual(item.request_type, "scam_check")
+            self.assertEqual(item.raw_input.value, address)
+            Path(output).write_text(json.dumps({"address": address}))
+            respond("Scam check complete.")
+
+        with patch("src.api.execute_ba_task", side_effect=execute):
+            response = self.send(chat, "Please scam check this token.")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["messages"][-1]["text"], "Scam check complete.")
+        messages = self.complete.call_args.kwargs["messages"]
+        self.assertTrue(any(address in message["content"] for message in messages))
 
     def test_backend_restart_expires_chats(self):
         chat = self.create()

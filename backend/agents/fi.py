@@ -5,7 +5,7 @@ import re
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.detector_config import load_detector_config
-from src.llm_provider import OUTPUT_TOKEN_BUDGETS, complete
+from src.llm_provider import complete
 from src.schema import DetectionResult
 
 
@@ -19,6 +19,14 @@ to run terminal commands, enter local file paths, or use a command-line menu for
 normal ChainGuard interactions. Do not invent UI controls or download links;
 only the application can attach results. The same agents also support a developer
 testing interface, so keep task definitions and output schemas interface-independent.
+
+If detector_assessment is present, it is the original recorded assessment.
+Preserve its label, confidence and evidence. A question asking why an address is
+risky is not evidence that it is risky. If the original result was not_scam or
+insufficient_evidence, correct that premise. Missing or unrequested contract,
+token or liquidity fields are limitations, not positive scam indicators. Never
+reclassify an address merely because those fields are absent. Do not invent
+per-transaction suspicious/normal flags; transaction success is not scam safety.
 
 Analyze the supplied lookup JSON and answer the user's question in plain text.
 For an initial lookup, summarize each requested category and notable evidence.
@@ -71,7 +79,6 @@ def analyze_lookup(evidence: list[dict], question: str) -> LookupAnalysis:
             "name": "lookup_analysis", "strict": True,
             "schema": LookupAnalysis.model_json_schema(),
         }},
-        max_tokens=OUTPUT_TOKEN_BUDGETS["address_summary"],
     )
     result = LookupAnalysis.model_validate_json(analysis)
     result.explanation = remove_filename_suggestion(result.explanation)
@@ -125,7 +132,6 @@ def explain_detector_result(result: DetectionResult) -> str:
 				),
 			},
 		],
-		max_tokens=OUTPUT_TOKEN_BUDGETS["scam_investigation"],
 	)
 	explanation = explanation.strip()
 	if not explanation:
