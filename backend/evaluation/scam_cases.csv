@@ -1,0 +1,21 @@
+case_id,address,expected_label,label_basis,source
+RP01,0x93023F1D3525E273F291B6f76d2F5027A39BF302,scam,"CRPWarner marks hidden mint and limiting sell order patterns",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP02,0x2753dcE37A7eDB052a77832039bcc9aA49Ad8b25,scam,"CRPWarner marks a limiting sell order pattern",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP03,0x10f6f2b97F3aB29583D9D38BaBF2994dF7220C21,scam,"CRPWarner marks hidden mint and limiting sell order patterns",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP04,0x3E597EA168A85AA2AE5E2c4333665Bcd875eD10F,scam,"CRPWarner marks a limiting sell order pattern",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP05,0x292E89d5D5BDab3aF2f5838C194c1983f0140b43,scam,"CRPWarner marks a limiting sell order pattern",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP06,0xEF20505c8b343d12DA174Bf9D8495C1Ce2670989,scam,"CRPWarner marks a limiting sell order pattern",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP07,0xC71D244f7aD6C869ecBF13cBd9acaE31718bE4F8,scam,"CRPWarner marks a limiting sell order pattern",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP08,0x5927b72440D8A8b8c6ca5A8be60e88975F9063fc,scam,"CRPWarner marks a limiting sell order pattern",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP09,0x1e4402Fa427a7A835fC64ea6d051404ce767A569,scam,"CRPWarner marks leaking token and limiting sell order patterns",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+RP10,0xcb6CD204D783DC8d66896A6DEf5867d332228D7b,scam,"CRPWarner marks a limiting sell order pattern",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG01,0x94b7D24552933F50A5A5705C446528806dCeA381,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG02,0xE0b9d4146AaD6936cBfcBE4dAE47e34aAb96b093,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG03,0x11CBC781DadAAD13fc3a361772C80B1C027820AF,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG04,0xc709878167Ed069Aea15FD0bD4E9758CEb4Da193,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG05,0x6609F543d38816116fa5b9a98C918cA947f5455D,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG06,0x51C5807dd8398aeDFCc91E6483417838B41EAeB8,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG07,0xA0ffC741F109159ee203424A299E6d2731dcFC76,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG08,0xAbE776435f7459E2f5bA773Bfb753ed19a053dD0,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG09,0x9D52414c4cc1Fb8e7864A9B59495F430f8E5DE44,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
+NEG10,0xE1A0CE8B94c6A5E4791401086763d7bD0a6C18f5,not_scam,"No mint, leak, or sell-limiting pattern is marked in CRPWarner ground truth; weak negative",https://github.com/CRPWarner/RugPull/blob/main/dataset/groundtruth/groundTruth.xlsx
