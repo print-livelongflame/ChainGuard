@@ -1,0 +1,18 @@
+{
+  "benchmark": "production fetcher cache wrapper with a deterministic local fixture",
+  "started_utc": "2026-10-18T09:48:25.694124+00:00",
+  "repeats": 30,
+  "simulated_upstream_delay_ms": 50.0,
+  "external_api_calls": 0,
+  "llm_calls": 0,
+  "upstream_calls_uncached": 30,
+  "upstream_calls_cold_cache": 30,
+  "upstream_calls_warm_cache": 0,
+  "warm_cache_hit_rate": 1.0,
+  "median_uncached_ms": 54.6468,
+  "p95_uncached_ms": 55.0787,
+  "median_warm_cache_ms": 0.4091,
+  "p95_warm_cache_ms": 0.5591,
+  "median_repeat_latency_reduction_percent": 99.25,
+  "interpretation": "Local simulated-upstream result; measures cache overhead and avoided source calls, not live blockchain-provider latency."
+}
