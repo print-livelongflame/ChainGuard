@@ -373,9 +373,16 @@ def create_app():
             chat.messages.extend(messages)
             chat.files.update(files)
             chat.history = history
-        except Exception:
+        except Exception as error:
             logger.exception("Chat turn failed")
-            chat.error = "Unable to complete this request. Check the backend configuration and try again."
+            if "response was incomplete (token limit)" in str(error).casefold():
+                chat.error = (
+                    "The AI response hit its output-token limit before the analysis "
+                    "could finish. In Settings > Token Limits, increase or clear "
+                    "the Business Analyser limit, or shorten your request, then try again."
+                )
+            else:
+                chat.error = "Unable to complete this request. Check the backend configuration and try again."
             chat.messages.append(Message(role="assistant", text=chat.error))
         finally:
             chat.processing = False
@@ -406,7 +413,7 @@ def create_app():
             role="user", text=body.text,
             attachments=[Attachment(id=uuid4().hex, name=item["name"]) for item in attachments],
         ))
-        task = asyncio.create_task(finish_turn(chat, prompt))
+        task = asyncio.create_task(finish_turn(chat, prompt, attachments))
         app.state.tasks.add(task)
         task.add_done_callback(app.state.tasks.discard)
         # A refresh/disconnect must not cancel an accepted turn.

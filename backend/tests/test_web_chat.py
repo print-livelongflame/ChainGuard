@@ -554,6 +554,19 @@ class WebChatTests(unittest.TestCase):
         self.assertIn("Response:\nA blockchain answer", output.getvalue())
         self.assertEqual(history[-1], {"role": "assistant", "content": "A blockchain answer"})
 
+    def test_token_limit_failure_shows_actionable_chat_message(self):
+        with patch(
+            "agents.ba.complete",
+            side_effect=ValueError("The OpenAI response was incomplete (token limit)."),
+        ):
+            response = self.send(self.create())
+
+        self.assertEqual(response.status_code, 200)
+        message = response.json()["messages"][-1]["text"]
+        self.assertIn("output-token limit", message)
+        self.assertIn("Settings > Token Limits", message)
+        self.assertIn("shorten your request", message)
+
 
 if __name__ == "__main__":
     unittest.main()
