@@ -22,6 +22,19 @@ class Assignments(BaseModel):
     forensic_investigator: Provider = "openai"
 
 
+class AgentTuning(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    prompt_strategy: Literal["zero_shot", "chain_of_thought", "few_shot"] = "zero_shot"
+    temperature: float = Field(default=0.1, ge=0, le=1, allow_inf_nan=False)
+
+
+class AgentSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    business_analyser: AgentTuning = Field(default_factory=AgentTuning)
+    scam_checker: AgentTuning = Field(default_factory=lambda: AgentTuning(prompt_strategy="chain_of_thought", temperature=0.2))
+    forensic_investigator: AgentTuning = Field(default_factory=AgentTuning)
+
+
 class LocalConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     enabled: bool = False
@@ -55,6 +68,7 @@ class LocalUpdate(LocalConfig):
 class LLMConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     assignments: Assignments = Field(default_factory=Assignments)
+    agents: AgentSettings = Field(default_factory=AgentSettings)
     local: LocalConfig = Field(default_factory=LocalConfig)
     local_verified: bool = False
 
@@ -163,4 +177,4 @@ def public_settings(config, *, probe=True):
             error = str(failure)
     local = config.local.model_dump(exclude={"api_key"})
     local.update(api_key_configured=bool(config.local.api_key), connected=connected, connection_error=error)
-    return {"assignments": config.assignments.model_dump(), "local": local}
+    return {"assignments": config.assignments.model_dump(), "agents": config.agents.model_dump(), "local": local}

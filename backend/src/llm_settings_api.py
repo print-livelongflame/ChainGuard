@@ -2,11 +2,23 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.auth import require_admin
-from src.llm_config import (Assignments, LocalUpdate, CONFIG_LOCK, get_llm_settings,
+from src.llm_config import (AgentSettings, Assignments, LocalUpdate, CONFIG_LOCK, get_llm_settings,
     save_llm_settings, merge_local, test_local, check_local, public_settings)
 from src.llm_provider import list_providers, provider_available
 
 router = APIRouter(prefix="/api/settings/llm", tags=["LLM settings"], dependencies=[Depends(require_admin)])
+
+
+@router.post("/agents")
+def save_agent_settings(body: AgentSettings):
+    try:
+        with CONFIG_LOCK:
+            config = get_llm_settings()
+            config.agents = body
+            save_llm_settings(config)
+        return public_settings(config, probe=False)
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
 
 
 def refresh_provider_status(app):

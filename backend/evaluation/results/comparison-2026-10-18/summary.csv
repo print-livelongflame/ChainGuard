@@ -1,0 +1,4 @@
+agent,strategy,trials,valid_output_rate,objective_pass_rate,same_decision_rate,mean_seconds,reported_total_tokens,usage_available_trials
+forensic_investigator,chain_of_thought,1,0.0,,,1.4611,0,0
+forensic_investigator,few_shot,1,0.0,,,1.3402,0,0
+scam_checker,chain_of_thought,1,0.0,0.0,,20.769,0,0

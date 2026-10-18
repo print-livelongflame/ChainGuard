@@ -55,11 +55,48 @@ class LLMSettingsTests(unittest.TestCase):
             if username:
                 self.login(username)
             with patch("src.llm_settings_api.test_local") as probe:
-                for path, body in [("", None), ("/local/test", {}), ("/local", {}), ("/assignments", {})]:
+                for path, body in [("", None), ("/local/test", {}), ("/local", {}), ("/assignments", {}), ("/agents", {})]:
                     response = self.client.get("/api/settings/llm" + path) if body is None else self.client.post("/api/settings/llm" + path, json=body)
                     self.assertEqual(response.status_code, status)
                 probe.assert_not_called()
             self.assertFalse(self.config_path.exists())
+
+    def test_prompt_settings_defaults_persistence_and_validation(self):
+        self.login()
+        defaults = self.client.get("/api/settings/llm").json()["agents"]
+        self.assertEqual(defaults["scam_checker"], {"prompt_strategy": "chain_of_thought", "temperature": 0.2})
+        defaults["business_analyser"] = {"prompt_strategy": "few_shot", "temperature": 0.35}
+        response = self.client.post("/api/settings/llm/agents", json=defaults)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(get_llm_settings().agents.business_analyser.temperature, 0.35)
+        self.assertEqual(self.client.get("/api/settings/llm").json()["agents"], defaults)
+        for invalid in [{"temperature": -0.1}, {"temperature": 1.1}, {"prompt_strategy": "unknown"}, {"extra": True}]:
+            body = {**defaults, "business_analyser": {**defaults["business_analyser"], **invalid}}
+            self.assertEqual(self.client.post("/api/settings/llm/agents", json=body).status_code, 422)
+        # Older saved configs gain defaults without losing provider assignments.
+        self.config_path.write_text('{"assignments":{"business_analyser":"claude"}}')
+        restored = get_llm_settings()
+        self.assertEqual(restored.assignments.business_analyser, "claude")
+        self.assertEqual(restored.agents.scam_checker.prompt_strategy, "chain_of_thought")
+
+    def test_prompt_strategy_and_temperature_reach_each_provider_without_mutation(self):
+        config = LLMConfig(local=LocalConfig(enabled=True), local_verified=True)
+        cloud_response = SimpleNamespace(choices=[SimpleNamespace(finish_reason="stop", message=SimpleNamespace(content="ok", refusal=None))])
+        messages = [{"role": "system", "content": "Role rules."}, {"role": "user", "content": "Question"}]
+        with patch("src.llm_provider._get_api_key", return_value="key"), patch("litellm.completion", return_value=cloud_response) as cloud, patch("src.llm_provider.local_request", return_value=reply("ok")) as local, patch("src.llm_provider._progress_enabled", False):
+            for provider in ["openai", "claude", "gemini", "local"]:
+                for role in type(config.agents).model_fields:
+                    setattr(config.assignments, role, provider)
+                    for strategy in ["zero_shot", "few_shot", "chain_of_thought"]:
+                        getattr(config.agents, role).prompt_strategy = strategy
+                        getattr(config.agents, role).temperature = 0.45
+                        with use_llm_settings(config):
+                            complete(messages, agent=role)
+                        body = local.call_args.args[2] if provider == "local" else cloud.call_args.kwargs
+                        self.assertEqual(body["temperature"], 0.45)
+                        self.assertIn("Prompt strategy: " + strategy, body["messages"][0]["content"])
+                        self.assertTrue(body["messages"][0]["content"].startswith("Role rules."))
+            self.assertEqual(messages[0]["content"], "Role rules.")
 
     def test_verification_gate_failed_changes_and_write_only_key(self):
         self.login()

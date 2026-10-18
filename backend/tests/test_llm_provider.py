@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src import llm_provider
+from src.prompt_strategies import apply_strategy
 
 
 @pytest.fixture(autouse=True)
@@ -36,10 +37,11 @@ def test_complete_returns_content_and_sends_provider_options(monkeypatch):
     assert result == "Analysis complete"
     completion.assert_called_once_with(
         model="openai/gpt-4.1-mini",
-        messages=messages,
+        messages=apply_strategy(messages, "business_analyser", "zero_shot"),
         api_key="test-api-key",
         max_tokens=8192,
         response_format=response_format,
+        temperature=0.1,
     )
 
 
@@ -60,7 +62,7 @@ def test_complete_with_usage_returns_provider_token_counts(monkeypatch):
     assert usage == {"input_tokens": 5, "output_tokens": 6, "total_tokens": 11}
     completion.assert_called_once_with(
         model="openai/gpt-4.1-mini",
-        messages=messages,
+        messages=apply_strategy(messages, "business_analyser", "zero_shot"),
         api_key="test-api-key",
         max_tokens=80,
         response_format=None,

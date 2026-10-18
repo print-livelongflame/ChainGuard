@@ -31,7 +31,10 @@ export type LocalLLM = {
   enabled: boolean; name: string; base_url: string; model: string; timeout_seconds: number
   api_key_configured: boolean; connected: boolean; connection_error: string | null
 }
-export type LLMSettings = { assignments: AgentAssignments; local: LocalLLM }
+export type PromptStrategy = 'zero_shot' | 'chain_of_thought' | 'few_shot'
+export type AgentTuning = { prompt_strategy: PromptStrategy; temperature: number }
+export type AgentSettings = Record<keyof AgentAssignments, AgentTuning>
+export type LLMSettings = { assignments: AgentAssignments; agents: AgentSettings; local: LocalLLM }
 
 export type Message = {
   id: string; role: 'user' | 'assistant'; text: string; created_at: string

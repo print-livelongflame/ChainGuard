@@ -4,6 +4,20 @@ ChainGuard is a local web application for asking blockchain questions, looking u
 
 ## Choose your setup
 
+Admins can open **Settings → AI Configuration → Agent prompt settings** to select
+`zero_shot`, `chain_of_thought`, or `few_shot` and a temperature from 0 to 1 for
+each agent. Starting defaults are zero-shot / 0.1 for the Business Analyser and
+Forensic Investigator, and chain-of-thought / 0.2 for the Scam Checker. These
+are evaluation baselines, not measured optimal settings. Chain-of-thought asks
+for private analysis; replies contain the final result and concise explanation,
+with `reasoning_trace` kept null. Few-shot adds role-specific decision examples.
+Save applies the settings to new chat turns for all users; running turns retain
+their original settings. Restore Defaults fills the form; save to apply it.
+Settings persist server-side alongside agent provider assignments. Older config
+files automatically receive the new defaults. To compare strategies, keep the
+provider, input and fetched evidence fixed and assess routing accuracy, schema
+validity, evidence fidelity and consistency over repeated runs.
+
 1. **[Start the main app](#1-start-the-main-app)** with a cloud AI provider. This covers the browser interface, backend, login, and keys.
 2. **[Add the local LLM template](#2-use-the-local-llm-template)** to run the AI model on your computer instead of using a cloud provider.
 3. **[Connect the external detector template](#3-connect-the-external-detector-template)** to use your own detection algorithm.

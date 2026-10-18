@@ -1,0 +1,1082 @@
+[
+  {
+    "review_id": "R0001",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0002",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0003",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0004",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0005",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0006",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0007",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0008",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0009",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0010",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0011",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0012",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0013",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0014",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0015",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0016",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0017",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0018",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0019",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0020",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0021",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0022",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0023",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0024",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0025",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0026",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0027",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0028",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0029",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0030",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0031",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0032",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0033",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0034",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0035",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0036",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0037",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0038",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0039",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0040",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0041",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0042",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0043",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0044",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0045",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0046",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0047",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0048",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0049",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0050",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0051",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0052",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0053",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0054",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0055",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0056",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0057",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0058",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0059",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0060",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0061",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0062",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0063",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0064",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0065",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0066",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0067",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0068",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0069",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0070",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0071",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0072",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0073",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0074",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0075",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0076",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0077",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0078",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0079",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0080",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0081",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0082",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0083",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0084",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0085",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0086",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0087",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0088",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0089",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0090",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0091",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0092",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0093",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0094",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0095",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0096",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0097",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0098",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0099",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0100",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0101",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0102",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0103",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0104",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0105",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0106",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0107",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0108",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0109",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0110",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0111",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0112",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0113",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0114",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0115",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0116",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0117",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0118",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0119",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0120",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0121",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0122",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0123",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0124",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0125",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0126",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0127",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0128",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "fi-injection"
+  },
+  {
+    "review_id": "R0129",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0130",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0131",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0132",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0133",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "ba-transactions"
+  },
+  {
+    "review_id": "R0134",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "ba-ambiguous"
+  },
+  {
+    "review_id": "R0135",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0136",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0137",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0138",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0139",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0140",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0141",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0142",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0143",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0144",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0145",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0146",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0147",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0148",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "fi-not-scam"
+  },
+  {
+    "review_id": "R0149",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0150",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0151",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0152",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0153",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0154",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0155",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0156",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0157",
+    "strategy": "zero_shot",
+    "repeat": 2,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0158",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "ba-unrelated"
+  },
+  {
+    "review_id": "R0159",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0160",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0161",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0162",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0163",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-unverified"
+  },
+  {
+    "review_id": "R0164",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0165",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-verified"
+  },
+  {
+    "review_id": "R0166",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "ba-assessment"
+  },
+  {
+    "review_id": "R0167",
+    "strategy": "zero_shot",
+    "repeat": 0,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0168",
+    "strategy": "few_shot",
+    "repeat": 2,
+    "case_id": "fi-uncertain"
+  },
+  {
+    "review_id": "R0169",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0170",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "sch-owner-drain"
+  },
+  {
+    "review_id": "R0171",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0172",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-wallet"
+  },
+  {
+    "review_id": "R0173",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "sch-fetch-failure"
+  },
+  {
+    "review_id": "R0174",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-empty"
+  },
+  {
+    "review_id": "R0175",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "sch-liquidity-depth"
+  },
+  {
+    "review_id": "R0176",
+    "strategy": "zero_shot",
+    "repeat": 1,
+    "case_id": "ba-token"
+  },
+  {
+    "review_id": "R0177",
+    "strategy": "few_shot",
+    "repeat": 1,
+    "case_id": "ba-concept"
+  },
+  {
+    "review_id": "R0178",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-injected-metadata"
+  },
+  {
+    "review_id": "R0179",
+    "strategy": "chain_of_thought",
+    "repeat": 0,
+    "case_id": "sch-honeypot"
+  },
+  {
+    "review_id": "R0180",
+    "strategy": "chain_of_thought",
+    "repeat": 2,
+    "case_id": "sch-fetch-failure"
+  }
+]

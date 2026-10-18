@@ -3,6 +3,7 @@ import { api, ApiError } from '../api'
 import type { ApiKeyName, ApiKeySettings, DetectorSettings, LLMSettings } from '../api'
 import LocalLLMPage from './LocalLLMPage'
 import AgentProviderSettings from '../components/AgentProviderSettings'
+import AgentPromptSettings from '../components/AgentPromptSettings'
 import './SettingsPage.css'
 
 const DEFAULT_SETTINGS: DetectorSettings = {
@@ -853,6 +854,7 @@ export default function SettingsPage({
 
               {llmError && <p className="settings-status settings-error" role="alert">{llmError}</p>}
               {llmSettings ? <AgentProviderSettings settings={llmSettings} onSaved={llmSaved} onConnect={() => setView('local-llm')} /> : <p role="status">Loading agent providers…</p>}
+              {llmSettings && <AgentPromptSettings settings={llmSettings} onSaved={llmSaved} />}
 
 
               <section className="cg-panel">

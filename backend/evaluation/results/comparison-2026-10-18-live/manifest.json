@@ -1,0 +1,22 @@
+{
+  "started_utc": "2026-10-18T04:57:17.231329+00:00",
+  "provider": "openai",
+  "model": "openai/gpt-4.1-mini",
+  "temperature": 0.2,
+  "repeats": 3,
+  "seed": 20261018,
+  "cases_sha256": "4f7a0c2531dcbf19eb74948238dc31ed4bc0e858358398da2c8ef48304f505e9",
+  "prompt_sha256": "d09cf7453c4eb01086280f7d0fda9ea0d337a51515be974df7d8a105a4271455",
+  "budgets": {
+    "identity_basic_faq": 80,
+    "general_explanation": 180,
+    "address_summary": 250,
+    "scam_investigation": 350
+  },
+  "agents": [
+    "scam_checker",
+    "business_analyser",
+    "forensic_investigator"
+  ],
+  "planned_trials": 180
+}

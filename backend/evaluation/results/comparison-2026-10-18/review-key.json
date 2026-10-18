@@ -1,0 +1,20 @@
+[
+  {
+    "review_id": "R0001",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "sch-stale-failed"
+  },
+  {
+    "review_id": "R0002",
+    "strategy": "chain_of_thought",
+    "repeat": 1,
+    "case_id": "fi-scam"
+  },
+  {
+    "review_id": "R0003",
+    "strategy": "few_shot",
+    "repeat": 0,
+    "case_id": "fi-uncertain"
+  }
+]

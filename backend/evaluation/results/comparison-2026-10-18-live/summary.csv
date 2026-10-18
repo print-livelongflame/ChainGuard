@@ -1,0 +1,10 @@
+agent,strategy,trials,valid_output_rate,objective_pass_rate,same_decision_rate,mean_seconds,reported_total_tokens,usage_available_trials
+business_analyser,chain_of_thought,18,1.0,0.8333333333333334,1,1.2599444444444445,64555,18
+business_analyser,few_shot,18,1.0,0.8333333333333334,1,1.2116277777777777,65945,18
+business_analyser,zero_shot,18,0.8888888888888888,0.8888888888888888,0.8333333333333334,1.3415388888888888,56614,16
+forensic_investigator,chain_of_thought,12,1.0,,,1.0083916666666666,5403,12
+forensic_investigator,few_shot,12,1.0,,,0.8511333333333333,5899,12
+forensic_investigator,zero_shot,12,1.0,,,1.0256,4699,12
+scam_checker,chain_of_thought,30,1.0,0.9666666666666667,0.9,1.9294433333333334,33655,30
+scam_checker,few_shot,30,1.0,0.8666666666666667,0.9,1.3727033333333334,35691,30
+scam_checker,zero_shot,30,1.0,0.8333333333333334,0.9,1.4087833333333333,32326,30

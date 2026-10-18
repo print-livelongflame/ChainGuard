@@ -4,7 +4,8 @@ import os
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from src.llm_config import local_request, local_content
+from src.llm_config import AgentSettings, local_request, local_content
+from src.prompt_strategies import apply_strategy
 
 from src.api_key_config import get_api_key
 
@@ -130,6 +131,10 @@ def complete_with_usage(
         raise ValueError("max_tokens must be a positive integer.")
 
     settings = _turn_settings.get()
+    tuning = getattr(settings.agents if settings else AgentSettings(), agent)
+    messages = apply_strategy(messages, agent, tuning.prompt_strategy)
+    if temperature is None:
+        temperature = tuning.temperature
     provider = getattr(settings.assignments, agent) if settings else _active_provider
     if provider == "local":
         if not settings.local.enabled or not settings.local_verified:

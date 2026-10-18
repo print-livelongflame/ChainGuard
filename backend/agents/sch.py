@@ -55,7 +55,7 @@ Rules:
   weight is the importance of that observation, not a scam probability.
 - Use a supported risk_type such as rug_pull or honeypot only when justified;
   otherwise use unknown (or none for not_scam).
-- Use zero-shot assessment. Set reasoning_trace to null; explanation supplies
+- Set reasoning_trace to null; explanation supplies
   the concise, user-facing rationale.
 - Confidence is confidence in the assessment, not a guaranteed probability.
 - Do not provide financial advice or a safety guarantee.
