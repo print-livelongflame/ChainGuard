@@ -69,6 +69,48 @@ def test_complete_with_usage_returns_provider_token_counts(monkeypatch):
     )
 
 
+def test_token_usage_tracker_sums_provider_usage_between_replies(monkeypatch):
+    completion = MagicMock(side_effect=[
+        model_response(
+            "First answer",
+            usage=SimpleNamespace(prompt_tokens=5, completion_tokens=6, total_tokens=11),
+        ),
+        model_response(
+            "Second answer",
+            usage=SimpleNamespace(prompt_tokens=7, completion_tokens=8, total_tokens=15),
+        ),
+    ])
+    monkeypatch.setattr("litellm.completion", completion)
+
+    with llm_provider.track_token_usage() as tracker:
+        llm_provider.complete([{"role": "user", "content": "First"}])
+        first_reply = tracker.checkpoint()
+        llm_provider.complete([{"role": "user", "content": "Second"}])
+
+        assert tracker.since(0) == {
+            "input_tokens": 12,
+            "output_tokens": 14,
+            "total_tokens": 26,
+        }
+        assert tracker.since(first_reply) == {
+            "input_tokens": 7,
+            "output_tokens": 8,
+            "total_tokens": 15,
+        }
+
+
+def test_token_usage_tracker_does_not_estimate_missing_provider_usage(monkeypatch):
+    monkeypatch.setattr(
+        "litellm.completion",
+        MagicMock(return_value=model_response("Answer")),
+    )
+
+    with llm_provider.track_token_usage() as tracker:
+        llm_provider.complete([{"role": "user", "content": "Question"}])
+
+        assert tracker.since(0) is None
+
+
 @pytest.mark.parametrize(
     "agent",
     ["business_analyser", "scam_checker", "forensic_investigator"],

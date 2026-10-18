@@ -38,6 +38,45 @@ _PROVIDERS = {
 _active_provider = "openai"
 _progress_enabled = True
 _turn_settings = ContextVar("llm_turn_settings", default=None)
+_token_usage_tracker = ContextVar("llm_token_usage_tracker", default=None)
+
+
+class TokenUsageTracker:
+    def __init__(self):
+        self._calls: list[dict[str, int] | None] = []
+
+    def record(self, usage: dict[str, int] | None) -> None:
+        self._calls.append(usage)
+
+    def checkpoint(self) -> int:
+        return len(self._calls)
+
+    def since(self, checkpoint: int) -> dict[str, int] | None:
+        calls = self._calls[checkpoint:]
+        if not calls:
+            return {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+        if any(usage is None for usage in calls):
+            return None
+        return {
+            key: sum(usage[key] for usage in calls if usage is not None)
+            for key in ("input_tokens", "output_tokens", "total_tokens")
+        }
+
+
+@contextmanager
+def track_token_usage():
+    tracker = TokenUsageTracker()
+    token = _token_usage_tracker.set(tracker)
+    try:
+        yield tracker
+    finally:
+        _token_usage_tracker.reset(token)
+
+
+def _record_token_usage(usage: dict[str, int] | None) -> None:
+    tracker = _token_usage_tracker.get()
+    if tracker is not None:
+        tracker.record(usage)
 
 
 @contextmanager
@@ -138,7 +177,10 @@ def complete_with_usage(
         if response_format is not None:
             body["response_format"] = response_format
         response = local_request(settings.local, "chat/completions", body)
-        return local_content(response), _usage_counts(response.get("usage"))
+        content = local_content(response)
+        usage = _usage_counts(response.get("usage"))
+        _record_token_usage(usage)
+        return content, usage
     api_key = _get_api_key(provider)
     if not api_key:
         details = _PROVIDERS[provider]
@@ -200,7 +242,9 @@ def complete_with_usage(
         )
     if not isinstance(content, str) or not content.strip():
         raise ValueError(f"The {_PROVIDERS[provider]['label']} returned an empty response.")
-    return content, _usage_counts(getattr(response, "usage", None))
+    usage = _usage_counts(getattr(response, "usage", None))
+    _record_token_usage(usage)
+    return content, usage
 
 
 def _usage_counts(usage: object | None) -> dict[str, int] | None:

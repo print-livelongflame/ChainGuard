@@ -28,7 +28,7 @@ from src.chat_service import (
     validate_attachment,
 )
 from src.llm_provider import list_providers, set_progress_enabled, set_provider
-from src.llm_provider import use_llm_settings
+from src.llm_provider import track_token_usage, use_llm_settings
 from src.llm_config import get_llm_settings, settings_exist
 from src.llm_settings_api import router as llm_router, refresh_provider_status
 from src.main import execute_ba_task
@@ -70,6 +70,12 @@ class AnalysisResult(DetectionResult):
     address: str | None = None
 
 
+class TokenUsage(BaseModel):
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+
+
 class Message(BaseModel):
     id: str = Field(default_factory=lambda: uuid4().hex)
     role: Literal["user", "assistant"]
@@ -78,6 +84,7 @@ class Message(BaseModel):
     attachments: list[Attachment] = Field(default_factory=list)
     assessment: AnalysisResult | None = None
     lookup: dict | None = None
+    token_usage: TokenUsage | None = None
 
 
 class ChatView(BaseModel):
@@ -282,12 +289,17 @@ def create_app():
         return find_chat(request, chat_id).view()
 
     def execute_turn(chat, prompt, attachments=()):
+        with track_token_usage() as token_usage:
+            return execute_turn_with_usage(chat, prompt, attachments, token_usage)
+
+    def execute_turn_with_usage(chat, prompt, attachments, token_usage):
         messages = []
         files = {}
         history = list(chat.history)
         seen_files = set()
         pending_assessment = None
         pending_lookup = None
+        usage_checkpoint = 0
 
         def capture_lookup(evidence, task, follow_up):
             nonlocal pending_lookup, pending_assessment
@@ -320,7 +332,7 @@ def create_app():
                             ASSESSMENT_PREFIX + pending_assessment.model_dump_json()})
 
         def respond(text, label, output):
-            nonlocal pending_assessment, pending_lookup
+            nonlocal pending_assessment, pending_lookup, usage_checkpoint
             attachments = []
             if output:
                 text = text.replace(str(output), "the attached JSON result")
@@ -342,7 +354,9 @@ def create_app():
             messages.append(Message(
                 role="assistant", text=f"{label}\n{text}" if label else text,
                 attachments=attachments, assessment=pending_assessment, lookup=pending_lookup,
+                token_usage=token_usage.since(usage_checkpoint),
             ))
+            usage_checkpoint = token_usage.checkpoint()
             pending_assessment = None
             pending_lookup = None
             return text

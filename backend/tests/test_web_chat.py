@@ -77,6 +77,36 @@ class WebChatTests(unittest.TestCase):
         self.assertEqual(assessment["assessment"]["address"], "0x" + "1" * 40)
         self.assertIsNone(plain["assessment"])
 
+    def test_reply_includes_provider_reported_token_usage(self):
+        from types import SimpleNamespace
+
+        self.model.stop()
+        completion = patch(
+            "litellm.completion",
+            return_value=SimpleNamespace(
+                choices=[SimpleNamespace(
+                    message=SimpleNamespace(
+                        content=envelope(task(message="A blockchain answer")),
+                        refusal=None,
+                    ),
+                    finish_reason="stop",
+                )],
+                usage=SimpleNamespace(
+                    prompt_tokens=5, completion_tokens=6, total_tokens=11,
+                ),
+            ),
+        )
+        completion.start()
+        self.addCleanup(completion.stop)
+
+        response = self.send(self.create()).json()
+        assistant = response["messages"][-1]
+
+        self.assertEqual(
+            assistant["token_usage"],
+            {"input_tokens": 5, "output_tokens": 6, "total_tokens": 11},
+        )
+
     def test_builtin_assessment_callback_preserves_detector_fields(self):
         from src.main import run_scam_check
         from types import SimpleNamespace

@@ -9,6 +9,7 @@
 .chat-transcript .message h2 { font-size: 10px; letter-spacing: .35px; margin: 1px 0 10px; color: #b4bfd0; }
 .chat-transcript .assistant h2 { color: #4ed4e7; }
 .chat-transcript .message-text { font-size: 13px; line-height: 1.75; color: #dbe2ee; white-space: normal; }
+.chat-transcript .token-usage { margin: 12px 0 0; color: #8292a9; font-size: 10px; }
 .formatted-message p { margin: 0 0 12px; }
 .formatted-message p:last-child { margin-bottom: 0; }
 .formatted-message h3 { font-size: 14px; font-weight: 650; margin: 16px 0 10px; }

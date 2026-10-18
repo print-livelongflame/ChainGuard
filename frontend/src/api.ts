@@ -56,6 +56,7 @@ export type Message = {
   attachments: Attachment[]
   assessment?: AnalysisResult | null
   lookup?: LookupView | null
+  token_usage?: { input_tokens: number; output_tokens: number; total_tokens: number } | null
 }
 
 export type Chat = {

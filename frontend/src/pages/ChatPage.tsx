@@ -69,6 +69,11 @@ export default function ChatPage({ chat, draft, disabled, onDraft, onSend }: Pro
             {message.attachments.map(file => file.url
               ? <a className="attachment" key={file.id} href={file.url} download={file.name}><span aria-hidden="true">↓</span> Download {file.name}</a>
               : <span className="attachment" key={file.id}><span aria-hidden="true">▤</span> {file.name} included</span>)}
+            {message.role === 'assistant' && <p className="token-usage">
+              {message.token_usage
+                ? `Tokens: ${message.token_usage.total_tokens.toLocaleString()} total (${message.token_usage.input_tokens.toLocaleString()} input · ${message.token_usage.output_tokens.toLocaleString()} output)`
+                : 'Token usage unavailable'}
+            </p>}
           </div>
         </article>)}
         {chat.processing && <div className="message assistant" role="status"><div className="message-avatar"><Brand /></div><div className="message-content"><h2>ChainGuard AI</h2><p className="thinking"><span />Analysing…</p></div></div>}
