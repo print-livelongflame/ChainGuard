@@ -56,6 +56,44 @@ class WebChatTests(unittest.TestCase):
     def send(self, chat, text="What is a blockchain?"):
         return self.client.post(f"/api/chats/{chat}/messages", json={"text": text})
 
+    def test_followup_prompt_can_be_submitted_as_next_turn(self):
+        self.complete.return_value = envelope(task(followups=[{
+            "label": "Examine approval risks",
+            "prompt": "Explain how Ethereum token approvals can expose a wallet to risk.",
+        }]))
+        chat = self.create()
+        reply = self.send(chat).json()["messages"][-1]
+        self.assertEqual(len(reply["followups"]), 1)
+        prompt = reply["followups"][0]["prompt"]
+        response = self.send(chat, prompt)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["messages"][-2]["text"], prompt)
+
+    def test_lookup_followups_come_from_answering_agent(self):
+        from src.followups import AgentReply, Followup
+        address = "0x" + "2" * 40
+        self.complete.return_value = envelope(task(
+            None, request_type="address_info", chain="ethereum",
+            raw_input={"type": "address", "value": address},
+            requested_fields=["contract"],
+        ))
+        action = Followup(label="Investigate deployer activity", prompt=f"Investigate the deployer transactions for {address} on ethereum.")
+        with patch("src.api.execute_ba_task", side_effect=lambda item, reply, output, **kwargs: reply(AgentReply("Lookup complete.", [action]))):
+            reply = self.send(self.create()).json()["messages"][-1]
+        self.assertEqual(reply["followups"], [action.model_dump()])
+        for item in reply["followups"]:
+            self.assertIn(address, item["prompt"])
+            self.assertIn("ethereum", item["prompt"])
+
+    def test_no_followups_are_invented_when_agent_returns_none(self):
+        reply = self.send(self.create()).json()["messages"][-1]
+        self.assertEqual(reply["followups"], [])
+
+    def test_out_of_scope_reply_has_no_followups(self):
+        self.complete.return_value = envelope(task("Please ask a blockchain question.", in_scope=False))
+        reply = self.send(self.create()).json()["messages"][-1]
+        self.assertEqual(reply["followups"], [])
+
     def test_assessment_metadata_stays_with_its_reply(self):
         from agents.sch import ScamCheckerResponse
         result = ScamCheckerResponse(reasoning_trace="Private reasoning must stay internal",
@@ -411,6 +449,7 @@ class WebChatTests(unittest.TestCase):
             reply = self.send(self.create(), "Is this token a scam?").json()["messages"][-1]
 
         self.assertEqual(reply["attachments"][0]["name"], f"scam-check-{address}.json")
+        self.assertEqual(reply["followups"], [])
         self.assertNotIn("scam-check-", reply["text"])
 
     def test_attached_json_target_can_drive_scam_check(self):
@@ -536,6 +575,7 @@ class WebChatTests(unittest.TestCase):
                     "explanation": "Found one transaction: 0xabc. "
                     "Filename suggestion: wallet-transactions.json",
                     "filename": "../../wallet-transactions.json",
+                    "followups": [{"label": "Inspect the notable transfer", "prompt": f"Explain transaction 0xabc for {address} on ethereum in detail."}],
                 }),
                 json.dumps({"explanation": "The notable transaction is 0xabc, value 42.", "filename": "wallet-transactions.json"}),
             ],
@@ -544,6 +584,7 @@ class WebChatTests(unittest.TestCase):
             result = self.send(chat, "Show transaction history").json()
             reply = result["messages"][-1]
             self.assertEqual(reply["text"], "Found one transaction: 0xabc.")
+            self.assertEqual(reply["followups"][0]["label"], "Inspect the notable transfer")
             file = reply["attachments"][0]
             self.assertEqual(file["name"], "wallet-transactions.json")
             downloaded = self.client.get(file["url"])
@@ -555,6 +596,7 @@ class WebChatTests(unittest.TestCase):
             follow_up = self.send(chat, "What transactions are notable?").json()["messages"][-1]
             self.assertIn("0xabc", follow_up["text"])
             self.assertEqual(follow_up["attachments"], [])
+            self.assertEqual(follow_up["followups"], [])
             fetcher.assert_called_once()
             evidence = json.loads(investigator.call_args.kwargs["messages"][-1]["content"])
             self.assertEqual(evidence["lookups"][0]["tx_history"][0]["hash"], "0xabc")

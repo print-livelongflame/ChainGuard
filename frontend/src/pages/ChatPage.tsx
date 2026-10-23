@@ -15,7 +15,7 @@ const suggestions = [
 
 type Props = {
   chat: Chat | undefined; draft: string; disabled: boolean
-  onDraft: (value: string) => void; onSend: (attachment?: InputAttachment) => Promise<boolean>
+  onDraft: (value: string) => void; onSend: (attachment?: InputAttachment, prompt?: string) => Promise<boolean>
 }
 
 export default function ChatPage({ chat, draft, disabled, onDraft, onSend }: Props) {
@@ -74,6 +74,10 @@ export default function ChatPage({ chat, draft, disabled, onDraft, onSend }: Pro
                 ? `Tokens: ${message.token_usage.total_tokens.toLocaleString()} total (${message.token_usage.input_tokens.toLocaleString()} input · ${message.token_usage.output_tokens.toLocaleString()} output)`
                 : 'Token usage unavailable'}
             </p>}
+            {message.role === 'assistant' && !!message.followups?.length && <div className="followups" role="group" aria-label="Suggested next steps">
+              <p>Suggested next steps</p>
+              <div>{message.followups.map(item => <button type="button" key={item.prompt} disabled={disabled || !!chat.processing} title={item.prompt} onClick={() => { void onSend(undefined, item.prompt) }}>{item.label}<span aria-hidden="true"> →</span></button>)}</div>
+            </div>}
           </div>
         </article>)}
         {chat.processing && <div className="message assistant" role="status"><div className="message-avatar"><Brand /></div><div className="message-content"><h2>ChainGuard AI</h2><p className="thinking"><span />Analysing…</p></div></div>}

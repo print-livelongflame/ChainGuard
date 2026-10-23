@@ -3,6 +3,7 @@ import json
 import re
 from src.detector_config import load_detector_config, detector_metadata
 from src.llm_provider import complete
+from src.followups import Followup, FOLLOWUP_INSTRUCTIONS
 
 from typing import Literal
 
@@ -32,6 +33,7 @@ class BAOutput(BaseModel):
     requested_fields: list[Literal["contract", "tx_history", "tokens", "liquidity"]]
     message: str | None
     use_saved_lookup: bool = False
+    followups: list[Followup] = Field(default_factory=list, max_length=2)
 
     @model_validator(mode="after")
     def require_direct_response(self):
@@ -369,7 +371,10 @@ def ask_llm(prompt: str, history: list[dict[str, str]] | None = None) -> str:
         messages=[
             {
                 "role": "system",
-                "content": SYSTEM_PROMPT + "\nTrusted application detector configuration:\n"
+                "content": SYSTEM_PROMPT + FOLLOWUP_INSTRUCTIONS
+                + "\nOnly generate followups for a final in-scope general_question answer. "
+                "For routed lookups and scam checks return []; the answering agent decides after seeing the evidence.\n"
+                + "\nTrusted application detector configuration:\n"
                 + json.dumps(metadata)
                 + "\nFor lookup tasks, leave message null unless clarification is needed."
             },

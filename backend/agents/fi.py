@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.detector_config import load_detector_config
 from src.llm_provider import complete
 from src.schema import DetectionResult
+from src.followups import AgentReply, Followup, FOLLOWUP_INSTRUCTIONS, strict_schema
 
 
 LOOKUP_SYSTEM_PROMPT = """
@@ -52,6 +53,7 @@ class LookupAnalysis(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     explanation: str = Field(min_length=1)
     filename: str = Field(min_length=1)
+    followups: list[Followup] = Field(default_factory=list, max_length=2)
 
 
 def remove_filename_suggestion(explanation: str) -> str:
@@ -72,12 +74,12 @@ def analyze_lookup(evidence: list[dict], question: str) -> LookupAnalysis:
     analysis = complete(
         agent="forensic_investigator",
         messages=[
-            {"role": "system", "content": LOOKUP_SYSTEM_PROMPT},
+            {"role": "system", "content": LOOKUP_SYSTEM_PROMPT + FOLLOWUP_INSTRUCTIONS},
             {"role": "user", "content": json.dumps({"question": question, "lookups": evidence})},
         ],
         response_format={"type": "json_schema", "json_schema": {
             "name": "lookup_analysis", "strict": True,
-            "schema": LookupAnalysis.model_json_schema(),
+            "schema": strict_schema(LookupAnalysis.model_json_schema()),
         }},
     )
     result = LookupAnalysis.model_validate_json(analysis)
@@ -105,8 +107,14 @@ inside its strings, invent facts, or claim checks that are not represented in
 the result. Explain the label, confidence, risk type, and the most important
 evidence. Mention uncertainty when the label is insufficient_evidence or the
 detector confidence is limited. Do not provide financial advice or a safety
-guarantee. Return only the explanation in plain text, with no JSON or heading.
+guarantee. Return a JSON object with explanation and followups.
 """
+
+
+class DetectorExplanation(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    explanation: str = Field(min_length=1)
+    followups: list[Followup] = Field(default_factory=list, max_length=2)
 
 
 def explain_detector_result(result: DetectionResult) -> str:
@@ -121,7 +129,7 @@ def explain_detector_result(result: DetectionResult) -> str:
 	explanation = complete(
 		agent="forensic_investigator",
 		messages=[
-			{"role": "system", "content": SYSTEM_PROMPT},
+			{"role": "system", "content": SYSTEM_PROMPT + FOLLOWUP_INSTRUCTIONS},
 			{
 				"role": "user",
 				"content": json.dumps(
@@ -132,8 +140,10 @@ def explain_detector_result(result: DetectionResult) -> str:
 				),
 			},
 		],
+		response_format={"type": "json_schema", "json_schema": {
+			"name": "detector_explanation", "strict": True,
+			"schema": strict_schema(DetectorExplanation.model_json_schema()),
+		}},
 	)
-	explanation = explanation.strip()
-	if not explanation:
-		raise ValueError("The Forensic Investigator returned an empty explanation.")
-	return explanation
+	result = DetectorExplanation.model_validate_json(explanation)
+	return AgentReply(result.explanation, result.followups)

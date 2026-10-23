@@ -77,7 +77,9 @@ def test_forensic_lookup_does_not_set_an_output_token_cap(monkeypatch):
 
 
 def test_forensic_detector_explanation_does_not_set_an_output_token_cap(monkeypatch):
-    completion = MagicMock(return_value="The detector found limited evidence.")
+    completion = MagicMock(return_value=json.dumps({
+        "explanation": "The detector found limited evidence.", "followups": [],
+    }))
     monkeypatch.setattr(fi, "complete", completion)
     monkeypatch.setattr(
         fi,

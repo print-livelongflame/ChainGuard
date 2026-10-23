@@ -181,8 +181,8 @@ function App() {
   const draftKey = selected ?? 'welcome'
   const draft = drafts[draftKey] ?? ''
 
-  async function send(attachment?: InputAttachment): Promise<boolean> {
-    const text = draft.trim()
+  async function send(attachment?: InputAttachment, prompt?: string): Promise<boolean> {
+    const text = (prompt ?? draft).trim()
     const originKey = draftKey
     if ((!text && !attachment) || !ready || creatingRef.current || active?.processing || configurationError || submitting.current.has(originKey)) return false
     submitting.current.add(originKey)
@@ -193,7 +193,7 @@ function App() {
       const id = chat.id
       submitting.current.add(id)
       setNotice('')
-      setDrafts(current => ({ ...current, [originKey]: '' }))
+      if (prompt === undefined) setDrafts(current => ({ ...current, [originKey]: '' }))
       updateChat({ ...chat, processing: true, messages: [...chat.messages, {
         id: `pending-${id}`, role: 'user', text, created_at: new Date().toISOString(),
         attachments: attachment ? [{ id: `pending-file-${id}`, name: attachment.name, url: null }] : [],

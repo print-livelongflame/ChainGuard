@@ -94,3 +94,10 @@
 .full-explanation { border-top: 1px solid #243044; padding-top: 12px; margin-top: 16px; }
 .full-explanation summary { cursor: pointer; color: #7dc9dc; font-size: 11px; margin-bottom: 10px; }
 @media (max-width: 640px) { .lookup-result > h3 { font-size: 17px; } .transaction-table th, .transaction-table td { padding: 11px; } .evidence-card { padding: 12px; gap: 10px; } }
+.followups { margin-top: 16px; }
+.followups > p { color: #98a9bf; font-size: 11px; margin: 0 0 8px; }
+.followups > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.followups button { border: 1px solid #36556b; border-radius: 16px; background: #182633; color: #8cdeeb; padding: 8px 12px; font: inherit; font-size: 12px; cursor: pointer; text-align: left; }
+.followups button:hover:not(:disabled) { background: #243c4e; border-color: #6dccde; }
+.followups button:focus-visible { outline: 2px solid #6dccde; outline-offset: 3px; }
+.followups button:disabled { opacity: .45; cursor: not-allowed; }

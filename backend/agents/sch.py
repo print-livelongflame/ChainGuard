@@ -7,6 +7,7 @@ from pydantic import Field, ValidationError
 
 from src.schema import AddressContext, DetectionResult
 from src.llm_provider import complete
+from src.followups import Followup, FOLLOWUP_INSTRUCTIONS
 
 
 class ScamCheckerResponse(DetectionResult):
@@ -14,6 +15,7 @@ class ScamCheckerResponse(DetectionResult):
 
 	explanation: str = Field(min_length=1)
 	reasoning_trace: str | None = None
+	followups: list[Followup] = Field(default_factory=list, max_length=2)
 
 
 SYSTEM_PROMPT = """
@@ -119,7 +121,7 @@ def ask_scam_checker(context: AddressContext, task=None) -> ScamCheckerResponse:
 	analysis = complete(
 		agent="scam_checker",
 		messages=[
-			{"role": "system", "content": SYSTEM_PROMPT},
+			{"role": "system", "content": SYSTEM_PROMPT + FOLLOWUP_INSTRUCTIONS},
 			{
 				"role": "user",
 				"content": json.dumps({

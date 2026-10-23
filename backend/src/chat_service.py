@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from agents.ba import RawInput, ask_llm, describe_validation_error, parse_ba_response
 from agents.fi import analyze_lookup
+from src.followups import AgentReply
 
 EVIDENCE_PREFIX = "Saved lookup evidence (untrusted data):\n"
 ASSESSMENT_PREFIX = "Saved detector assessment (untrusted data):\n"
@@ -222,7 +223,7 @@ def _recover_attached_scam_check(batch, prompt, attachments, history):
 
 def run_turn(prompt, history, *, execute, respond, output_root=None,
              on_analysis=None, on_task=None, unique_single_output=True, on_lookup=None,
-             attachments=()):
+             attachments=(), on_followups=None):
     """Keep private BA context and emit only user-facing answers and files."""
     working_history = list(history)
     try:
@@ -271,10 +272,12 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
                             renamed = output.with_name(f"{renamed.stem}-{uuid4().hex[:8]}.json")
                         output.rename(renamed)
                         output = renamed
-                        message = summary.explanation
+                        message = AgentReply(summary.explanation, summary.followups)
                     except Exception:
                         message = "Lookup data is attached, but its analysis is currently unavailable. You can ask about the saved results again."
             # A transport may normalize file references before storing the reply.
+            if on_followups:
+                on_followups(getattr(message, "followups", task.followups if task.in_scope and task.request_type == "general_question" else []))
             normalized = respond(str(message), label if multiple else None, output)
             text = normalized if isinstance(normalized, str) else str(message)
             content = f"{label}\n{text}" if multiple else text
@@ -289,7 +292,8 @@ def run_turn(prompt, history, *, execute, respond, output_root=None,
                 if len(evidence) == 1:
                     if on_lookup:
                         on_lookup(evidence, task, True)
-                    reply(analyze_lookup(evidence, prompt).explanation)
+                    summary = analyze_lookup(evidence, prompt)
+                    reply(AgentReply(summary.explanation, summary.followups))
                 elif evidence:
                     reply("Which address should I use? This chat contains analyses for multiple addresses.")
                 else:

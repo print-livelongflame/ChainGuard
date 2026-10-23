@@ -692,7 +692,8 @@ def run_scam_check(task, context_file, respond, diagnostics=True, on_assessment=
         )
     if on_assessment:
         on_assessment(assessment, "ChainGuard Scam Checker", None)
-    respond(assessment.explanation)
+    from src.followups import AgentReply
+    respond(AgentReply(assessment.explanation, getattr(assessment, "followups", [])))
     return assessment
 
 

@@ -33,6 +33,7 @@ from src.llm_config import get_llm_settings, settings_exist
 from src.llm_settings_api import router as llm_router, refresh_provider_status
 from src.main import execute_ba_task
 from src.schema import DetectionResult
+from src.followups import Followup
 from src.api_key_config import (
     apply_api_key_updates,
     get_api_key_status,
@@ -84,6 +85,7 @@ class Message(BaseModel):
     attachments: list[Attachment] = Field(default_factory=list)
     assessment: AnalysisResult | None = None
     lookup: dict | None = None
+    followups: list[Followup] = Field(default_factory=list)
     token_usage: TokenUsage | None = None
 
 
@@ -299,7 +301,12 @@ def create_app():
         seen_files = set()
         pending_assessment = None
         pending_lookup = None
+        pending_followups = []
         usage_checkpoint = 0
+
+        def capture_followups(items):
+            nonlocal pending_followups
+            pending_followups = items
 
         def capture_lookup(evidence, task, follow_up):
             nonlocal pending_lookup, pending_assessment
@@ -332,7 +339,7 @@ def create_app():
                             ASSESSMENT_PREFIX + pending_assessment.model_dump_json()})
 
         def respond(text, label, output):
-            nonlocal pending_assessment, pending_lookup, usage_checkpoint
+            nonlocal pending_assessment, pending_lookup, pending_followups, usage_checkpoint
             attachments = []
             if output:
                 text = text.replace(str(output), "the attached JSON result")
@@ -354,11 +361,13 @@ def create_app():
             messages.append(Message(
                 role="assistant", text=f"{label}\n{text}" if label else text,
                 attachments=attachments, assessment=pending_assessment, lookup=pending_lookup,
+                followups=pending_followups,
                 token_usage=token_usage.since(usage_checkpoint),
             ))
             usage_checkpoint = token_usage.checkpoint()
             pending_assessment = None
             pending_lookup = None
+            pending_followups = []
             return text
 
         if prompt.casefold() == "change ai":
@@ -372,6 +381,7 @@ def create_app():
                     task, reply, output, diagnostics=False, on_assessment=capture_assessment),
                 respond=respond, output_root=app.state.output_root / chat.id,
                 on_lookup=capture_lookup,
+                on_followups=capture_followups,
                 attachments=attachments,
             )
         if not messages:
