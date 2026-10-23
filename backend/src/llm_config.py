@@ -15,6 +15,13 @@ CONFIG_PATH = Path(os.environ.get("CHAINGUARD_LLM_CONFIG_PATH", Path(__file__).r
 CONFIG_LOCK = RLock()
 
 
+class ProviderModels(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    openai: str = Field(default="openai/gpt-4.1-mini", min_length=1, max_length=200, pattern=r"^\S+$")
+    claude: str = Field(default="anthropic/claude-sonnet-4-5", min_length=1, max_length=200, pattern=r"^\S+$")
+    gemini: str = Field(default="gemini/gemini-3.6-flash", min_length=1, max_length=200, pattern=r"^\S+$")
+
+
 class Assignments(BaseModel):
     model_config = ConfigDict(extra="forbid")
     business_analyser: Provider = "openai"
@@ -75,6 +82,7 @@ class LocalUpdate(LocalConfig):
 class LLMConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     assignments: Assignments = Field(default_factory=Assignments)
+    models: ProviderModels = Field(default_factory=ProviderModels)
     agents: AgentSettings = Field(default_factory=AgentSettings)
     token_limits: AgentTokenLimits = Field(default_factory=AgentTokenLimits)
     local: LocalConfig = Field(default_factory=LocalConfig)
@@ -187,6 +195,7 @@ def public_settings(config, *, probe=True):
     local.update(api_key_configured=bool(config.local.api_key), connected=connected, connection_error=error)
     return {
         "assignments": config.assignments.model_dump(),
+        "models": config.models.model_dump(),
         "agents": config.agents.model_dump(),
         "token_limits": config.token_limits.model_dump(),
         "local": local,

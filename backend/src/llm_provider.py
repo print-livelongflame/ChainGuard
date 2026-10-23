@@ -4,7 +4,7 @@ import os
 from contextlib import contextmanager
 from contextvars import ContextVar
 
-from src.llm_config import AgentSettings, AgentTokenLimits, local_request, local_content
+from src.llm_config import AgentSettings, AgentTokenLimits, ProviderModels, local_request, local_content
 from src.prompt_strategies import apply_strategy
 
 from src.api_key_config import get_api_key
@@ -18,19 +18,16 @@ console = Console()
 _PROVIDERS = {
     "openai": {
         "label": "OpenAI",
-        "model": "openai/gpt-4.1-mini",
         "environment_keys": ("OPENAI_API_KEY",),
         "config_key": "OPENAI_API_KEY",
     },
     "gemini": {
         "label": "Gemini",
-        "model": "gemini/gemini-3.6-flash",
         "environment_keys": ("GEMINI_API_KEY",),
         "config_key": "GEMINI_API_KEY",
     },
     "claude": {
         "label": "Claude",
-        "model": "anthropic/claude-sonnet-4-5",
         "environment_keys": ("ANTHROPIC_API_KEY", "CLAUDE_API_KEY"),
         "config_key": "CLAUDE_API_KEY",
     },
@@ -196,9 +193,11 @@ def complete_with_usage(
         raise ValueError("Install the LLM provider dependency with: pip install -r requirements.txt") from error
 
     try:
+        models = settings.models if settings else ProviderModels()
+
         def send_request():
             options = {
-                "model": _PROVIDERS[provider]["model"],
+                "model": getattr(models, provider),
                 "messages": messages,
                 "api_key": api_key,
                 "response_format": response_format,

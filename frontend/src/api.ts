@@ -27,6 +27,7 @@ export type ApiKeySettings = {
 
 export type LLMProvider = 'openai' | 'claude' | 'gemini' | 'local'
 export type AgentAssignments = Record<'business_analyser' | 'scam_checker' | 'forensic_investigator', LLMProvider>
+export type ProviderModels = Record<'openai' | 'claude' | 'gemini', string>
 export type LocalLLM = {
   enabled: boolean; name: string; base_url: string; model: string; timeout_seconds: number
   api_key_configured: boolean; connected: boolean; connection_error: string | null
@@ -35,7 +36,7 @@ export type PromptStrategy = 'zero_shot' | 'chain_of_thought' | 'few_shot'
 export type AgentTuning = { prompt_strategy: PromptStrategy; temperature: number }
 export type AgentSettings = Record<keyof AgentAssignments, AgentTuning>
 export type AgentTokenLimits = Record<keyof AgentAssignments, number | null>
-export type LLMSettings = { assignments: AgentAssignments; agents: AgentSettings; token_limits: AgentTokenLimits; local: LocalLLM }
+export type LLMSettings = { assignments: AgentAssignments; models: ProviderModels; agents: AgentSettings; token_limits: AgentTokenLimits; local: LocalLLM }
 
 export type AnalysisResult = {
   label: 'scam' | 'not_scam' | 'insufficient_evidence'

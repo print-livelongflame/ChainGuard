@@ -175,6 +175,8 @@ Save a key for any additional cloud provider you want to use:
 
 In **Agent providers**, choose a configured provider for the Business Analyser, Scam Checker, and Forensic Investigator, then click **Save Agent Providers**. Each role can use the same or a different provider. To use **Local Hosted LLM**, first complete the [local model guide](#2-use-the-local-llm-template) below.
 
+Under **Cloud provider models**, enter the exact LiteLLM model ID for OpenAI, Claude, or Gemini, then click **Save Provider Models**. For example, set OpenAI to `openai/gpt-5` to use GPT-5 instead of the default `openai/gpt-4.1-mini`. Model IDs are stored in the backend settings and shared across all users; saved choices apply to new messages, while already-running responses keep their original settings.
+
 For a fresh installation, `CHAINGUARD_AI_PROVIDER` optionally changes the initial cloud provider (`openai`, `gemini`, or `claude`). It defaults to `openai`. Set it in Docker's `.env`, or in the native backend terminal before startup. Saved agent assignments take precedence over this initial value.
 
 ### Change prompt strategies and temperatures

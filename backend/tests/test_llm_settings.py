@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 from src.api import create_app
 from src.llm_config import (LLMConfig, LocalConfig, Assignments, get_llm_settings,
-    local_request, test_local as probe_local)
+    ProviderModels, local_request, test_local as probe_local)
 from src.llm_provider import complete, use_llm_settings
 from test_web_chat import task, envelope
 
@@ -55,7 +55,7 @@ class LLMSettingsTests(unittest.TestCase):
             if username:
                 self.login(username)
             with patch("src.llm_settings_api.test_local") as probe:
-                for path, body in [("", None), ("/local/test", {}), ("/local", {}), ("/assignments", {}), ("/agents", {}), ("/token-limits", {})]:
+                for path, body in [("", None), ("/local/test", {}), ("/local", {}), ("/assignments", {}), ("/models", {}), ("/agents", {}), ("/token-limits", {})]:
                     response = self.client.get("/api/settings/llm" + path) if body is None else self.client.post("/api/settings/llm" + path, json=body)
                     self.assertEqual(response.status_code, status)
                 probe.assert_not_called()
@@ -78,6 +78,34 @@ class LLMSettingsTests(unittest.TestCase):
         restored = get_llm_settings()
         self.assertEqual(restored.assignments.business_analyser, "claude")
         self.assertEqual(restored.agents.scam_checker.prompt_strategy, "chain_of_thought")
+        self.assertEqual(restored.models, ProviderModels())
+
+    def test_provider_models_are_admin_configurable_validated_and_persisted(self):
+        self.login()
+        defaults = {
+            "openai": "openai/gpt-4.1-mini",
+            "claude": "anthropic/claude-sonnet-4-5",
+            "gemini": "gemini/gemini-3.6-flash",
+        }
+        self.assertEqual(self.client.get("/api/settings/llm").json()["models"], defaults)
+        models = {
+            "openai": "openai/gpt-5",
+            "claude": "anthropic/claude-opus-4-1",
+            "gemini": "gemini/gemini-2.5-pro",
+        }
+        response = self.client.post("/api/settings/llm/models", json=models)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["models"], models)
+        self.assertEqual(get_llm_settings().models.model_dump(), models)
+        self.assertEqual(self.client.get("/api/settings/llm").json()["models"], models)
+
+        for invalid in [
+            {"openai": "", "claude": defaults["claude"], "gemini": defaults["gemini"]},
+            {"openai": "gpt 5", "claude": defaults["claude"], "gemini": defaults["gemini"]},
+            {"openai": "x" * 201, "claude": defaults["claude"], "gemini": defaults["gemini"]},
+            {**models, "unexpected": "model"},
+        ]:
+            self.assertEqual(self.client.post("/api/settings/llm/models", json=invalid).status_code, 422)
 
     def test_admin_token_limits_default_unlimited_persist_and_validate(self):
         self.login()

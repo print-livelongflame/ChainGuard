@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from src import llm_provider
-from src.llm_config import AgentTokenLimits, LLMConfig
+from src.llm_config import AgentTokenLimits, LLMConfig, ProviderModels
 from src.prompt_strategies import apply_strategy
 
 
@@ -67,6 +67,18 @@ def test_complete_with_usage_returns_provider_token_counts(monkeypatch):
         response_format=None,
         temperature=0,
     )
+
+
+def test_saved_provider_model_is_used_for_cloud_completion(monkeypatch):
+    completion = MagicMock(return_value=model_response("Using configured model"))
+    monkeypatch.setattr("litellm.completion", completion)
+    settings = LLMConfig(models=ProviderModels(openai="openai/gpt-5"))
+
+    with llm_provider.use_llm_settings(settings):
+        result = llm_provider.complete([{"role": "user", "content": "Hello"}])
+
+    assert result == "Using configured model"
+    assert completion.call_args.kwargs["model"] == "openai/gpt-5"
 
 
 def test_token_usage_tracker_sums_provider_usage_between_replies(monkeypatch):

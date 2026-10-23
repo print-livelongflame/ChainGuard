@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.auth import require_admin
-from src.llm_config import (AgentSettings, AgentTokenLimits, Assignments, LocalUpdate, CONFIG_LOCK, get_llm_settings,
+from src.llm_config import (AgentSettings, AgentTokenLimits, Assignments, ProviderModels, LocalUpdate, CONFIG_LOCK, get_llm_settings,
     save_llm_settings, merge_local, test_local, check_local, public_settings)
 from src.llm_provider import list_providers, provider_available
 
@@ -27,6 +27,18 @@ def save_token_limits(body: AgentTokenLimits):
         with CONFIG_LOCK:
             config = get_llm_settings()
             config.token_limits = body
+            save_llm_settings(config)
+        return public_settings(config, probe=False)
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
+
+
+@router.post("/models")
+def save_provider_models(body: ProviderModels):
+    try:
+        with CONFIG_LOCK:
+            config = get_llm_settings()
+            config.models = body
             save_llm_settings(config)
         return public_settings(config, probe=False)
     except ValueError as error:
