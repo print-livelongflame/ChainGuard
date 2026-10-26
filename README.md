@@ -1,5 +1,7 @@
 ﻿# ChainGuard
 
+![ChainGuard demo](frontend/public/chainguard-example.gif)
+
 ChainGuard is a local web application for asking blockchain questions, looking up Ethereum addresses, and investigating possible scams. It combines blockchain data with AI explanations and can optionally send evidence to your own external detector. Findings depend on the available evidence and model; they are not guarantees that a token is safe or fraudulent.
 
 ## Setup
