@@ -124,7 +124,7 @@ def main():
     if args.dry_run:
         return
     args.output.mkdir(parents=True, exist_ok=False)
-    model = settings.local.model if provider == "local" else llm_provider._PROVIDERS[provider]["model"]
+    model = settings.local.model if provider == "local" else getattr(settings.models, provider)
     manifest = {"started_utc": datetime.now(timezone.utc).isoformat(), "provider": provider, "model": model,
         "temperature": args.temperature, "repeats": args.repeats, "seed": args.seed,
         "cases_sha256": hashlib.sha256(json.dumps(cases, sort_keys=True).encode()).hexdigest(),

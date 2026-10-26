@@ -42,6 +42,7 @@ def test_failed_trials_remain_in_denominator_and_review_is_blind(tmp_path):
 
 def test_live_runner_uses_all_strategies_without_modifying_saved_settings(tmp_path, monkeypatch):
     settings = LLMConfig(token_limits=AgentTokenLimits(scam_checker=321))
+    settings.models.openai = 'openai/test-custom-model'
     before = settings.model_dump()
     monkeypatch.setattr(run, 'get_llm_settings', lambda: settings)
     monkeypatch.setattr(run, 'CASES', [next(c for c in CASES if c['id'] == 'sch-empty')])
@@ -60,6 +61,8 @@ def test_live_runner_uses_all_strategies_without_modifying_saved_settings(tmp_pa
     run.main()
     assert set(observed) == set(run.STRATEGIES)
     assert settings.model_dump() == before
+    manifest = json.loads((directory / 'manifest.json').read_text())
+    assert manifest['model'] == 'openai/test-custom-model'
     rows = [json.loads(line) for line in (directory / 'trials.jsonl').read_text().splitlines()]
     assert len(rows) == 3 and all(row['valid'] for row in rows)
     assert all(row['max_tokens'] == 321 for row in rows)
